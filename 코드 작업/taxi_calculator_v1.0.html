@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 개인택시 준비자금 계산기 [대시보드형 v1.1] | 2026-07-08 | 가이드, 프리셋2개+이름, 월할부/분기보험, 견적비교 -->
+<!-- 개인택시 준비자금 계산기 [대시보드형 v1.1] | 2026-07-08 | 가이드, 프리셋2개+이름, 월할부, 보험1년, 견적비교 -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -243,7 +243,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="sr big"><span class="sl">초기 소요비용</span><span class="sv"><span id="sumInitial">0</span>원</span></div>
     <div class="sr big2"><span class="sl">월 납입금액 <small id="sumMonthsLbl"></small></span><span class="sv"><span id="sumMonthly">0</span>원</span></div>
     <hr>
-    <div class="sr" id="rowQuarter" style="display:none;"><span class="sl">분기 납입 <small>(공제보험)</small></span><span class="sv"><span id="sumQuarter">0</span>원</span></div>
     <div class="sr"><span class="sl">차량 할부원금</span><span class="sv"><span id="sumInst">0</span>원</span></div>
     <div class="sr"><span class="sl">총 예상 비용 <small>(1년 기준)</small></span><span class="sv"><span id="sumTotal">0</span>원</span></div>
   </div>
@@ -446,13 +445,12 @@ function workSubtotalOf(work,car){
 }
 
 /* 핵심: 상태(st) → 모든 금액 항목을 한 번에 산출
-   - 공제보험: 1년치를 분기(÷4)로 납입 → 초기비용 제외, '분기 납입'
-   - 사보험:   1년치를 초기비용에 포함
+   - 공제보험·사보험: 1년치를 초기비용에 포함
    - 차량 할부원금: 월(÷개월수)로 납입 → 초기비용 제외, '월 납입'
 */
 function computeBreakdown(st){
   const b={license:0,carFull:0,carInst:0,carUpfront:0,work:0,combine:0,
-    insType:'',insAnnual:0,insInitial:0,insQuarter:0,months:0,monthly:0,
+    insType:'',insAnnual:0,insInitial:0,months:0,monthly:0,
     initial:0,grand:0};
   b.license=licenseTotal();
   if(st.car){
@@ -466,14 +464,13 @@ function computeBreakdown(st){
     b.insType=st.ins.type;
     b.insAnnual=insAnnualOf(st.ins,st.car);
     b.combine=combineOf(st.ins);
-    if(st.ins.type==='공제')b.insQuarter=Math.round(b.insAnnual/4);   // 분기 납입
-    else b.insInitial=b.insAnnual;                                    // 사보험 1년치 초기
+    b.insInitial=b.insAnnual;   // 공제·사보험 모두 1년치를 초기비용에 반영
   }
   if(st.work)b.work=workSubtotalOf(st.work,st.car);
-  // 초기 소요비용 = 면허 + 차량 초기납 + 작업비 + 조합가입 + 사보험(1년)
+  // 초기 소요비용 = 면허 + 차량 초기납 + 작업비 + 조합가입 + 보험(1년)
   b.initial=b.license+b.carUpfront+b.work+b.combine+b.insInitial;
-  // 총 예상 비용(1년 기준) = 초기 + 차량 할부원금 + 공제보험 1년
-  b.grand=b.initial+b.carInst+(b.insType==='공제'?b.insAnnual:0);
+  // 총 예상 비용(1년 기준) = 초기 + 차량 할부원금
+  b.grand=b.initial+b.carInst;
   return b;
 }
 
@@ -504,7 +501,7 @@ function renderAll(){
     const insV=b.insAnnual+b.combine;
     ir.textContent=insV?comma(insV)+'원':'개별조회';
     let d=S.ins.type;
-    if(S.ins.type==='공제')d+=' · 분기납 + 조합';
+    if(S.ins.type==='공제')d+=' + 조합';
     else if(S.ins.combine)d+=' + 조합가입';
     id_.textContent=d;
   }else{ii.classList.add('empty');ii.classList.remove('done');ir.textContent='선택';id_.textContent='보험 유형을 선택하세요';}
@@ -524,14 +521,12 @@ function renderAll(){
 
   // 총액/요약
   el('grandTotal').textContent=comma(b.grand);
-  el('actualLine').innerHTML='초기 <b style="color:#ffc14d">'+comma(b.initial)+'</b>원 · 월 <b style="color:#7fd6a0">'+comma(b.monthly)+'</b>원'+(b.insQuarter?' · 분기 '+comma(b.insQuarter)+'원':'');
+  el('actualLine').innerHTML='초기 <b style="color:#ffc14d">'+comma(b.initial)+'</b>원 · 월 <b style="color:#7fd6a0">'+comma(b.monthly)+'</b>원';
   el('sumInitial').textContent=comma(b.initial);
   el('sumMonthly').textContent=comma(b.monthly);
   el('sumMonthsLbl').textContent=b.monthly?'('+b.months+'개월)':'';
   el('sumInst').textContent=comma(b.carInst);
   el('sumTotal').textContent=comma(b.grand);
-  if(b.insQuarter){el('rowQuarter').style.display='';el('sumQuarter').textContent=comma(b.insQuarter);}
-  else el('rowQuarter').style.display='none';
 
   renderCoach();
 }
@@ -566,7 +561,7 @@ const TIPS={};
 TIPS.pay='<b>일시불</b> 전액 현금 납부<br><b>전액할부</b> 차량값 전부 할부<br><b>일부선납</b> 일부 현금 + 나머지 할부';
 TIPS.months='할부 원금을 몇 개월로 나눠 낼지 선택합니다. 여기서는 이자 없이 원금만 나눈 예상액입니다.';
 TIPS.trim='<b>영업용(2.4%)</b> 개인택시 등록 · <b>일반용(7%)</b> 일반 승용 등록. 수입차 취등록세율 차이입니다.';
-TIPS.gongje='<b>공제보험</b> 전국개인택시공제조합. 1년 보험료를 <b>분기(3개월)</b>마다 나눠 납부하며 조합 가입이 필수입니다.';
+TIPS.gongje='<b>공제보험</b> 전국개인택시공제조합. 1년치 보험료를 <b>초기비용</b>으로 계산하며 조합 가입이 필수입니다.';
 TIPS.sabom='<b>사보험</b> 일반 손해보험사 상품. 1년치를 <b>초기비용</b>으로 한 번에 계산합니다.';
 function tip(key){toast(TIPS[key]||'',' blue');}
 
@@ -577,10 +572,9 @@ function openGuide(){
     <div class="mdesc">개인택시 준비자금을 3단계로 계산해요</div>
     <div class="guide"><span class="gt">① 항목을 눌러 입력</span>
       <b>차량 → 보험/조합 → 작업비</b> 순서로 각 카드를 눌러 입력하세요. 면허 비용은 자동으로 반영됩니다. 지금 입력할 항목은 <b style="color:var(--accent)">주황색 테두리</b>로 안내됩니다.</div>
-    <div class="guide"><span class="gt">② 결과 3가지 확인</span>
-      · <b>초기 소요비용</b> 시작할 때 한 번에 필요한 돈<br>
-      · <b>월 납입금액</b> 차량 할부를 매달 내는 금액<br>
-      · <b>분기 납입</b> 공제보험을 3개월마다 내는 금액</div>
+    <div class="guide"><span class="gt">② 결과 2가지 확인</span>
+      · <b>초기 소요비용</b> 시작할 때 한 번에 필요한 돈 (보험 1년치 포함)<br>
+      · <b>월 납입금액</b> 차량 할부를 매달 내는 금액</div>
     <div class="guide"><span class="gt">③ 저장하고 비교</span>
       서로 다른 조합을 <b>최대 2개</b>까지 저장하고, <b>‘견적 비교하기’</b>로 어떤 선택이 더 유리한지 항목별로 비교할 수 있어요. 견적 이름도 바꿀 수 있습니다.</div>
     <div class="alert info">ℹ️ 모든 금액은 서울 기준 예상치이며 실제와 차이가 있을 수 있습니다.</div>
@@ -714,19 +708,18 @@ function renderInsModal(){
   const i=S.car.idx;
   let h=`<h3>🛡 보험 / 조합</h3><div class="mdesc">${DB.carNames[i]} 기준</div>`;
   h+=`<div class="guide"><span class="gt">공제보험 vs 사보험, 뭐가 다를까요?</span>
-    · <b>공제보험</b> — 개인택시공제조합. 1년 보험료를 <b>분기(3개월)마다 나눠 납부</b>하며 조합 가입이 필수입니다.<br>
-    · <b>사보험</b> — 일반 손해보험사. <b>1년치를 초기비용</b>으로 한 번에 계산합니다.</div>`;
+    · <b>공제보험</b> — 개인택시공제조합. 조합 가입이 필수이며 <b>1년치를 초기비용</b>으로 계산합니다.<br>
+    · <b>사보험</b> — 일반 손해보험사. 가입자별 차이가 크며 <b>1년치를 초기비용</b>으로 계산합니다.</div>`;
   h+=`<div class="subtitle">보험 유형</div><div class="tog-row">
-    <button class="tog-btn${tmpIns.type==='공제'?' on':''}" onclick="selInsType('공제')">공제보험<br><small>분기 납입</small></button>
+    <button class="tog-btn${tmpIns.type==='공제'?' on':''}" onclick="selInsType('공제')">공제보험<br><small>1년치 초기</small></button>
     <button class="tog-btn${tmpIns.type==='사보험'?' on':''}" onclick="selInsType('사보험')">사보험<br><small>1년치 초기</small></button>
   </div>`;
   if(tmpIns.type==='공제'){
     const annual=DB.insurance[i]||0;
-    const quarter=annual?Math.round(annual/4):0;
     const v=(isForeign(i)||!annual)?'개별 조회 필요':won(annual);
     h+=`<div class="field" style="margin-top:14px;"><label>공제보험료 (1년) <span class="qm" onclick="tip('gongje')">?</span></label><div class="amt-disp">${v}</div></div>`;
-    if(quarter)h+=`<div class="mrow"><span class="ml">분기 납입액 (1년 ÷ 4)</span><span class="mv accent">${won(quarter)}</span></div>`;
-    h+=`<div class="alert info">ℹ️ 1년 보험료를 <b>3개월마다 분할 납부</b>합니다. 초기비용에는 포함되지 않고 '분기 납입'으로 표시됩니다.<br>전국개인택시공제조합 서울지부 기준, 자손·자차 미포함(대인Ⅰ/Ⅱ·대물5억+긴출확장형).</div>`;
+    if(annual)h+=`<div class="mrow"><span class="ml">초기비용 반영액 (1년)</span><span class="mv accent">${won(annual)}</span></div>`;
+    h+=`<div class="alert info">ℹ️ 1년치 보험료를 <b>초기비용</b>으로 계산합니다.<br>전국개인택시공제조합 서울지부 기준, 자손·자차 미포함(대인Ⅰ/Ⅱ·대물5억+긴출확장형).</div>`;
   }else if(tmpIns.type==='사보험'){
     const v=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
     const annual=insAnnualOf({type:'사보험'},S.car);
@@ -994,12 +987,11 @@ function openCompare(){
   h+=cmpMoney('차량 할부원금',A.carInst,B.carInst);
   h+=cmpMoney('작업비',A.work,B.work);
   h+=cmpMoney('조합 가입비',A.combine,B.combine);
-  if(A.insInitial||B.insInitial)h+=cmpMoney('사보험 (1년, 초기)',A.insInitial,B.insInitial);
+  if(A.insInitial||B.insInitial)h+=cmpMoney('보험료 (1년, 초기)',A.insInitial,B.insInitial);
 
   h+=`<div class="cmp-sec">🎯 최종 비교</div>`;
   h+=cmpMoney('초기 소요비용',A.initial,B.initial,{big:true,accent:true});
   h+=cmpMoney('월 납입금액',A.monthly,B.monthly,{big:true,subA:A.monthly?A.months+'개월':'일시불',subB:B.monthly?B.months+'개월':'일시불'});
-  h+=cmpMoney('분기 납입 (공제보험)',A.insQuarter,B.insQuarter);
   h+=cmpMoney('총 예상 비용 (1년)',A.grand,B.grand,{big:true});
 
   el('cmpWrap').innerHTML=h;
@@ -1030,7 +1022,7 @@ function buildReco(){
   el('recoBox').style.display='block';
   el('recoBody').innerHTML=
     '<b>'+DB.carNames[idx]+'</b> (일시불) + <b>공제보험 + 조합가입</b> + <b>블랙박스 3채널·하이패스</b><br>'+
-    '<span style="color:var(--info);font-weight:700;">초기 약 '+comma(rb.initial)+'원'+(rb.insQuarter?' · 분기 '+comma(rb.insQuarter)+'원':'')+'</span>';
+    '<span style="color:var(--info);font-weight:700;">초기 약 '+comma(rb.initial)+'원</span>';
 }
 function applyReco(){
   if(!RECO)return;
