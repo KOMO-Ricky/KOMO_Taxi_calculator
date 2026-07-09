@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 개인택시 준비자금 계산기 [대시보드형 v1.1] | 2026-07-08 | 가이드, 프리셋2개+이름, 월할부, 보험1년, 견적비교 -->
+<!-- 개인택시 준비자금 계산기 [대시보드형 v1.2-wip] | 2026-07-09 | 구성탭(초록/주황), 추천구성, 할부율, 기준일, 직접입력 -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -12,6 +12,7 @@
   --accent:#f4a017;--accent-light:#ffc14d;
   --bg:#eef1f7;--card:#fff;--text:#1a2744;--muted:#6b7a99;
   --border:#dde3f0;--success:#27ae60;--danger:#e74c3c;--info:#2980b9;
+  --green:#27ae60;--orange:#f4a017;
   --shadow:0 4px 20px rgba(26,39,68,.10);--radius:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -38,47 +39,65 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .coach.done{background:#eafaf0;border-color:#a7dcb8;color:var(--success);}
 .coach.done b{color:var(--success);}
 
-/* 프리셋 바 */
-.preset-bar{display:flex;gap:8px;padding:14px 16px 4px;}
-.preset-btn{flex:1;padding:11px 6px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:inherit;color:var(--muted);cursor:pointer;transition:.15s;position:relative;text-align:center;}
-.preset-btn.filled{border-color:var(--primary);color:var(--primary);background:#f0f4ff;}
-.preset-btn.active{border-color:var(--accent)!important;border-width:2px!important;background:#fff8ec!important;box-shadow:0 2px 10px rgba(244,160,23,.3);}
-.preset-btn.active::before{content:"✓";position:absolute;top:4px;right:8px;font-size:11px;color:var(--accent);font-weight:800;}
-.preset-btn .pn{font-size:13px;font-weight:800;display:block;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.preset-btn .pv{font-size:11px;font-weight:600;color:var(--muted);}
-.preset-actions{display:flex;gap:6px;padding:6px 16px 0;}
-.preset-actions button{flex:1;padding:9px;border-radius:10px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;}
-.pa-save{background:var(--primary);color:#fff;}
-.pa-load{background:var(--accent);color:#fff;}
-.pa-name{background:#eaf0ff;color:var(--primary);}
-.pa-clear{background:#eee;color:var(--muted);}
-.compare-btn{display:block;width:calc(100% - 32px);margin:12px 16px 0;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#243560,#1a2744);color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(26,39,68,.25);transition:.15s;}
-.compare-btn:disabled{background:#c9d1e2;color:#fff;box-shadow:none;cursor:not-allowed;}
-.compare-btn .cbsub{display:block;font-size:11px;font-weight:600;color:#aeb9d4;margin-top:3px;}
-
-/* 추천 조합 */
+/* 추천 구성 (상단 블록) */
 .reco{margin:16px 16px 0;background:linear-gradient(135deg,#fff8ec,#fff);border:1.5px solid var(--accent-light);border-radius:16px;padding:14px 16px;}
 .reco-h{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#b8770a;margin-bottom:8px;}
 .reco-body{font-size:12px;color:var(--text);line-height:1.7;}
 .reco-body b{color:var(--primary);}
-.reco-apply{margin-top:10px;width:100%;padding:9px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.reco-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.reco-note b{color:#b8770a;}
+
+/* ===== 구성 선택 탭 + 감싸기 박스 (예시 A+B 혼합) ===== */
+.cfgwrap{padding:0 16px;margin-top:16px;}
+.cfg-row{display:flex;gap:8px;align-items:flex-end;}
+.cfg-tab{flex:1;border:2px solid var(--border);border-bottom:none;border-radius:14px 14px 0 0;background:#f7f9fc;padding:10px 8px 12px;cursor:pointer;text-align:center;transition:.15s;position:relative;}
+.cfg-tab .cn{font-size:13px;font-weight:800;color:var(--muted);}
+.cfg-tab .cv{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-top:2px;}
+.cfg-tab .cf-acts{display:flex;gap:5px;margin-top:9px;}
+.cfg-tab .cf-acts button{flex:1;font-size:10px;font-weight:700;padding:6px 2px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;line-height:1.2;}
+.cfg-tab.g{border-color:var(--green);background:#eafaf0;padding-bottom:14px;z-index:2;}
+.cfg-tab.g .cn{color:var(--green);}
+.cfg-tab.g .cf-acts button{border-color:#a7dcb8;color:var(--green);}
+.cfg-tab.g .cf-acts button.rec{background:var(--green);color:#fff;border-color:var(--green);}
+.cfg-tab.o{border-color:var(--orange);background:#fff8ec;padding-bottom:14px;z-index:2;}
+.cfg-tab.o .cn{color:#b8770a;}
+.cfg-tab.o .cf-acts button{border-color:#f6d79a;color:#b8770a;}
+.cfg-tab.o .cf-acts button.rec{background:var(--orange);color:#fff;border-color:var(--orange);}
+.cfg-box{border:2.5px solid var(--border);border-radius:0 14px 14px 14px;overflow:hidden;background:#fff;margin-top:-2px;}
+.cfg-box.g{border-color:var(--green);}
+.cfg-box.o{border-color:var(--orange);}
+.cfg-box .cbar{padding:10px 14px;font-size:12.5px;font-weight:800;color:#fff;display:flex;justify-content:space-between;align-items:center;}
+.cfg-box.g .cbar{background:var(--green);}
+.cfg-box.o .cbar{background:var(--orange);}
+.cfg-box .cbar .cbamt{font-size:12px;font-weight:700;opacity:.95;}
+.cfg-box .cinner{padding:12px;}
+.cfg-box.g .cinner{background:rgba(39,174,96,.045);}
+.cfg-box.o .cinner{background:rgba(244,160,23,.05);}
+
+/* 구성 액션 버튼 */
+.preset-actions{display:flex;gap:6px;padding:10px 16px 0;}
+.preset-actions button{flex:1;padding:9px;border-radius:10px;border:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+.pa-name{background:#eaf0ff;color:var(--primary);}
+.pa-clear{background:#eee;color:var(--muted);}
+.compare-btn{display:block;width:calc(100% - 32px);margin:14px 16px 0;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#243560,#1a2744);color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(26,39,68,.25);transition:.15s;}
+.compare-btn:disabled{background:#c9d1e2;color:#fff;box-shadow:none;cursor:not-allowed;}
+.compare-btn .cbsub{display:block;font-size:11px;font-weight:600;color:#aeb9d4;margin-top:3px;}
 
 /* 항목 카드 리스트 */
-.items{padding:16px;}
-.items-title{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px;padding-left:2px;}
-.item{background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:.15s;border:1.5px solid transparent;}
+.items{padding:0;}
+.item{background:#fff;border-radius:14px;padding:15px 16px;margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:13px;transition:.15s;border:1.5px solid transparent;}
+.item:last-child{margin-bottom:0;}
 .item:active{transform:scale(.98);}
 .item.done{border-color:#cfe6d6;}
 .item.next{border-color:var(--accent);animation:nextpulse 1.6s infinite;}
 @keyframes nextpulse{0%,100%{box-shadow:0 0 0 0 rgba(244,160,23,.35),var(--shadow);}50%{box-shadow:0 0 0 7px rgba(244,160,23,0),var(--shadow);}}
-.item-ic{width:44px;height:44px;border-radius:12px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.item-ic{width:42px;height:42px;border-radius:12px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
 .item.next .item-ic{background:#fff3dc;}
 .item-mid{flex:1;min-width:0;}
 .item-mid .nm{font-size:14px;font-weight:700;margin-bottom:2px;}
 .item-mid .ds{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .item-right{text-align:right;flex-shrink:0;}
 .item-right .rv{font-size:15px;font-weight:800;color:var(--primary);}
-.item-right .rr{font-size:10px;color:var(--muted);margin-top:2px;}
 .item .chev{color:var(--muted);font-size:14px;flex-shrink:0;}
 .item.empty .item-right .rv{color:var(--muted);font-weight:600;font-size:13px;}
 .item .tag-guide{display:inline-block;font-size:9px;font-weight:800;color:var(--accent);background:#fff3dc;border-radius:5px;padding:1px 5px;margin-left:5px;vertical-align:middle;}
@@ -105,6 +124,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .amt-disp{font-size:22px;font-weight:800;color:var(--primary);padding:6px 0;}
 .amt-disp.green{color:var(--success);}
 .sublabel{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.refdate{font-size:11px;color:var(--info);background:#eef5ff;border-radius:8px;padding:6px 10px;margin-top:8px;display:inline-block;font-weight:600;}
 .opt-block{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
 .opt-head{display:flex;align-items:center;gap:10px;}
 .opt-head input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex-shrink:0;}
@@ -119,12 +139,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .alert{border-radius:12px;padding:11px 14px;font-size:12px;line-height:1.6;margin-top:10px;}
 .alert.info{background:#eef5ff;color:#2e5a9e;}
 .alert.warn{background:#fff7e6;color:#a8730a;}
-/* 가이드 박스 (모달 안내) */
 .guide{background:#f3f7ff;border:1px solid #d5e2fb;border-left:4px solid var(--info);border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.65;color:#33507d;margin-bottom:14px;}
 .guide b{color:var(--primary);}
 .guide .gt{font-weight:800;display:block;margin-bottom:3px;color:var(--info);}
-/* 정보 툴팁 아이콘 */
 .qm{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#cfd8ea;color:#fff;font-size:11px;font-weight:800;margin-left:5px;cursor:pointer;vertical-align:middle;}
+/* 직접 입력 접이식 */
+.manual{margin-top:12px;border:1.5px dashed var(--border);border-radius:12px;padding:12px 14px;background:#fbfcfe;}
+.manual .mh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--primary);cursor:pointer;}
+.manual .mh .tgl{margin-left:auto;font-size:11px;color:var(--muted);}
+.manual .mbody{margin-top:10px;}
 .modal-save{width:100%;padding:15px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;}
 .modal-close{width:100%;padding:12px;border-radius:12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-top:4px;}
 .divider{height:1px;background:var(--border);margin:16px 0;}
@@ -138,7 +161,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .toast.blue b,.toast.green b{color:#fff;}
 
 /* 결과 요약 카드 */
-.summary{margin:8px 16px 0;background:var(--primary);color:#fff;border-radius:18px;padding:18px 20px;}
+.summary{margin:14px 16px 0;background:var(--primary);color:#fff;border-radius:18px;padding:18px 20px;}
 .summary .sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;}
 .summary .sr .sl{font-size:13px;color:#c5cee3;}
 .summary .sr .sv{font-size:16px;font-weight:700;}
@@ -157,7 +180,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .status.err .dot{background:var(--danger);animation:none;}
 @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
 
-/* ===== 견적 비교 페이지 ===== */
+/* ===== 견적 비교 페이지 (Part2에서 재디자인 예정) ===== */
 .cmp-page{position:fixed;inset:0;background:var(--bg);z-index:1500;overflow-y:auto;display:none;}
 .cmp-page.show{display:block;}
 .cmp-hd{background:var(--primary);color:#fff;padding:16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:3;}
@@ -168,20 +191,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .cmp-verdict{background:linear-gradient(135deg,#fff8ec,#fff);border:1.5px solid var(--accent-light);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.7;color:var(--text);margin-bottom:14px;}
 .cmp-verdict b{color:#b8770a;}
 .cmp-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;top:66px;z-index:2;padding:8px 0;background:var(--bg);}
-.cmp-col{background:var(--primary);color:#fff;border-radius:12px;padding:11px 8px;text-align:center;}
+.cmp-col{color:#fff;border-radius:12px;padding:11px 8px;text-align:center;}
+.cmp-col.g{background:var(--green);}.cmp-col.o{background:var(--orange);}
 .cmp-col .cn{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cmp-col .cc{font-size:11px;color:#aeb9d4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cmp-col .cc{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cmp-row{background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);}
-.cmp-row .rl{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.cmp-row .rl{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;}
 .cmp-row .rvals{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .cmp-row .cv{font-size:14px;font-weight:700;text-align:center;padding:7px 4px;border-radius:8px;background:#f6f8fc;line-height:1.4;}
 .cmp-row .cv .cvs{display:block;font-size:10px;font-weight:600;color:var(--muted);}
 .cmp-row .cv.cheap{background:#eafaf0;color:var(--success);}
 .cmp-row .cv.cheap::after{content:" ▼";font-size:10px;}
 .cmp-row.total{border:1.5px solid var(--primary);}
-.cmp-row.total .rl{color:var(--primary);font-size:12px;}
 .cmp-row.total .cv{font-size:17px;font-weight:800;padding:9px 4px;}
-.cmp-row.accentrow.total{border-color:var(--accent);}
 .cmp-diff{text-align:center;font-size:11px;color:var(--muted);margin-top:7px;}
 .cmp-sec{font-size:12px;font-weight:800;color:var(--muted);margin:16px 2px 8px;}
 </style>
@@ -202,39 +224,51 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <!-- 코치 안내 -->
   <div class="coach" id="coach" style="display:none;"><span class="ci">👆</span><span id="coachText"></span></div>
 
-  <!-- 추천 조합 -->
+  <!-- 추천 구성 (상단) -->
   <div class="reco" id="recoBox" style="display:none;">
-    <div class="reco-h">⭐ 많이 선택하는 추천 조합</div>
+    <div class="reco-h">⭐ 추천 구성</div>
     <div class="reco-body" id="recoBody"></div>
-    <button class="reco-apply" onclick="applyReco()">이 조합으로 채우기</button>
+    <div class="reco-note">아래 <b>1·2번 구성</b>의 <b>[추천 구성]</b> 버튼을 누르면 해당 칸에 이 조합이 채워집니다.</div>
   </div>
 
-  <!-- 항목 리스트 -->
-  <div class="items">
-    <div class="items-title">📋 항목별 비용 <span style="font-weight:600;color:var(--muted);">· 각 항목을 눌러 입력하세요</span></div>
-    <div class="item" id="item_license" onclick="openLicense()">
-      <div class="item-ic">📄</div>
-      <div class="item-mid"><div class="nm">면허</div><div class="ds" id="ds_license">면허시세 + 수수료</div></div>
-      <div class="item-right"><div class="rv" id="rv_license">—</div></div>
-      <div class="chev">›</div>
+  <!-- 구성 선택 탭 + 감싸기 박스 -->
+  <div class="cfgwrap">
+    <div class="cfg-row" id="cfgRow"></div>
+    <div class="cfg-box" id="cfgBox">
+      <div class="cbar" id="cfgBar"><span id="cfgBarName">1번 구성</span><span class="cbamt" id="cfgBarAmt"></span></div>
+      <div class="cinner">
+        <div class="items">
+          <div class="item" id="item_license" onclick="openLicense()">
+            <div class="item-ic">📄</div>
+            <div class="item-mid"><div class="nm">면허</div><div class="ds" id="ds_license">면허시세 + 수수료</div></div>
+            <div class="item-right"><div class="rv" id="rv_license">—</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="item empty" id="item_car" onclick="openCar()">
+            <div class="item-ic">🚗</div>
+            <div class="item-mid"><div class="nm">차량 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_car">차량을 선택하세요</div></div>
+            <div class="item-right"><div class="rv" id="rv_car">선택</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="item empty" id="item_ins" onclick="openIns()">
+            <div class="item-ic">🛡</div>
+            <div class="item-mid"><div class="nm">보험/조합 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_ins">보험 유형을 선택하세요</div></div>
+            <div class="item-right"><div class="rv" id="rv_ins">선택</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div class="item empty" id="item_work" onclick="openWork()">
+            <div class="item-ic">🔧</div>
+            <div class="item-mid"><div class="nm">차량 작업비용</div><div class="ds" id="ds_work">미터점 작업 항목</div></div>
+            <div class="item-right"><div class="rv" id="rv_work">—</div></div>
+            <div class="chev">›</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="item empty" id="item_car" onclick="openCar()">
-      <div class="item-ic">🚗</div>
-      <div class="item-mid"><div class="nm">차량 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_car">차량을 선택하세요</div></div>
-      <div class="item-right"><div class="rv" id="rv_car">선택</div></div>
-      <div class="chev">›</div>
-    </div>
-    <div class="item empty" id="item_ins" onclick="openIns()">
-      <div class="item-ic">🛡</div>
-      <div class="item-mid"><div class="nm">보험/조합 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_ins">보험 유형을 선택하세요</div></div>
-      <div class="item-right"><div class="rv" id="rv_ins">선택</div></div>
-      <div class="chev">›</div>
-    </div>
-    <div class="item empty" id="item_work" onclick="openWork()">
-      <div class="item-ic">🔧</div>
-      <div class="item-mid"><div class="nm">차량 작업비용</div><div class="ds" id="ds_work">미터점 작업 항목</div></div>
-      <div class="item-right"><div class="rv" id="rv_work">—</div></div>
-      <div class="chev">›</div>
+    <div class="preset-actions">
+      <button class="pa-name" onclick="renameConfig()">✏️ 이름변경</button>
+      <button class="pa-clear" onclick="clearConfig()">↺ 이 구성 비우기</button>
+      <button class="pa-clear" onclick="resetAllCfg()">⟲ 전체 초기화</button>
     </div>
   </div>
 
@@ -249,21 +283,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
   <div class="status" id="status"><span class="dot"></span><span id="statusText">데이터 연동 중...</span></div>
 
-  <!-- 프리셋 -->
-  <div style="padding:0 16px;">
-    <div style="font-size:13px;font-weight:800;color:var(--muted);margin:6px 2px 8px;">💾 저장된 견적 <small style="font-weight:600;">· 최대 2개 저장 후 비교</small></div>
-  </div>
-  <div class="preset-bar" id="presetBar"></div>
-  <div class="preset-actions">
-    <button class="pa-load" id="loadBtn" onclick="loadSelectedPreset()">↑ 불러오기</button>
-    <button class="pa-save" id="saveBtn" onclick="saveCurrentPreset()">＋ 저장</button>
-  </div>
-  <div class="preset-actions" style="margin-top:6px;">
-    <button class="pa-name" onclick="renamePreset()">✏️ 이름변경</button>
-    <button class="pa-clear" onclick="resetSelectedPreset()">↺ 이 견적 비우기</button>
-    <button class="pa-clear" onclick="resetAll()">⟲ 전체 초기화</button>
-  </div>
-  <button class="compare-btn" id="compareBtn" onclick="openCompare()" disabled>📊 견적 비교하기<span class="cbsub" id="compareSub">견적 2개를 저장하면 비교할 수 있어요</span></button>
+  <button class="compare-btn" id="compareBtn" onclick="openCompare()" disabled>📊 구성 비교하기<span class="cbsub" id="compareSub">두 구성을 모두 채우면 비교할 수 있어요</span></button>
 
   <div class="foot">
     <b>개인택시 양수도센터</b> 1566-7114<br>
@@ -281,7 +301,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div class="cmp-page" id="cmpPage">
   <div class="cmp-hd">
     <button class="back" onclick="closeCompare()">←</button>
-    <div><h2>견적 비교</h2><div class="hsub">두 견적을 항목별로 비교합니다</div></div>
+    <div><h2>구성 비교</h2><div class="hsub">두 구성을 항목별로 비교합니다</div></div>
   </div>
   <div class="cmp-wrap" id="cmpWrap"></div>
 </div>
@@ -294,16 +314,18 @@ const API='https://script.google.com/macros/s/AKfycby5B_q5QMC-0l606v8tuGoUKZJuYg
 let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
-  selItems:[],reqItems:[],combineFee:0};
+  selItems:[],reqItems:[],combineFee:0,
+  carRate:[],dateLicense:'',dateCar:'',dateCombine:''};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
-// 사용자 선택 상태
-let S={
-  car:null,        // {idx, payType, down, foreignPrice, trim, months}
-  ins:null,        // {type, combine}
-  work:null        // {bb, bbCh, hi, pedal, btGat}
-};
+// ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
+function newCfg(){return{car:null,ins:null,work:null,licOvr:0};}
+let CONFIGS=[newCfg(),newCfg()];
+let CFG_NAMES=['1번 구성','2번 구성'];
+const CFG_COLOR=['g','o'];   // 1번=초록, 2번=주황
+let activeCfg=0;
+let S=CONFIGS[activeCfg];    // 현재 편집 중인 구성 (참조)
 
-const DEFAULT_MONTHS=60;          // 기본 할부 개월수
+const DEFAULT_MONTHS=60;
 const MONTH_OPTIONS=[12,24,36,48,60];
 
 // ── 유틸 ──
@@ -314,10 +336,10 @@ function comma(v){return Number(v||0).toLocaleString('ko-KR');}
 function isForeign(idx){return DB.carMakers[idx]==='수입차';}
 function isEV(idx){return DB.carFuels[idx]==='전기';}
 function fmtInput(input){const raw=input.value.replace(/[^0-9]/g,'');input.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
+function refDate(d){return '🗓 '+(d?('기준일 '+d):'기준일 DB 연동 예정');}
 
 let toastTimer;
 function toast(msg,cls){const t=el('toast');if(toastTimer)clearTimeout(toastTimer);t.className='toast'+(cls?' '+cls:'');t.innerHTML=msg;t.style.display='block';toastTimer=setTimeout(()=>t.style.display='none',2400);}
-
 function setStatus(state,txt){const s=el('status');s.className='status'+(state==='ok'?' ok':state==='err'?' err':'');el('statusText').textContent=txt;}
 
 // ── 데이터 로드 ──
@@ -338,13 +360,15 @@ async function loadData(){
     DB.saInsMin=(d.saInsMin||[]).map(N);DB.saInsMax=(d.saInsMax||[]).map(N);
     DB.selItems=(d.selItems||[]).map(N);DB.reqItems=(d.reqItems||[]).map(N);
     DB.combineFee=N(d.combineFee);
+    DB.carRate=(d.carRate||[]).map(N);                 // 할부율(연%) — DB 연동 예정
+    DB.dateLicense=d.dateLicense||'';DB.dateCar=d.dateCar||'';DB.dateCombine=d.dateCombine||'';
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
     console.error(e);fallback();
     setStatus('err','샘플 데이터 표시 중');
   }
   renderAll();
-  renderPresets();
+  renderConfigs();
   buildReco();
 }
 
@@ -364,20 +388,23 @@ function fallback(){
     saInsMax:[4000000,4000000,5000000,4000000,4000000,4000000,4500000,4500000,4500000,4500000,4500000,0],
     selItems:[300000,600000,90000,100000,500000],
     reqItems:[60000,20000,30000,100000],
-    combineFee:1500000};
+    combineFee:1500000,
+    carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부율 DB 연동 예정 (지금은 0% = 무이자)
+    dateLicense:'',dateCar:'',dateCombine:''};
 }
 
 // ── 차량 헬퍼 ──
 function getFuels(){return[...new Set(DB.carFuels.filter(f=>f))];}
 function getMakers(fuel){const s=new Set();DB.carFuels.forEach((f,i)=>{if(f===fuel&&DB.carMakers[i])s.add(DB.carMakers[i]);});return[...s];}
 function getCars(fuel,maker){const r=[];DB.carNames.forEach((n,i)=>{if(DB.carFuels[i]===fuel&&DB.carMakers[i]===maker)r.push({n,i});});return r;}
+function carRateOf(idx){return (DB.carRate&&DB.carRate[idx])?DB.carRate[idx]:0;}
 
 /* ==================================================================
-   계산 (상태를 인자로 받는 순수 함수 → 메인/프리셋/비교에서 공용)
+   계산 (상태를 인자로 받는 순수 함수)
    ================================================================== */
-function licenseTotal(){return DB.licensePrice+DB.commission;}
+function licenseBase(){return DB.licensePrice+DB.commission;}
+function licenseOf(st){return (st&&st.licOvr>0)?st.licOvr:licenseBase();}
 
-// 차량 소계 (전체가·취등록세 포함, 보조금·개별소비세 차감) — 할부분 포함한 총 차량비
 function carFullOf(car){
   if(!car)return 0;
   const i=car.idx;
@@ -391,7 +418,6 @@ function carFullOf(car){
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
   return base+opt+tax-sub-exc;
 }
-// 차량 할부원금 (금융사가 대출해주는 차량 본체값. 취등록세·선납금 제외)
 function carInstOf(car){
   if(!car||!car.payType)return 0;
   const i=car.idx;
@@ -409,30 +435,34 @@ function carInstOf(car){
   if(car.payType==='일부선납')return Math.max(0,instBase-(car.down||0));
   return 0;
 }
-// 월 할부금액 (무이자 단순분할)
+// 월 할부금액 — 원리금균등상환 (할부율 0%면 단순분할)
 function monthlyOf(car){
-  const inst=carInstOf(car);
-  if(inst<=0)return 0;
-  const m=(car&&car.months)?car.months:DEFAULT_MONTHS;
-  return Math.round(inst/m);
+  const P=carInstOf(car);
+  if(P<=0)return 0;
+  const n=(car&&car.months)?car.months:DEFAULT_MONTHS;
+  const r=carRateOf(car.idx)/100/12;
+  if(r>0)return Math.round(P*r/(1-Math.pow(1+r,-n)));
+  return Math.round(P/n);
 }
-// 보험료 1년치
+// 보험료 1년치 (사보험은 직접입력 우선)
 function insAnnualOf(ins,car){
   if(!ins||!car)return 0;
   const i=car.idx;
   if(ins.type==='공제')return DB.insurance[i]||0;
-  if(ins.type==='사보험')return (DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
+  if(ins.type==='사보험'){
+    if(ins.saCustom>0)return ins.saCustom;
+    return (DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
+  }
   return 0;
 }
-// 조합 가입비 (1회성 초기)
 function combineOf(ins){
   if(!ins)return 0;
   if(ins.type==='공제'||ins.combine)return DB.combineFee||0;
   return 0;
 }
-// 작업비 소계
 function workSubtotalOf(work,car){
   if(!work)return 0;
+  if(work.ovr>0)return work.ovr;               // 직접 입력 우선
   let t=0;
   const i=car?car.idx:-1;
   if(i>=0&&!isForeign(i))t+=DB.meterWork[i]||0;
@@ -444,46 +474,39 @@ function workSubtotalOf(work,car){
   return t;
 }
 
-/* 핵심: 상태(st) → 모든 금액 항목을 한 번에 산출
-   - 공제보험·사보험: 1년치를 초기비용에 포함
-   - 차량 할부원금: 월(÷개월수)로 납입 → 초기비용 제외, '월 납입'
-*/
 function computeBreakdown(st){
   const b={license:0,carFull:0,carInst:0,carUpfront:0,work:0,combine:0,
-    insType:'',insAnnual:0,insInitial:0,months:0,monthly:0,
+    insType:'',insAnnual:0,insInitial:0,months:0,monthly:0,rate:0,
     initial:0,grand:0};
-  b.license=licenseTotal();
+  b.license=licenseOf(st);
   if(st.car){
     b.carFull=carFullOf(st.car);
     b.carInst=carInstOf(st.car);
-    b.carUpfront=b.carFull-b.carInst;         // 일시불 전액 / 선납금 + 취등록세
+    b.carUpfront=b.carFull-b.carInst;
     b.months=(st.car.months)?st.car.months:DEFAULT_MONTHS;
+    b.rate=carRateOf(st.car.idx);
     b.monthly=monthlyOf(st.car);
   }
   if(st.ins&&st.car){
     b.insType=st.ins.type;
     b.insAnnual=insAnnualOf(st.ins,st.car);
     b.combine=combineOf(st.ins);
-    b.insInitial=b.insAnnual;   // 공제·사보험 모두 1년치를 초기비용에 반영
+    b.insInitial=b.insAnnual;
   }
   if(st.work)b.work=workSubtotalOf(st.work,st.car);
-  // 초기 소요비용 = 면허 + 차량 초기납 + 작업비 + 조합가입 + 보험(1년)
   b.initial=b.license+b.carUpfront+b.work+b.combine+b.insInitial;
-  // 총 예상 비용(1년 기준) = 초기 + 차량 할부원금
   b.grand=b.initial+b.carInst;
   return b;
 }
+function isFilled(cfg){return !!(cfg&&cfg.car);}
 
 /* ===== 렌더링 ===== */
 function renderAll(){
   const b=computeBreakdown(S);
-
-  // 면허
   el('rv_license').textContent=comma(b.license)+'원';
-  el('ds_license').textContent='면허시세 '+comma(DB.licensePrice)+' + 수수료 '+comma(DB.commission);
+  el('ds_license').textContent=(S.licOvr>0?'직접 입력 · ':'')+'면허시세 '+comma(DB.licensePrice)+' + 수수료 '+comma(DB.commission);
   el('item_license').classList.add('done');
 
-  // 차량
   const ci=el('item_car'), cr=el('rv_car'), cd=el('ds_car');
   if(S.car){
     ci.classList.remove('empty');ci.classList.add('done');
@@ -494,7 +517,6 @@ function renderAll(){
     cd.textContent=desc;
   }else{ci.classList.add('empty');ci.classList.remove('done');cr.textContent='선택';cd.textContent='차량을 선택하세요';}
 
-  // 보험
   const ii=el('item_ins'), ir=el('rv_ins'), id_=el('ds_ins');
   if(S.ins){
     ii.classList.remove('empty');ii.classList.add('done');
@@ -503,35 +525,93 @@ function renderAll(){
     let d=S.ins.type;
     if(S.ins.type==='공제')d+=' + 조합';
     else if(S.ins.combine)d+=' + 조합가입';
+    if(S.ins.type==='사보험'&&S.ins.saCustom>0)d+=' · 직접입력';
     id_.textContent=d;
   }else{ii.classList.add('empty');ii.classList.remove('done');ir.textContent='선택';id_.textContent='보험 유형을 선택하세요';}
 
-  // 작업비
   const wi=el('item_work'), wr=el('rv_work'), wd=el('ds_work');
   if(S.work){
     wi.classList.remove('empty');wi.classList.add('done');
     wr.textContent=comma(b.work)+'원';
-    const opts=[];
-    if(S.work.bb)opts.push('블박'+(S.work.bbCh||''));
-    if(S.work.hi)opts.push('하이패스');
-    if(S.work.pedal)opts.push('페달');
-    if(S.work.btGat)opts.push('블루투스갓등');
-    wd.textContent=opts.length?'필수 + '+opts.join(', '):'필수 항목';
+    if(S.work.ovr>0){wd.textContent='직접 입력';}
+    else{
+      const opts=[];
+      if(S.work.bb)opts.push('블박'+(S.work.bbCh||''));
+      if(S.work.hi)opts.push('하이패스');
+      if(S.work.pedal)opts.push('페달');
+      if(S.work.btGat)opts.push('블루투스갓등');
+      wd.textContent=opts.length?'필수 + '+opts.join(', '):'필수 항목';
+    }
   }else{wi.classList.add('empty');wi.classList.remove('done');wr.textContent='—';wd.textContent='미터점 작업 항목';}
 
-  // 총액/요약
   el('grandTotal').textContent=comma(b.grand);
   el('actualLine').innerHTML='초기 <b style="color:#ffc14d">'+comma(b.initial)+'</b>원 · 월 <b style="color:#7fd6a0">'+comma(b.monthly)+'</b>원';
   el('sumInitial').textContent=comma(b.initial);
   el('sumMonthly').textContent=comma(b.monthly);
-  el('sumMonthsLbl').textContent=b.monthly?'('+b.months+'개월)':'';
+  el('sumMonthsLbl').textContent=b.monthly?'('+b.months+'개월'+(b.rate?' · '+b.rate+'%':'')+')':'';
   el('sumInst').textContent=comma(b.carInst);
   el('sumTotal').textContent=comma(b.grand);
 
+  renderConfigs();
   renderCoach();
 }
 
-// ── 다음 단계 코치마크 ──
+// ── 구성 탭 렌더 ──
+function renderConfigs(){
+  const row=el('cfgRow');row.innerHTML='';
+  for(let i=0;i<CONFIGS.length;i++){
+    const filled=isFilled(CONFIGS[i]);
+    const amt=filled?('초기 '+comma(computeBreakdown(CONFIGS[i]).initial)+'원'):'비어있음';
+    const btn=document.createElement('button');
+    btn.className='cfg-tab'+(i===activeCfg?' '+CFG_COLOR[i]:'');
+    btn.onclick=()=>selectCfg(i);
+    btn.innerHTML='<span class="cn">'+CFG_NAMES[i]+'</span><span class="cv">'+amt+'</span>'+
+      '<div class="cf-acts">'+
+      '<button onclick="event.stopPropagation();cfgDirectInput('+i+')">✏️ 직접 입력</button>'+
+      '<button class="rec" onclick="event.stopPropagation();cfgApplyReco('+i+')">⭐ 추천 구성</button>'+
+      '</div>';
+    row.appendChild(btn);
+  }
+  const box=el('cfgBox');box.className='cfg-box '+CFG_COLOR[activeCfg];
+  el('cfgBarName').textContent=CFG_NAMES[activeCfg];
+  const cb=computeBreakdown(CONFIGS[activeCfg]);
+  el('cfgBarAmt').textContent=isFilled(CONFIGS[activeCfg])?('초기 '+comma(cb.initial)+'원'):'입력 전';
+  const both=isFilled(CONFIGS[0])&&isFilled(CONFIGS[1]);
+  el('compareBtn').disabled=!both;
+  el('compareSub').textContent=both?'두 구성을 항목별로 비교합니다':'두 구성을 모두 채우면 비교할 수 있어요';
+}
+
+function selectCfg(i){
+  activeCfg=i;S=CONFIGS[i];
+  renderAll();
+  toast(CFG_NAMES[i]+' 선택',' blue');
+}
+function cfgDirectInput(i){
+  activeCfg=i;S=CONFIGS[i];renderAll();
+  el('cfgBox').scrollIntoView({behavior:'smooth',block:'start'});
+  toast(CFG_NAMES[i]+' · 항목을 눌러 <b>직접 입력</b>하세요',' blue');
+}
+function cfgApplyReco(i){
+  if(!RECO){toast('추천 구성을 불러오지 못했습니다');return;}
+  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licOvr=0;
+  activeCfg=i;S=CONFIGS[i];
+  renderAll();
+  toast(CFG_NAMES[i]+'에 추천 구성을 적용했습니다',' green');
+}
+function renameConfig(){
+  const i=activeCfg;
+  promptModal('구성 이름 변경',CFG_NAMES[i],(v)=>{CFG_NAMES[i]=v||((i+1)+'번 구성');renderAll();toast('이름을 변경했습니다',' green');});
+}
+function clearConfig(){
+  const i=activeCfg;
+  if(!isFilled(CONFIGS[i])){toast(CFG_NAMES[i]+'은(는) 이미 비어있습니다');return;}
+  confirmModal(CFG_NAMES[i]+'을(를) 비우시겠습니까?',()=>{CONFIGS[i]=newCfg();S=CONFIGS[i];renderAll();toast(CFG_NAMES[i]+'을(를) 비웠습니다',' blue');});
+}
+function resetAllCfg(){
+  confirmModal('두 구성을 모두 초기화하시겠습니까?',()=>{CONFIGS=[newCfg(),newCfg()];activeCfg=0;S=CONFIGS[0];renderAll();toast('전체 초기화되었습니다',' blue');});
+}
+
+// ── 코치마크 ──
 function nextStep(){
   if(!S.car)return{id:'item_car',msg:'<b>차량</b>을 먼저 선택하세요'};
   if(!S.ins)return{id:'item_ins',msg:'<b>보험/조합</b> 유형을 선택하세요'};
@@ -544,57 +624,67 @@ function renderCoach(){
   if(n){
     el(n.id).classList.add('next');
     c.className='coach';c.style.display='';
-    c.innerHTML='<span class="ci">👆</span><span>'+n.msg+'</span>';
+    c.innerHTML='<span class="ci">👆</span><span>'+CFG_NAMES[activeCfg]+' · '+n.msg+'</span>';
   }else{
     c.className='coach done';c.style.display='';
-    c.innerHTML='<span class="ci">✅</span><span>입력 완료! <b>저장</b> 후 다른 조합과 <b>견적 비교</b>를 해보세요</span>';
+    c.innerHTML='<span class="ci">✅</span><span>'+CFG_NAMES[activeCfg]+' 입력 완료! 다른 구성도 채우면 <b>구성 비교</b>를 할 수 있어요</span>';
   }
 }
 
-/* ===== 모달 ===== */
+/* ===== 모달 공통 ===== */
 function openModalHTML(html){el('modalContent').innerHTML='<div class="modal-grip"></div>'+html;el('modalBg').classList.add('show');}
 function closeModal(){el('modalBg').classList.remove('show');}
 el('modalBg')&&el('modalBg').addEventListener('click',e=>{if(e.target===el('modalBg'))closeModal();});
+function toggleManual(id){const b=el(id);if(b)b.style.display=b.style.display==='none'?'block':'none';}
 
-// 정보 툴팁 (아이콘 탭 → 토스트 설명)
 const TIPS={};
 TIPS.pay='<b>일시불</b> 전액 현금 납부<br><b>전액할부</b> 차량값 전부 할부<br><b>일부선납</b> 일부 현금 + 나머지 할부';
-TIPS.months='할부 원금을 몇 개월로 나눠 낼지 선택합니다. 여기서는 이자 없이 원금만 나눈 예상액입니다.';
+TIPS.months='할부 원금을 몇 개월로 나눠 낼지 선택합니다.';
+TIPS.rate='할부 이자율(연). DB 연동 후 자동 반영되며, 월 납입금은 원리금균등상환으로 계산됩니다. (지금은 0% 무이자)';
 TIPS.trim='<b>영업용(2.4%)</b> 개인택시 등록 · <b>일반용(7%)</b> 일반 승용 등록. 수입차 취등록세율 차이입니다.';
 TIPS.gongje='<b>공제보험</b> 전국개인택시공제조합. 1년치 보험료를 <b>초기비용</b>으로 계산하며 조합 가입이 필수입니다.';
-TIPS.sabom='<b>사보험</b> 일반 손해보험사 상품. 1년치를 <b>초기비용</b>으로 한 번에 계산합니다.';
+TIPS.sabom='<b>사보험</b> 일반 손해보험사 상품. 가입자마다 상이하므로 <b>금액을 직접 입력</b>할 수 있습니다.';
 function tip(key){toast(TIPS[key]||'',' blue');}
 
 // ── 이용 가이드 ──
 function openGuide(){
   openModalHTML(`
     <h3>📖 이용 가이드</h3>
-    <div class="mdesc">개인택시 준비자금을 3단계로 계산해요</div>
-    <div class="guide"><span class="gt">① 항목을 눌러 입력</span>
-      <b>차량 → 보험/조합 → 작업비</b> 순서로 각 카드를 눌러 입력하세요. 면허 비용은 자동으로 반영됩니다. 지금 입력할 항목은 <b style="color:var(--accent)">주황색 테두리</b>로 안내됩니다.</div>
-    <div class="guide"><span class="gt">② 결과 2가지 확인</span>
-      · <b>초기 소요비용</b> 시작할 때 한 번에 필요한 돈 (보험 1년치 포함)<br>
-      · <b>월 납입금액</b> 차량 할부를 매달 내는 금액</div>
-    <div class="guide"><span class="gt">③ 저장하고 비교</span>
-      서로 다른 조합을 <b>최대 2개</b>까지 저장하고, <b>‘견적 비교하기’</b>로 어떤 선택이 더 유리한지 항목별로 비교할 수 있어요. 견적 이름도 바꿀 수 있습니다.</div>
+    <div class="mdesc">개인택시 준비자금을 구성별로 비교해요</div>
+    <div class="guide"><span class="gt">① 구성 선택</span>
+      <b>1번 구성(초록) / 2번 구성(주황)</b> 탭을 고르면, 아래 박스가 그 구성 색으로 감싸집니다. 각 탭의 <b>[직접 입력]</b> 또는 <b>[추천 구성]</b>으로 시작하세요.</div>
+    <div class="guide"><span class="gt">② 항목 입력</span>
+      <b>차량 → 보험/조합 → 작업비</b> 순으로 카드를 눌러 입력합니다. 각 모달에서 <b>직접 입력</b>으로 금액을 조정할 수도 있어요.</div>
+    <div class="guide"><span class="gt">③ 결과 & 비교</span>
+      <b>초기 소요비용</b>과 <b>월 납입금액</b>을 확인하고, 두 구성을 채우면 <b>‘구성 비교하기’</b>로 나란히 비교할 수 있어요.</div>
     <div class="alert info">ℹ️ 모든 금액은 서울 기준 예상치이며 실제와 차이가 있을 수 있습니다.</div>
     <button class="modal-close" onclick="closeModal()">닫기</button>
   `);
 }
 
-// ── 면허 모달 ──
+// ── 면허 모달 (기준일 + 직접입력) ──
 function openLicense(){
+  const ov=S.licOvr>0?comma(S.licOvr):'';
   openModalHTML(`
     <h3>📄 면허 비용</h3>
     <div class="mdesc">서울특별시 개인택시 면허 기준</div>
-    <div class="guide">면허 시세와 중개 수수료는 <b>데이터에서 자동으로 반영</b>됩니다. 별도로 입력할 필요가 없어요.</div>
+    <div class="guide">면허 시세와 중개 수수료는 <b>데이터에서 자동 반영</b>됩니다. 필요하면 아래에서 <b>직접 입력</b>으로 조정할 수 있어요.</div>
     <div class="mrow"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
-    <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseTotal())}</span></div>
-    <div class="alert info">ℹ️ 면허 시세는 데이터 연동 기준이며 실시간 시세와 차이가 있을 수 있습니다.</div>
+    <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
+    <div class="refdate">${refDate(DB.dateLicense)}</div>
+    <div class="manual">
+      <div class="mh" onclick="toggleManual('licManBody')">✏️ 면허 비용 직접 입력 <span class="tgl">펼치기/접기</span></div>
+      <div class="mbody" id="licManBody" style="display:${S.licOvr>0?'block':'none'};">
+        <div class="field" style="margin-bottom:8px;"><label>면허 소계 직접 입력 (비우면 자동값 사용)</label>
+          <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
+      </div>
+    </div>
+    <button class="modal-save" onclick="saveLicense()">저장</button>
     <button class="modal-close" onclick="closeModal()">닫기</button>
   `);
 }
+function saveLicense(){S.licOvr=el('licOvr')?N(el('licOvr').value):0;closeModal();renderAll();toast('면허 정보가 저장되었습니다',' green');}
 
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
@@ -606,25 +696,21 @@ function renderCarModal(){
   const fuels=getFuels();
   let h=`<h3>🚗 차량 선택</h3><div class="mdesc">연료 → 제조사 → 차량 순으로 선택</div>`;
   h+=`<div class="guide"><span class="gt">이렇게 선택하세요</span>아래 <b>①연료 → ②제조사 → ③차량</b>을 차례로 누르면, 차량 가격·옵션·취등록세·보험료가 <b>자동으로 채워집니다</b>. 마지막에 할부 방식만 정하면 끝!</div>`;
-  // 연료
   h+=`<div class="subtitle">① 연료 타입</div><div class="tog-row" style="flex-wrap:wrap;">`;
   fuels.forEach(f=>{h+=`<button class="tog-btn${tmpCar.fuel===f?' on':''}" onclick="selFuel('${f}')">${f}</button>`;});
   h+=`</div>`;
-  // 제조사
   if(tmpCar.fuel){
     const makers=getMakers(tmpCar.fuel);
     h+=`<div class="subtitle">② 제조사</div><div class="tog-row" style="flex-wrap:wrap;">`;
     makers.forEach(m=>{h+=`<button class="tog-btn${tmpCar.maker===m?' on':''}" onclick="selMaker('${m}')">${m}</button>`;});
     h+=`</div>`;
   }
-  // 차량
   if(tmpCar.fuel&&tmpCar.maker){
     const cars=getCars(tmpCar.fuel,tmpCar.maker);
     h+=`<div class="subtitle">③ 차량</div><div class="tog-row" style="flex-wrap:wrap;">`;
     cars.forEach(c=>{h+=`<button class="tog-btn${tmpCar.idx===c.i?' on':''}" onclick="selCar(${c.i})">${c.n}</button>`;});
     h+=`</div>`;
   }
-  // 차량 상세
   if(tmpCar.idx>=0){
     const i=tmpCar.idx;
     if(isForeign(i)){
@@ -648,7 +734,7 @@ function renderCarModal(){
       if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
       h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
     }
-    // 할부
+    h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
     h+=`<div class="subtitle">차량 할부 여부 * <span class="qm" onclick="tip('pay')">?</span></div>
       <div class="sel-wrap"><select id="payType" onchange="selPay(this.value)">
         <option value="">-- 선택 --</option>
@@ -660,13 +746,14 @@ function renderCarModal(){
       h+=`<div class="field" style="margin-top:10px;"><label>선납금액 *</label>
         <input class="inp" type="text" inputmode="numeric" id="downAmt" placeholder="예) 5,000,000" value="${tmpCar.down?comma(tmpCar.down):''}" oninput="fmtInput(this)"></div>`;
     }
-    // 할부 개월수 (할부일 때만)
     if(tmpCar.payType==='전액할부'||tmpCar.payType==='일부선납'){
+      const rate=carRateOf(i);
       h+=`<div class="subtitle">할부 개월수 <span class="qm" onclick="tip('months')">?</span></div>
         <div class="tog-row" style="flex-wrap:wrap;">`;
       MONTH_OPTIONS.forEach(m=>{h+=`<button class="tog-btn${tmpCar.months===m?' on':''}" onclick="selMonths(${m})">${m}개월</button>`;});
       h+=`</div>
-        <div class="mrow" style="margin-top:8px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(무이자 기준)</small></span><span class="mv accent">${won(previewMonthly())}</span></div>`;
+        <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate?rate+'%':'DB 연동 예정 (0%)'}</span></div>
+        <div class="mrow"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(${rate?'원리금균등':'무이자'})</small></span><span class="mv accent">${won(previewMonthly())}</span></div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(previewCarSub())}</span></div>`;
   }
@@ -697,81 +784,80 @@ function saveCar(){
   closeModal();renderAll();toast('차량 정보가 저장되었습니다',' green');
 }
 
-// ── 보험 모달 ──
-let tmpIns={type:'',combine:false};
+// ── 보험 모달 (사보험 직접입력 + 조합 기준일) ──
+let tmpIns={type:'',combine:false,saCustom:0};
 function openIns(){
   if(!S.car){toast('차량을 먼저 선택해 주세요');return;}
-  tmpIns=S.ins?{type:S.ins.type,combine:S.ins.combine}:{type:'',combine:false};
+  tmpIns=S.ins?{type:S.ins.type,combine:S.ins.combine,saCustom:S.ins.saCustom||0}:{type:'',combine:false,saCustom:0};
   renderInsModal();
 }
 function renderInsModal(){
   const i=S.car.idx;
   let h=`<h3>🛡 보험 / 조합</h3><div class="mdesc">${DB.carNames[i]} 기준</div>`;
-  h+=`<div class="guide"><span class="gt">공제보험 vs 사보험, 뭐가 다를까요?</span>
-    · <b>공제보험</b> — 개인택시공제조합. 조합 가입이 필수이며 <b>1년치를 초기비용</b>으로 계산합니다.<br>
-    · <b>사보험</b> — 일반 손해보험사. 가입자별 차이가 크며 <b>1년치를 초기비용</b>으로 계산합니다.</div>`;
+  h+=`<div class="guide"><span class="gt">공제보험 vs 사보험</span>
+    · <b>공제보험</b> — 개인택시공제조합. 조합 가입 필수, 1년치를 초기비용으로 계산.<br>
+    · <b>사보험</b> — 일반 손해보험사. 가입자별 차이가 커서 <b>금액 직접 입력</b> 가능.</div>`;
   h+=`<div class="subtitle">보험 유형</div><div class="tog-row">
     <button class="tog-btn${tmpIns.type==='공제'?' on':''}" onclick="selInsType('공제')">공제보험<br><small>1년치 초기</small></button>
-    <button class="tog-btn${tmpIns.type==='사보험'?' on':''}" onclick="selInsType('사보험')">사보험<br><small>1년치 초기</small></button>
+    <button class="tog-btn${tmpIns.type==='사보험'?' on':''}" onclick="selInsType('사보험')">사보험<br><small>직접 입력</small></button>
   </div>`;
   if(tmpIns.type==='공제'){
     const annual=DB.insurance[i]||0;
     const v=(isForeign(i)||!annual)?'개별 조회 필요':won(annual);
     h+=`<div class="field" style="margin-top:14px;"><label>공제보험료 (1년) <span class="qm" onclick="tip('gongje')">?</span></label><div class="amt-disp">${v}</div></div>`;
-    if(annual)h+=`<div class="mrow"><span class="ml">초기비용 반영액 (1년)</span><span class="mv accent">${won(annual)}</span></div>`;
     h+=`<div class="alert info">ℹ️ 1년치 보험료를 <b>초기비용</b>으로 계산합니다.<br>전국개인택시공제조합 서울지부 기준, 자손·자차 미포함(대인Ⅰ/Ⅱ·대물5억+긴출확장형).</div>`;
   }else if(tmpIns.type==='사보험'){
-    const v=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
-    const annual=insAnnualOf({type:'사보험'},S.car);
-    h+=`<div class="field" style="margin-top:14px;"><label>사보험 예상 범위 (1년) <span class="qm" onclick="tip('sabom')">?</span></label><div class="amt-disp">${v}</div></div>`;
-    if(annual)h+=`<div class="mrow"><span class="ml">초기비용 반영액 (중앙값)</span><span class="mv accent">${won(annual)}</span></div>`;
-    h+=`<div class="alert warn">⚠️ 사보험은 <b>1년치를 초기비용</b>으로 계산합니다. 가입자마다 금액 차이가 크므로 개별 견적 조회를 추천드립니다.</div>`;
+    const rng=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
+    const mid=(DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
+    h+=`<div class="field" style="margin-top:14px;"><label>사보험 예상 범위 (1년) <span class="qm" onclick="tip('sabom')">?</span></label><div class="amt-disp">${rng}</div></div>
+      <div class="alert warn">⚠️ 사보험은 <b>가입자마다 상이</b>합니다. 실제 견적 금액을 아래에 <b>직접 입력</b>하시면 그 값으로 계산됩니다.</div>
+      <div class="field" style="margin-top:12px;"><label>사보험료 직접 입력 (1년, 비우면 예상 중앙값 ${comma(mid)}원 사용)</label>
+        <input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(mid||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this)"></div>`;
   }
-  // 조합
   if(tmpIns.type){
     const locked=tmpIns.type==='공제';
     const checked=locked||tmpIns.combine;
     h+=`<div class="subtitle">조합 가입 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(1회성 초기비용)</small></div>
       <div class="opt-block">
         <div class="opt-head">
-          <input type="checkbox" id="chkCombine" ${checked?'checked':''} ${locked?'disabled':''} onchange="tmpIns.combine=this.checked;renderInsModal();">
+          <input type="checkbox" id="chkCombine" ${checked?'checked':''} ${locked?'disabled':''} onchange="tmpIns.combine=this.checked;syncSa();renderInsModal();">
           <label>서울개인택시조합 가입비</label>
           <div class="oa">${won(DB.combineFee)}</div>
         </div>
       </div>
+      <div class="refdate">${refDate(DB.dateCombine)}</div>
       <div class="sublabel">${locked?'<b style="color:var(--primary)">공제보험 가입 시 조합 가입이 필수입니다.</b>':'조합 가입은 선택사항입니다. (특정 경우 제외)'}</div>`;
   }
   h+=`<button class="modal-save" onclick="saveIns()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
   openModalHTML(h);
 }
-function selInsType(t){tmpIns.type=t;if(t==='공제')tmpIns.combine=true;renderInsModal();}
+function syncSa(){if(el('saCustom'))tmpIns.saCustom=N(el('saCustom').value);}
+function selInsType(t){syncSa();tmpIns.type=t;if(t==='공제')tmpIns.combine=true;renderInsModal();}
 function saveIns(){
   if(!tmpIns.type){toast('보험 유형을 선택해 주세요');return;}
-  S.ins={type:tmpIns.type,combine:tmpIns.type==='공제'?true:tmpIns.combine};
+  syncSa();
+  S.ins={type:tmpIns.type,combine:tmpIns.type==='공제'?true:tmpIns.combine,saCustom:tmpIns.type==='사보험'?tmpIns.saCustom:0};
   closeModal();renderAll();toast('보험 정보가 저장되었습니다',' green');
 }
 
-// ── 작업비 모달 ──
-let tmpWork={bb:false,bbCh:'',hi:false,pedal:false,btGat:false};
+// ── 작업비 모달 (직접입력 override) ──
+let tmpWork={bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
 function openWork(){
-  tmpWork=S.work?{...S.work}:{bb:false,bbCh:'',hi:false,pedal:false,btGat:false};
+  tmpWork=S.work?{bb:S.work.bb,bbCh:S.work.bbCh,hi:S.work.hi,pedal:S.work.pedal,btGat:S.work.btGat,ovr:S.work.ovr||0}:{bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
   renderWorkModal();
 }
 function renderWorkModal(){
   const i=S.car?S.car.idx:-1;
   const meter=(i>=0&&!isForeign(i))?DB.meterWork[i]:0;
   let h=`<h3>🔧 차량 작업비용</h3><div class="mdesc">미터점 작업 항목 (부가세 포함)</div>`;
-  h+=`<div class="guide"><span class="gt">필수와 선택, 이렇게 봐요</span>
-    <b>① 필수 항목</b>은 택시 등록에 반드시 필요해 <b>자동으로 합산</b>됩니다.<br>
-    <b>② 선택 항목</b>은 원하는 것만 <b>체크</b>하면 금액이 더해집니다.</div>`;
-  // 필수
+  h+=`<div class="guide"><span class="gt">필수와 선택</span>
+    <b>① 필수 항목</b>은 자동 합산, <b>② 선택 항목</b>은 체크 시 추가됩니다. 필요하면 <b>직접 입력</b>으로 총액을 조정할 수 있어요.</div>`;
   h+=`<div class="subtitle">① 필수 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(자동 포함)</small></div>`;
   if(i>=0&&!isForeign(i))h+=`<div class="mrow"><span class="ml">미터기 작업비</span><span class="mv">${meter===0?'0 원':won(meter)}</span></div>`;
   h+=`<div class="mrow"><span class="ml">갓등</span><span class="mv">${won(DB.reqItems[0])}</span></div>
     <div class="mrow"><span class="ml">경광벨(경고등)</span><span class="mv">${won(DB.reqItems[1])}</span></div>
     <div class="mrow"><span class="ml">미터기 거치대</span><span class="mv">${won(DB.reqItems[2])}</span></div>
     <div class="mrow"><span class="ml">빈차등</span><span class="mv">${won(DB.reqItems[3])}</span></div>`;
-  // 선택
   h+=`<div class="subtitle">② 선택 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(체크 시 추가)</small></div>
     <div class="opt-block">
       <div class="opt-head">
@@ -794,8 +880,15 @@ function renderWorkModal(){
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_bt" ${tmpWork.btGat?'checked':''} onchange="tmpWork.btGat=this.checked;renderWorkModal();">
       <label>블루투스(자석) 갓등</label><div class="oa">${won(DB.selItems[4])}</div></div></div>`;
-  const prev=workSubtotalOf(tmpWork,S.car);
+  const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
   h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
+    <div class="manual">
+      <div class="mh" onclick="toggleManual('workManBody')">✏️ 작업비 직접 입력 <span class="tgl">펼치기/접기</span></div>
+      <div class="mbody" id="workManBody" style="display:${tmpWork.ovr>0?'block':'none'};">
+        <div class="field" style="margin-bottom:8px;"><label>작업비 총액 직접 입력 (비우면 위 소계 사용)</label>
+          <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
+      </div>
+    </div>
     <div class="alert info">ℹ️ 모든 항목은 부가세 포함 금액입니다.</div>
     <div class="sublabel" style="text-align:right;">출처: 개인택시 양수도센터 직영미터점</div>
     <button class="modal-save" onclick="saveWork()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
@@ -803,22 +896,20 @@ function renderWorkModal(){
 }
 function saveWork(){
   if(tmpWork.bb&&!tmpWork.bbCh){toast('블랙박스 채널을 선택해 주세요');return;}
-  S.work={...tmpWork};
+  tmpWork.ovr=el('workOvr')?N(el('workOvr').value):0;
+  S.work={bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:tmpWork.ovr};
   closeModal();renderAll();toast('작업비 정보가 저장되었습니다',' green');
 }
 
-// ── 확인 모달 ──
+// ── 확인 / 입력 모달 ──
 function confirmModal(msg,onYes){
   const h=`<h3>⚠️ 확인</h3><div class="mdesc" style="margin-bottom:20px;font-size:14px;color:var(--text);line-height:1.6;">${msg}</div>
     <button class="modal-save" style="background:var(--danger);" onclick="__confirmYes()">확인</button>
     <button class="modal-close" onclick="closeModal()">취소</button>`;
-  __confirmCb=onYes;
-  openModalHTML(h);
+  __confirmCb=onYes;openModalHTML(h);
 }
 let __confirmCb=null;
 function __confirmYes(){const cb=__confirmCb;__confirmCb=null;closeModal();if(cb)cb();}
-
-// ── 입력 텍스트 모달 (이름 변경 등) ──
 function promptModal(title,cur,onOk){
   const h=`<h3>✏️ ${title}</h3>
     <div class="field" style="margin-top:6px;"><label>이름 (최대 12자)</label>
@@ -831,205 +922,76 @@ function promptModal(title,cur,onOk){
 let __promptCb=null;
 function __promptOk(){const inp=el('promptInput');const v=inp?inp.value.trim():'';const cb=__promptCb;__promptCb=null;closeModal();if(cb)cb(v);}
 
-// ── 초기화 ──
-function resetAll(){
-  confirmModal('입력한 모든 항목을 초기화하시겠습니까?<br>(저장된 견적은 유지됩니다)',()=>{
-    S={car:null,ins:null,work:null};
-    renderAll();toast('전체 초기화되었습니다',' blue');
-  });
-}
-
 // ══════════════════════════════════════════
-// 프리셋 (2개 고정, 이름 지정 가능, in-memory)
-// ══════════════════════════════════════════
-let PRESETS=[null,null];
-let PRESET_NAMES=['1번 견적','2번 견적'];
-let activeSlot=0;
-
-function presetName(i){return PRESET_NAMES[i]||((i+1)+'번');}
-
-function renderPresets(){
-  const bar=el('presetBar');bar.innerHTML='';
-  for(let i=0;i<PRESETS.length;i++){
-    const p=PRESETS[i];
-    const btn=document.createElement('button');
-    btn.className='preset-btn'+(p?' filled':'')+(i===activeSlot?' active':'');
-    if(p){
-      btn.innerHTML='<span class="pn">'+presetName(i)+'</span><span class="pv">초기 '+comma(p.b.initial)+'원</span>';
-    }else{
-      btn.innerHTML='<span class="pn">'+presetName(i)+'</span><span class="pv">비어있음</span>';
-    }
-    btn.onclick=()=>selectSlot(i);
-    bar.appendChild(btn);
-  }
-  const sb=el('saveBtn');
-  if(sb)sb.textContent='＋ '+presetName(activeSlot)+'에 저장';
-  // 비교 버튼 활성화
-  const both=PRESETS[0]&&PRESETS[1];
-  el('compareBtn').disabled=!both;
-  el('compareSub').textContent=both?'두 견적을 항목별로 비교합니다':'견적 2개를 저장하면 비교할 수 있어요';
-}
-
-function selectSlot(i){
-  activeSlot=i;
-  renderPresets();
-  toast(presetName(i)+' 선택됨');
-}
-
-function loadSelectedPreset(){
-  const i=activeSlot, p=PRESETS[i];
-  if(!p){
-    S={car:null,ins:null,work:null};
-    renderAll();
-    toast(presetName(i)+'(빈 견적) · 초기 상태로 불러왔습니다',' blue');
-    return;
-  }
-  S=JSON.parse(JSON.stringify(p.snap));
-  renderAll();renderPresets();
-  toast(presetName(i)+'을(를) 불러왔습니다',' green');
-}
-
-function saveCurrentPreset(){
-  if(!S.car){toast('차량을 먼저 선택해 주세요');return;}
-  const slot=activeSlot;
-  const wasFilled=!!PRESETS[slot];
-  PRESETS[slot]={
-    snap:JSON.parse(JSON.stringify(S)),
-    b:computeBreakdown(S),
-    savedAt:new Date().toLocaleDateString('ko-KR')
-  };
-  renderPresets();
-  toast(presetName(slot)+'에 '+(wasFilled?'덮어썼습니다':'저장되었습니다'),' green');
-}
-
-function resetSelectedPreset(){
-  const i=activeSlot;
-  if(!PRESETS[i]){toast(presetName(i)+'은(는) 이미 비어있습니다');return;}
-  confirmModal(presetName(i)+'을(를) 비우시겠습니까?',()=>{
-    PRESETS[i]=null;
-    renderPresets();
-    toast(presetName(i)+'을(를) 비웠습니다',' blue');
-  });
-}
-
-function renamePreset(){
-  const i=activeSlot;
-  promptModal('견적 이름 변경',PRESET_NAMES[i],(v)=>{
-    PRESET_NAMES[i]=v||((i+1)+'번');
-    renderPresets();
-    toast('이름을 변경했습니다',' green');
-  });
-}
-
-// ══════════════════════════════════════════
-// 견적 비교 페이지
+// 견적(구성) 비교 페이지  ※ Part2에서 재디자인 예정
 // ══════════════════════════════════════════
 function payLabel(car){
   if(!car||!car.payType)return '—';
   if(car.payType==='일시불')return '일시불';
   return car.payType+' '+(car.months||DEFAULT_MONTHS)+'개월';
 }
-function insLabel(ins){
-  if(!ins)return '—';
-  return ins.type+((ins.type==='공제'||ins.combine)?' + 조합':'');
-}
+function insLabel(ins){if(!ins)return '—';return ins.type+((ins.type==='공제'||ins.combine)?' + 조합':'');}
 function cmpMoney(label,a,b,opt){
-  opt=opt||{};
-  const lower=opt.lowerBetter!==false;
-  let ca='',cb='';
-  if(a!==b&&(a>0||b>0)){
-    if(lower){if(a<b)ca='cheap';else cb='cheap';}
-  }
+  opt=opt||{};const lower=opt.lowerBetter!==false;let ca='',cb='';
+  if(a!==b&&(a>0||b>0)){if(lower){if(a<b)ca='cheap';else cb='cheap';}}
   const sa=opt.subA?`<span class="cvs">${opt.subA}</span>`:'';
   const sb=opt.subB?`<span class="cvs">${opt.subB}</span>`:'';
   const diff=Math.abs(a-b);
-  return `<div class="cmp-row${opt.big?' total':''}${opt.accent?' accentrow':''}"><div class="rl">${label}</div>
+  return `<div class="cmp-row${opt.big?' total':''}"><div class="rl">${label}</div>
     <div class="rvals"><div class="cv ${ca}">${comma(a)}원${sa}</div><div class="cv ${cb}">${comma(b)}원${sb}</div></div>
     ${diff?`<div class="cmp-diff">차이 ${comma(diff)}원</div>`:''}</div>`;
 }
-function cmpText(label,a,b){
-  return `<div class="cmp-row"><div class="rl">${label}</div>
-    <div class="rvals"><div class="cv">${a||'—'}</div><div class="cv">${b||'—'}</div></div></div>`;
-}
-
+function cmpText(label,a,b){return `<div class="cmp-row"><div class="rl">${label}</div><div class="rvals"><div class="cv">${a||'—'}</div><div class="cv">${b||'—'}</div></div></div>`;}
 function openCompare(){
-  if(!PRESETS[0]||!PRESETS[1]){toast('견적 2개를 모두 저장해 주세요');return;}
-  const sA=PRESETS[0].snap, sB=PRESETS[1].snap;
+  if(!isFilled(CONFIGS[0])||!isFilled(CONFIGS[1])){toast('두 구성을 모두 채워주세요');return;}
+  const sA=CONFIGS[0], sB=CONFIGS[1];
   const A=computeBreakdown(sA), B=computeBreakdown(sB);
-  const nA=presetName(0), nB=presetName(1);
+  const nA=CFG_NAMES[0], nB=CFG_NAMES[1];
   const carA=sA.car?DB.carNames[sA.car.idx]:'—', carB=sB.car?DB.carNames[sB.car.idx]:'—';
-
-  // 판정 배너
   let verdict='';
-  if(A.initial!==B.initial){
-    const cheaper=A.initial<B.initial?nA:nB, d=Math.abs(A.initial-B.initial);
-    verdict+=`초기비용은 <b>${cheaper}</b>가 <b>${comma(d)}원</b> 저렴합니다.`;
-  }else verdict+='초기비용이 동일합니다.';
-  if(A.monthly!==B.monthly){
-    const cheaper=A.monthly<B.monthly?nA:nB, d=Math.abs(A.monthly-B.monthly);
-    verdict+=`<br>월 납입은 <b>${cheaper}</b>가 <b>${comma(d)}원</b> 적습니다.`;
-  }
-
+  if(A.initial!==B.initial){const c=A.initial<B.initial?nA:nB,d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${c}</b>가 <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
+  if(A.monthly!==B.monthly){const c=A.monthly<B.monthly?nA:nB,d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입은 <b>${c}</b>가 <b>${comma(d)}원</b> 적습니다.`;}
   let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp-cols">
-    <div class="cmp-col"><div class="cn">${nA}</div><div class="cc">${carA}</div></div>
-    <div class="cmp-col"><div class="cn">${nB}</div><div class="cc">${carB}</div></div>
-  </div>`;
-
+    <div class="cmp-col g"><div class="cn">${nA}</div><div class="cc">${carA}</div></div>
+    <div class="cmp-col o"><div class="cn">${nB}</div><div class="cc">${carB}</div></div></div>`;
   h+=`<div class="cmp-sec">📋 구성 내역</div>`;
   h+=cmpText('차량',carA,carB);
   h+=cmpText('할부 방식',payLabel(sA.car),payLabel(sB.car));
   h+=cmpText('보험 유형',insLabel(sA.ins),insLabel(sB.ins));
-
   h+=`<div class="cmp-sec">💰 항목별 금액</div>`;
   h+=cmpMoney('면허 비용',A.license,B.license);
-  h+=cmpMoney('차량 초기 납입',A.carUpfront,B.carUpfront,{subA:'취등록세·선납',subB:'취등록세·선납'});
+  h+=cmpMoney('차량 초기 납입',A.carUpfront,B.carUpfront);
   h+=cmpMoney('차량 할부원금',A.carInst,B.carInst);
   h+=cmpMoney('작업비',A.work,B.work);
   h+=cmpMoney('조합 가입비',A.combine,B.combine);
   if(A.insInitial||B.insInitial)h+=cmpMoney('보험료 (1년, 초기)',A.insInitial,B.insInitial);
-
   h+=`<div class="cmp-sec">🎯 최종 비교</div>`;
-  h+=cmpMoney('초기 소요비용',A.initial,B.initial,{big:true,accent:true});
+  h+=cmpMoney('초기 소요비용',A.initial,B.initial,{big:true});
   h+=cmpMoney('월 납입금액',A.monthly,B.monthly,{big:true,subA:A.monthly?A.months+'개월':'일시불',subB:B.monthly?B.months+'개월':'일시불'});
   h+=cmpMoney('총 예상 비용 (1년)',A.grand,B.grand,{big:true});
-
   el('cmpWrap').innerHTML=h;
-  el('cmpPage').classList.add('show');
-  el('cmpPage').scrollTop=0;
+  el('cmpPage').classList.add('show');el('cmpPage').scrollTop=0;
 }
 function closeCompare(){el('cmpPage').classList.remove('show');}
 
 // ══════════════════════════════════════════
-// 추천 조합 (인기 차량 기준)
+// 추천 구성
 // ══════════════════════════════════════════
 let RECO=null;
 function buildReco(){
   const prefer=['쏘나타','K5','그랜저','아이오닉5','K8'];
   let idx=-1;
-  for(const name of prefer){
-    const f=DB.carNames.findIndex(n=>n===name);
-    if(f>=0){idx=f;break;}
-  }
+  for(const name of prefer){const f=DB.carNames.findIndex(n=>n===name);if(f>=0){idx=f;break;}}
   if(idx<0)idx=DB.carNames.findIndex((n,i)=>!isForeign(i));
   if(idx<0)return;
-  RECO={
-    car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS},
-    ins:{type:'공제',combine:true},
-    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false}
-  };
+  RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS},
+    ins:{type:'공제',combine:true,saCustom:0},
+    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licOvr:0};
   const rb=computeBreakdown(RECO);
   el('recoBox').style.display='block';
-  el('recoBody').innerHTML=
-    '<b>'+DB.carNames[idx]+'</b> (일시불) + <b>공제보험 + 조합가입</b> + <b>블랙박스 3채널·하이패스</b><br>'+
+  el('recoBody').innerHTML='<b>'+DB.carNames[idx]+'</b> (일시불) + <b>공제보험 + 조합가입</b> + <b>블랙박스 3채널·하이패스</b><br>'+
     '<span style="color:var(--info);font-weight:700;">초기 약 '+comma(rb.initial)+'원</span>';
-}
-function applyReco(){
-  if(!RECO)return;
-  S=JSON.parse(JSON.stringify(RECO));
-  renderAll();
-  toast('추천 조합을 적용했습니다',' green');
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // 시작
