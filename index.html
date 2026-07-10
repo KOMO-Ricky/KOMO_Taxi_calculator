@@ -61,14 +61,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .cfg-tab:active{filter:brightness(.98);}
 .cf-flash{animation:cfFlash .45s ease;}
 @keyframes cfFlash{0%{transform:scale(1);}35%{transform:scale(.82);}100%{transform:scale(1);}}
-.cfg-tab.g{border-color:var(--green);background:#eafaf0;padding-bottom:14px;z-index:2;}
-.cfg-tab.g .cn{color:var(--green);}
-.cfg-tab.g .cf-acts button{border-color:#a7dcb8;color:var(--green);}
-.cfg-tab.g .cf-acts button.rec{background:var(--green);color:#fff;border-color:var(--green);}
-.cfg-tab.o{border-color:var(--orange);background:#fff8ec;padding-bottom:14px;z-index:2;}
-.cfg-tab.o .cn{color:#b8770a;}
-.cfg-tab.o .cf-acts button{border-color:#f6d79a;color:#b8770a;}
-.cfg-tab.o .cf-acts button.rec{background:var(--orange);color:#fff;border-color:var(--orange);}
+.cfg-tab.g{border-color:var(--green);background:#d5f2df;box-shadow:0 -3px 14px rgba(39,174,96,.22);padding-bottom:14px;z-index:2;}
+.cfg-tab.g .cn{color:#17703b;}
+.cfg-tab.g .cf-acts button{border-color:#7fce9c;color:#17703b;background:#fff;}
+.cfg-tab.g .cf-acts button.rec{background:#eafaf0;}
+.cfg-tab.o{border-color:var(--orange);background:#ffe7c1;box-shadow:0 -3px 14px rgba(244,160,23,.24);padding-bottom:14px;z-index:2;}
+.cfg-tab.o .cn{color:#a86b00;}
+.cfg-tab.o .cf-acts button{border-color:#f3c877;color:#a86b00;background:#fff;}
+.cfg-tab.o .cf-acts button.rec{background:#fff3dc;}
 .cfg-box{border:2.5px solid var(--border);border-radius:0 14px 14px 14px;overflow:hidden;background:#fff;margin-top:-2px;}
 .cfg-box.g{border-color:var(--green);}
 .cfg-box.o{border-color:var(--orange);}
@@ -206,7 +206,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .c2row .cR{border-radius:0 12px 12px 0;text-align:left;border-right:4px solid var(--orange);background:rgba(244,160,23,.05);}
 .c2row .cM{display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-size:11px;font-weight:800;line-height:1.25;padding:0 3px;}
 .c2row .val{font-size:15px;font-weight:800;color:var(--primary);word-break:keep-all;}
-.c2row .sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.c2row .sub{font-size:13px;color:var(--muted);margin-top:3px;}
 .c2row .cheap .val{color:var(--success);}
 .c2row .cheap.cR .val{color:#c07a00;}
 .c2row .cheap .val::after{content:" ▼";font-size:9px;}
@@ -404,6 +404,8 @@ function isForeign(idx){return DB.carMakers[idx]==='수입차';}
 function isEV(idx){return DB.carFuels[idx]==='전기';}
 function fmtInput(input){const raw=input.value.replace(/[^0-9]/g,'');input.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
 function refDate(d){return '🗓 '+(d?('기준일 '+d):'기준일 DB 연동 예정');}
+function hasBatchim(s){if(!s)return false;const code=s.charCodeAt(s.length-1);if(code<0xAC00||code>0xD7A3)return false;return (code-0xAC00)%28!==0;}
+function iga(s){return hasBatchim(s)?'이':'가';}   // 받침 있으면 '이', 없으면 '가'
 
 let toastTimer;
 function toast(msg,cls){const t=el('toast');if(toastTimer)clearTimeout(toastTimer);t.className='toast'+(cls?' '+cls:'');t.innerHTML=msg;t.style.display='block';toastTimer=setTimeout(()=>t.style.display='none',2400);}
@@ -632,7 +634,7 @@ function renderConfigs(){
     const btn=document.createElement('button');
     btn.className='cfg-tab'+(i===activeCfg?' '+CFG_COLOR[i]:'');
     btn.onclick=()=>selectCfg(i);
-    btn.innerHTML='<span class="cn">'+CFG_NAMES[i]+'</span><span class="cv">'+amt+'</span>'+
+    btn.innerHTML='<span class="cn">'+(i===activeCfg?'✓ ':'')+CFG_NAMES[i]+'</span><span class="cv">'+amt+'</span>'+
       '<div class="cf-acts">'+
       '<button onclick="event.stopPropagation();flashBtn(this);cfgDirectInput('+i+')">✏️ 직접 입력</button>'+
       '<button class="rec" onclick="event.stopPropagation();flashBtn(this);cfgApplyReco('+i+')">⭐ 추천 구성</button>'+
@@ -1023,8 +1025,8 @@ function openCompare(){
   const nA=CFG_NAMES[0], nB=CFG_NAMES[1];
   const carA=sA.car?DB.carNames[sA.car.idx]:'—', carB=sB.car?DB.carNames[sB.car.idx]:'—';
   let verdict='';
-  if(A.initial!==B.initial){const c=A.initial<B.initial?nA:nB,d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${c}</b>가 <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
-  if(A.monthly!==B.monthly){const c=A.monthly<B.monthly?nA:nB,d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입은 <b>${c}</b>가 <b>${comma(d)}원</b> 적습니다.`;}
+  if(A.initial!==B.initial){const c=A.initial<B.initial?nA:nB,d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
+  if(A.monthly!==B.monthly){const c=A.monthly<B.monthly?nA:nB,d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 적습니다.`;}
   let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
   h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div><div class="cc">${carA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div><div class="cc">${carB}</div></div></div>`;
