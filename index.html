@@ -231,7 +231,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .fb-btn{display:block;width:100%;margin-top:10px;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
 /* 대출 계산기 */
 .loan-card{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:18px;}
-.loan-h{font-size:14px;font-weight:800;margin-bottom:6px;}
+.loan-h{font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.loan-tgl{font-size:12px;font-weight:700;color:var(--info);background:#eef5ff;border-radius:8px;padding:5px 11px;}
+.loan-h:active .loan-tgl{filter:brightness(.94);}
 .loan-need{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 14px;}
 .loan-need>div{background:#f6f8fc;border-radius:10px;padding:11px 10px;font-size:11px;color:var(--muted);text-align:center;}
 .loan-need .lnc{border-left:4px solid var(--green);}
@@ -1032,22 +1034,23 @@ function openCompare(){
   h+=c2Item('작업<br>비용','work',A.work,'',B.work,'');
   h+=c2Total('초기<br>소요비용',A.initial,B.initial,'','',true);
   h+=c2Total('월<br>납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불');
-  h+=c2Total('총 예상<br>(1년)',A.grand,B.grand);
   h+=`</div>`;
   h+=`<div class="cmp-hint">💡 각 항목의 <b>✏️ 수정</b>을 눌러 값을 바로 바꿀 수 있어요</div>`;
-  // 대출 계산기
+  // 대출 계산기 (접기/펼치기)
   h+=`<div class="loan-card">
-    <div class="loan-h">💳 대출 계산기</div>
-    <div class="field" style="margin-bottom:10px;"><label>현재 보유 금액</label>
-      <input class="inp" id="loanCash" type="text" inputmode="numeric" placeholder="예) 50,000,000" value="${loanCash?comma(loanCash):''}" oninput="fmtInput(this);loanCalc()"></div>
-    <div class="loan-need">
-      <div class="lnc">${CFG_NAMES[0]} 필요 대출<b id="loanNeedA">0원</b></div>
-      <div class="lno">${CFG_NAMES[1]} 필요 대출<b id="loanNeedB">0원</b></div>
+    <div class="loan-h" onclick="toggleLoan()">💳 대출 계산기<span class="loan-tgl" id="loanTgl">${loanOpen?'▲ 접기':'▼ 펼치기'}</span></div>
+    <div class="loan-body" id="loanBody" style="display:${loanOpen?'block':'none'};">
+      <div class="field" style="margin:10px 0;"><label>현재 보유 금액</label>
+        <input class="inp" id="loanCash" type="text" inputmode="numeric" placeholder="예) 50,000,000" value="${loanCash?comma(loanCash):''}" oninput="fmtInput(this);loanCalc()"></div>
+      <div class="loan-need">
+        <div class="lnc">${CFG_NAMES[0]} 필요 대출<b id="loanNeedA">0원</b></div>
+        <div class="lno">${CFG_NAMES[1]} 필요 대출<b id="loanNeedB">0원</b></div>
+      </div>
+      <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(LOAN_DATE)}</span></div>
+      <div class="bank-row hd"><div>은행/기관</div><div class="br">이율</div><div class="bl">한도</div></div>
+      ${LOAN_BANKS.map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rate}</div><div class="bl">${comma(bk.limit)}원</div></div>`).join('')}
+      <div class="sublabel" style="margin-top:4px;">※ 은행별 금액·이율은 예시이며 DB 연동 후 실제 값으로 표시됩니다.</div>
     </div>
-    <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(LOAN_DATE)}</span></div>
-    <div class="bank-row hd"><div>은행/기관</div><div class="br">이율</div><div class="bl">한도</div></div>
-    ${LOAN_BANKS.map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rate}</div><div class="bl">${comma(bk.limit)}원</div></div>`).join('')}
-    <div class="sublabel" style="margin-top:4px;">※ 은행별 금액·이율은 예시이며 DB 연동 후 실제 값으로 표시됩니다.</div>
   </div>`;
   h+=`<div class="cmp-cta">
     <button class="sms-btn" onclick="openSms()">📩 문자로 견적 받기<span class="s">비교 견적을 이미지로 보내드립니다</span></button>
@@ -1064,7 +1067,13 @@ const LOAN_BANKS=[
   {name:'C캐피탈',rate:'연 6.9%',limit:150000000}
 ];
 const LOAN_DATE='';   // 기준일 DB 연동 예정
-let loanCash=0;
+let loanCash=0, loanOpen=false;
+function toggleLoan(){
+  loanOpen=!loanOpen;
+  const b=el('loanBody');if(b)b.style.display=loanOpen?'block':'none';
+  const t=el('loanTgl');if(t)t.textContent=loanOpen?'▲ 접기':'▼ 펼치기';
+  if(loanOpen)loanCalc();
+}
 function loanCalc(){
   loanCash=el('loanCash')?N(el('loanCash').value):loanCash;
   const A=computeBreakdown(CONFIGS[0]), B=computeBreakdown(CONFIGS[1]);
@@ -1095,8 +1104,7 @@ function drawQuoteImage(){
     ['보험/조합',A.insAnnual+A.combine,B.insAnnual+B.combine,insLabel(sA.ins),insLabel(sB.ins)],
     ['작업비용',A.work,B.work,'','']];
   const tots=[['초기 소요비용',A.initial,B.initial,'',''],
-    ['월 납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불'],
-    ['총 예상(1년)',A.grand,B.grand,'','']];
+    ['월 납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불']];
   const W=392,SC=2,mx=14,cardW=W-mx*2,ipad=14,cx0=mx+ipad,cw=cardW-ipad*2;
   const centerW=76,sideW=(cw-centerW)/2,lX=cx0,cX=cx0+sideW,rX=cX+centerW;
   const titleH=66,headH=56,rowH=54,totH=62,footH=50,bodyTop=12+titleH;
