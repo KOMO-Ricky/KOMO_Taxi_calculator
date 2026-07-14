@@ -27,7 +27,7 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 
 /* 헤더 */
 .hd{background:linear-gradient(155deg,#1B232E,#0A0E14);color:#fff;padding:20px 20px 24px;border-radius:0 0 24px 24px;position:relative;overflow:hidden;border-bottom:2px solid var(--accent);}
-.hd::after{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;border:1px solid rgba(201,168,106,.25);pointer-events:none;}
+.hd::after{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;border:1px solid rgba(201,168,106,.25);pointer-events:none;animation:glowFloat 7s ease-in-out infinite;}
 .hd::before{content:"";position:absolute;right:-40px;top:-60px;width:170px;height:170px;border-radius:50%;border:1px solid rgba(201,168,106,.15);pointer-events:none;}
 .hd .brand{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
 .hd .brand .bk{font-size:20px;font-weight:900;letter-spacing:.5px;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'NanumSquare','Noto Sans KR',sans-serif;}
@@ -203,6 +203,25 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .status.ok .dot{background:var(--success);animation:none;}
 .status.err .dot{background:var(--danger);animation:none;}
 @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* ===== KOMO 모션 시스템 (Qualifycheck_license 이식) ===== */
+@keyframes qIn{from{opacity:0;transform:translateY(16px) scale(.99);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes glowFloat{0%,100%{transform:translate(0,0);opacity:.8;}50%{transform:translate(-16px,18px);opacity:1;}}
+@keyframes shimmer{0%{transform:translateX(-130%);}55%,100%{transform:translateX(130%);}}
+.coach,.reco,.cfgwrap,.summary,.compare-btn,.foot{animation:qIn .5s cubic-bezier(.16,1,.3,1) both;}
+.reco{animation-delay:.06s;}.cfgwrap{animation-delay:.12s;}.summary{animation-delay:.18s;}.compare-btn{animation-delay:.24s;}
+.items .item{animation:qIn .45s cubic-bezier(.16,1,.3,1) both;}
+.items .item:nth-child(1){animation-delay:.05s;}.items .item:nth-child(2){animation-delay:.11s;}
+.items .item:nth-child(3){animation-delay:.17s;}.items .item:nth-child(4){animation-delay:.23s;}
+.cmp2 .c2row{animation:qIn .45s cubic-bezier(.16,1,.3,1) both;}
+.cmp2 .c2row:nth-child(2){animation-delay:.04s;}.cmp2 .c2row:nth-child(3){animation-delay:.08s;}
+.cmp2 .c2row:nth-child(4){animation-delay:.12s;}.cmp2 .c2row:nth-child(5){animation-delay:.16s;}
+.cmp2 .c2row:nth-child(6){animation-delay:.20s;}.cmp-verdict{animation:qIn .5s cubic-bezier(.16,1,.3,1) both;}
+.modal-save,.sms-btn{position:relative;overflow:hidden;}
+.modal-save::after,.sms-btn::after{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 100%);transform:translateX(-130%);animation:shimmer 3.2s ease-in-out infinite;pointer-events:none;}
+.item,.cfg-tab,.preset-actions button,.tog-btn,.opt-block{transition:all .2s;}
+.item:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(22,29,39,.13);}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 
 /* ===== 견적 비교 페이지 (Part2에서 재디자인 예정) ===== */
 .cmp-page{position:fixed;inset:0;background:var(--bg);z-index:1500;overflow-y:auto;display:none;}
@@ -420,6 +439,8 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
 function newCfg(){return{car:null,ins:null,work:null,licOvr:0};}
 let CONFIGS=[newCfg(),newCfg()];
 let CFG_NAMES=['1번 구성','2번 구성'];
+let CFG_NAMED=[false,false];   // 사용자가 직접 이름을 지정했는지
+function autoNameCfg(i){if(!CFG_NAMED[i]&&CONFIGS[i].car){CFG_NAMES[i]=DB.carNames[CONFIGS[i].car.idx]||((i+1)+'번 구성');}}
 const CFG_COLOR=['g','o'];   // 1번=초록, 2번=주황
 let activeCfg=0;
 let S=CONFIGS[activeCfg];    // 현재 편집 중인 구성 (참조)
@@ -695,21 +716,22 @@ function cfgDirectInput(i){
 function cfgApplyReco(i){
   if(!RECO){toast('추천 구성을 불러오지 못했습니다');return;}
   CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licOvr=0;
+  autoNameCfg(i);
   activeCfg=i;S=CONFIGS[i];
   renderAll();
   toast(CFG_NAMES[i]+'에 추천 구성을 적용했습니다',' green');
 }
 function renameConfig(){
   const i=activeCfg;
-  promptModal('선택 구성 명칭 변경',CFG_NAMES[i],(v)=>{CFG_NAMES[i]=v||((i+1)+'번 구성');renderAll();toast('명칭을 변경했습니다',' green');});
+  promptModal('선택 구성 명칭 변경',CFG_NAMES[i],(v)=>{CFG_NAMED[i]=!!v;CFG_NAMES[i]=v||((i+1)+'번 구성');if(!v)autoNameCfg(i);renderAll();toast('명칭을 변경했습니다',' green');});
 }
 function clearConfig(){
   const i=activeCfg;
   if(!isFilled(CONFIGS[i])){toast(CFG_NAMES[i]+'은(는) 이미 비어있습니다');return;}
-  confirmModal('선택하신 <b>'+CFG_NAMES[i]+'</b>을(를) 초기화하시겠습니까?<br>입력한 내용이 모두 지워집니다.',()=>{CONFIGS[i]=newCfg();S=CONFIGS[i];renderAll();toast(CFG_NAMES[i]+' 초기화되었습니다',' blue');});
+  confirmModal('선택하신 <b>'+CFG_NAMES[i]+'</b>을(를) 초기화하시겠습니까?<br>입력한 내용이 모두 지워집니다.',()=>{CONFIGS[i]=newCfg();S=CONFIGS[i];CFG_NAMED[i]=false;CFG_NAMES[i]=(i+1)+'번 구성';renderAll();toast(CFG_NAMES[i]+' 초기화되었습니다',' blue');});
 }
 function resetAllCfg(){
-  confirmModal('두 구성을 모두 초기화하시겠습니까?',()=>{CONFIGS=[newCfg(),newCfg()];activeCfg=0;S=CONFIGS[0];renderAll();toast('전체 초기화되었습니다',' blue');});
+  confirmModal('두 구성을 모두 초기화하시겠습니까?',()=>{CONFIGS=[newCfg(),newCfg()];CFG_NAMED=[false,false];CFG_NAMES=['1번 구성','2번 구성'];activeCfg=0;S=CONFIGS[0];renderAll();toast('전체 초기화되었습니다',' blue');});
 }
 
 // ── 코치마크 ──
@@ -878,6 +900,7 @@ function saveCar(){
   if(!tmpCar.payType){toast('할부 여부를 선택해 주세요');return;}
   if(tmpCar.payType==='일부선납'&&!tmpCar.down){toast('선납금액을 입력해 주세요');return;}
   S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months};
+  autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
 
@@ -1001,7 +1024,7 @@ function saveWork(){
 // ── 확인 / 입력 모달 ──
 function confirmModal(msg,onYes){
   const h=`<h3>⚠️ 확인</h3><div class="mdesc" style="margin-bottom:20px;font-size:14px;color:var(--text);line-height:1.6;">${msg}</div>
-    <button class="modal-save" style="background:var(--danger);" onclick="__confirmYes()">확인</button>
+    <button class="modal-save" style="background:linear-gradient(180deg,#F2938A,#E4756B);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.15);" onclick="__confirmYes()">확인</button>
     <button class="modal-close" onclick="closeModal()">취소</button>`;
   __confirmCb=onYes;openModalHTML(h);
 }
@@ -1239,11 +1262,11 @@ function openFeedback(){
     <div class="field"><label>계산기 만족도 *</label>
       <div class="stars" id="fbStars">${[1,2,3,4,5].map(n=>`<span onclick="setFbStar(${n})">☆</span>`).join('')}</div>
       <div class="star-lbl" id="fbStarLbl">별을 눌러 평가해 주세요</div></div>
-    <div class="field"><label>의견 *</label><textarea class="inp" id="fbText" style="resize:vertical;min-height:100px;" placeholder="예) OO 항목도 추가되면 좋겠어요"></textarea></div>
+    <div class="field"><label>추가 의견 *</label><textarea class="inp" id="fbText" style="resize:vertical;min-height:100px;" placeholder="예) OO 항목도 추가되면 좋겠어요"></textarea></div>
+    <div class="ov-note" style="margin:2px 0 14px;">🎁 정성스럽게 작성해주신 분을 <b>추첨</b>하여 소정의 <b>상품</b>을 드릴 예정입니다.</div>
     <div class="field"><label>성명 *</label><input class="inp" id="fbName" placeholder="홍길동"></div>
     <div class="field"><label>전화번호 *</label><input class="inp" id="fbPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
     <button class="modal-save" onclick="submitFeedback()">보내기</button>
-    <div class="ov-note" style="margin-top:12px;">🎁 정성스럽게 작성해주신 분을 <b>추첨</b>하여 소정의 <b>상품</b>을 드릴 예정입니다.</div>
     <button class="modal-close" onclick="closeModal()">취소</button>`);
 }
 function setFbStar(n){
