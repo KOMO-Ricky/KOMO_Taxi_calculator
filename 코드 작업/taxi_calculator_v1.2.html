@@ -230,6 +230,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .c2row.total .cM{font-size:12px;}
 .cmp-hint{text-align:center;font-size:11px;color:var(--muted);margin:12px 0 4px;}
 .cmp-hint b{color:var(--info);}
+.cmp-sec2{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;color:var(--muted);margin:16px 2px 10px;}
+.cmp-sec2::before,.cmp-sec2::after{content:"";flex:1;height:1px;background:var(--border);}
+/* 별점 */
+.stars{display:flex;gap:8px;font-size:32px;color:#e0c060;line-height:1;}
+.stars span{cursor:pointer;transition:transform .1s;}
+.stars span:active{transform:scale(1.2);}
+.star-lbl{font-size:12px;color:var(--muted);margin-top:7px;font-weight:700;}
+/* 대출 토글 */
+.loan-tog{display:flex;align-items:center;gap:10px;margin:4px 0 8px;}
+.loan-tog .ltt{font-size:12px;font-weight:700;color:var(--muted);flex:1;}
+.loan-tog .tog-btn{padding:8px 4px;font-size:12.5px;}
+.loan-cap{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+.loan-cap b{color:var(--primary);}
 /* 하단 CTA */
 .cmp-cta{margin-top:20px;}
 .sms-btn{display:block;width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,#f4a017,#e8890a);color:#fff;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(244,160,23,.3);}
@@ -749,13 +762,8 @@ function openLicense(){
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
     <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
-    <div class="manual">
-      <div class="mh" onclick="toggleManual('licManBody')">✏️ 면허 비용 직접 입력 <span class="tgl">펼치기/접기</span></div>
-      <div class="mbody" id="licManBody" style="display:${S.licOvr>0?'block':'none'};">
-        <div class="field" style="margin-bottom:8px;"><label>면허 소계 직접 입력 (비우면 자동값 사용)</label>
-          <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
-      </div>
-    </div>
+    <div class="field" style="margin-top:16px;"><label>✏️ 면허 비용 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
+      <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
     <button class="modal-save" onclick="saveLicense()">저장</button>
     <button class="modal-close" onclick="closeModal()">닫기</button>
   `);
@@ -1040,7 +1048,10 @@ function openCompare(){
   h+=c2Item('차량','car',A.carFull,payLabel(sA.car),B.carFull,payLabel(sB.car));
   h+=c2Item('보험<br>/조합','ins',A.insAnnual+A.combine,insLabel(sA.ins),B.insAnnual+B.combine,insLabel(sB.ins));
   h+=c2Item('작업<br>비용','work',A.work,'',B.work,'');
-  h+=c2Total('초기<br>소요비용',A.initial,B.initial,'','',true);
+  h+=`</div>`;
+  h+=`<div class="cmp-sec2">🎯 결과 요약</div>`;
+  h+=`<div class="cmp2"><div class="pillar"></div>`;
+  h+=c2Total('초기<br>소요비용',A.initial,B.initial);
   h+=c2Total('월<br>납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불');
   h+=`</div>`;
   h+=`<div class="cmp-hint">💡 각 항목의 <b>✏️ 수정</b>을 눌러 값을 바로 바꿀 수 있어요</div>`;
@@ -1050,6 +1061,14 @@ function openCompare(){
     <div class="loan-body" id="loanBody" style="display:${loanOpen?'block':'none'};">
       <div class="field" style="margin:10px 0;"><label>현재 보유 금액</label>
         <input class="inp" id="loanCash" type="text" inputmode="numeric" placeholder="예) 50,000,000" value="${loanCash?comma(loanCash):''}" oninput="fmtInput(this);loanCalc()"></div>
+      <div class="loan-tog">
+        <span class="ltt">대출 계산에 차량 금액</span>
+        <div class="tog-row" style="flex:0 0 150px;">
+          <button class="tog-btn${loanInclCar?' on':''}" id="loanIncBtn" onclick="setLoanCar(true)">포함</button>
+          <button class="tog-btn${!loanInclCar?' on':''}" id="loanExcBtn" onclick="setLoanCar(false)">제외</button>
+        </div>
+      </div>
+      <div class="loan-cap">필요 대출 = <b>초기 소요비용</b> − 보유 금액 <span id="loanCapCar"></span></div>
       <div class="loan-need">
         <div class="lnc">${CFG_NAMES[0]} 필요 대출<b id="loanNeedA">0원</b></div>
         <div class="lno">${CFG_NAMES[1]} 필요 대출<b id="loanNeedB">0원</b></div>
@@ -1075,19 +1094,30 @@ const LOAN_BANKS=[
   {name:'C캐피탈',rate:'연 6.9%',limit:150000000}
 ];
 const LOAN_DATE='';   // 기준일 DB 연동 예정
-let loanCash=0, loanOpen=false;
+let loanCash=0, loanOpen=false, loanInclCar=true;
 function toggleLoan(){
   loanOpen=!loanOpen;
   const b=el('loanBody');if(b)b.style.display=loanOpen?'block':'none';
   const t=el('loanTgl');if(t)t.textContent=loanOpen?'▲ 접기':'▼ 펼치기';
   if(loanOpen)loanCalc();
 }
+function setLoanCar(v){
+  loanInclCar=v;
+  const inc=el('loanIncBtn'),exc=el('loanExcBtn');
+  if(inc)inc.classList.toggle('on',v);
+  if(exc)exc.classList.toggle('on',!v);
+  loanCalc();
+}
 function loanCalc(){
   loanCash=el('loanCash')?N(el('loanCash').value):loanCash;
   const A=computeBreakdown(CONFIGS[0]), B=computeBreakdown(CONFIGS[1]);
-  const na=Math.max(0,A.initial-loanCash), nb=Math.max(0,B.initial-loanCash);
+  // 차량 제외 시 초기 소요비용에서 차량 초기 납입액을 뺀 금액을 기준으로 계산
+  const baseA=A.initial-(loanInclCar?0:A.carUpfront);
+  const baseB=B.initial-(loanInclCar?0:B.carUpfront);
+  const na=Math.max(0,baseA-loanCash), nb=Math.max(0,baseB-loanCash);
   if(el('loanNeedA'))el('loanNeedA').textContent=comma(na)+'원';
   if(el('loanNeedB'))el('loanNeedB').textContent=comma(nb)+'원';
+  if(el('loanCapCar'))el('loanCapCar').textContent=loanInclCar?'':'· 차량 초기납 제외';
 }
 function closeCompare(){el('cmpPage').classList.remove('show');}
 // 비교표에서 항목 직접 수정 → 해당 구성의 입력 모달 오픈
@@ -1188,18 +1218,36 @@ function submitSms(){
 }
 
 // ── 의견 보내기 (모달) ──
+let fbRating=0;
+const FB_LBL=['','매우 불만족','불만족','보통','만족','매우 만족'];
 function openFeedback(){
-  openModalHTML(`<h3>💬 의견 보내기</h3><div class="mdesc">사용 중 불편한 점이나 제안을 남겨주세요</div>
-    <div class="field"><label>의견 *</label><textarea class="inp" id="fbText" style="resize:vertical;min-height:110px;" placeholder="예) OO 항목도 추가되면 좋겠어요"></textarea></div>
+  fbRating=0;
+  openModalHTML(`<h3>💬 의견 보내기</h3><div class="mdesc">더 나은 계산기를 위해 의견을 들려주세요</div>
+    <div class="field"><label>계산기 만족도 *</label>
+      <div class="stars" id="fbStars">${[1,2,3,4,5].map(n=>`<span onclick="setFbStar(${n})">☆</span>`).join('')}</div>
+      <div class="star-lbl" id="fbStarLbl">별을 눌러 평가해 주세요</div></div>
+    <div class="field"><label>의견 *</label><textarea class="inp" id="fbText" style="resize:vertical;min-height:100px;" placeholder="예) OO 항목도 추가되면 좋겠어요"></textarea></div>
+    <div class="field"><label>성명 *</label><input class="inp" id="fbName" placeholder="홍길동"></div>
+    <div class="field"><label>전화번호 *</label><input class="inp" id="fbPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
     <button class="modal-save" onclick="submitFeedback()">보내기</button>
+    <div class="ov-note" style="margin-top:12px;">🎁 정성스럽게 작성해주신 분을 <b>추첨</b>하여 소정의 <b>상품</b>을 드릴 예정입니다.</div>
     <button class="modal-close" onclick="closeModal()">취소</button>`);
-  setTimeout(()=>{const t=el('fbText');if(t)t.focus();},60);
+}
+function setFbStar(n){
+  fbRating=n;
+  const st=el('fbStars');if(st)[...st.children].forEach((s,i)=>s.textContent=i<n?'★':'☆');
+  const L=el('fbStarLbl');if(L)L.textContent=FB_LBL[n]+' ('+n+'점)';
 }
 function submitFeedback(){
+  if(!fbRating){toast('만족도(별점)를 선택해 주세요');return;}
   const txt=el('fbText')?el('fbText').value.trim():'';
   if(!txt){toast('의견을 입력해 주세요');return;}
-  /* TODO: 의견 저장 API 연동 (placeholder) */
-  closeModal();toast('소중한 의견 감사합니다! 🙏',' green');
+  const nm=el('fbName')?el('fbName').value.trim():'';
+  if(!nm){toast('성명을 입력해 주세요');return;}
+  const ph=el('fbPhone')?el('fbPhone').value.trim():'';
+  if(ph.replace(/[^0-9]/g,'').length<10){toast('전화번호를 정확히 입력해 주세요');return;}
+  /* TODO: 의견 저장 API 연동 — {rating:fbRating,text:txt,name:nm,phone:ph} */
+  closeModal();toast('소중한 의견 감사합니다! 🙏<br>추첨 대상에 포함되었습니다.',' green');
 }
 
 // ══════════════════════════════════════════
