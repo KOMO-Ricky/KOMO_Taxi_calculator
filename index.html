@@ -203,6 +203,54 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .status.ok .dot{background:var(--success);animation:none;}
 .status.err .dot{background:var(--danger);animation:none;}
 @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+/* ===== 진입 커버 (Qualifycheck_license 이식) ===== */
+body.cover-open{overflow:hidden;}
+.cover{position:fixed;inset:0;z-index:2000;background:radial-gradient(115% 70% at 82% 8%,#1B2735 0%,#10161F 48%,#0A0E14 100%);color:#fff;overflow-y:auto;display:flex;flex-direction:column;transition:opacity .55s ease,visibility .55s;}
+.cover.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.cover-ring1{position:absolute;top:-120px;right:-100px;width:420px;height:420px;border-radius:50%;border:1px solid rgba(201,168,106,.18);}
+.cover-glow{position:absolute;top:-40px;right:30px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,106,.22),transparent 68%);animation:glowFloat 8s ease-in-out infinite;pointer-events:none;}
+.cover-vtext{position:absolute;right:26px;top:42%;transform:rotate(90deg);transform-origin:right;font-size:12px;letter-spacing:8px;color:rgba(255,255,255,.07);font-weight:800;white-space:nowrap;}
+.cover-inner{position:relative;max-width:480px;width:100%;margin:0 auto;padding:26px 28px 40px;flex:1;display:flex;flex-direction:column;animation:coverIn .6s cubic-bezier(.16,1,.3,1);}
+.cover-header-row{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.cover-logo{width:30px;height:30px;border:1px solid rgba(201,168,106,.6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#C9A86A;letter-spacing:.5px;}
+.brand-div{width:1px;height:38px;background:linear-gradient(rgba(201,168,106,0),rgba(201,168,106,.55),rgba(201,168,106,0));}
+.brand-main{font-size:15px;font-weight:800;color:#fff;line-height:1;}
+.brand-op{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:rgba(201,168,106,.9);line-height:1;margin-top:4px;}
+.cover-head{display:flex;gap:16px;margin-top:30px;}
+.cover-rule{flex:none;width:3px;border-radius:2px;background:linear-gradient(var(--accent),rgba(201,168,106,0));}
+.cover-head h1{font-size:clamp(30px,8vw,42px);font-weight:800;line-height:1.22;letter-spacing:-1px;}
+.cover-lead{font-size:16px;font-weight:800;color:#E7E1D4;margin-top:24px;}
+.cover-lead span{font-weight:700;color:rgba(231,225,212,.55);font-size:.85em;}
+.cover-desc{font-size:13.5px;color:rgba(231,225,212,.6);line-height:1.8;margin-top:12px;word-break:keep-all;}
+.cover-stats{display:flex;gap:8px;margin-top:32px;flex-wrap:wrap;}
+.cover-stats .stat{display:flex;align-items:center;gap:8px;padding:12px 15px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;white-space:nowrap;}
+.cover-stats .stat b{font-size:17px;font-weight:800;color:var(--accent);line-height:1;}
+.cover-stats .stat span{font-size:11.5px;color:rgba(231,225,212,.62);font-weight:700;line-height:1;}
+.cover-cheer{margin-top:42px;text-align:center;font-size:15px;font-weight:800;line-height:1.7;color:var(--accent-light);letter-spacing:-.2px;}
+.btn-gold{position:relative;width:100%;border:none;border-radius:9px;padding:17px;background:var(--goldgrad);color:#12171F;font-weight:800;font-size:15px;cursor:pointer;overflow:hidden;box-shadow:0 18px 34px -16px rgba(201,168,106,.8);transition:transform .18s;margin-top:20px;font-family:inherit;}
+.btn-gold:hover{transform:translateY(-2px);}
+.cover-foot{text-align:center;margin-top:18px;font-size:11px;color:rgba(231,225,212,.4);}
+@keyframes coverIn{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+.cmp-page.show,.ov-page.show{animation:coverIn .45s cubic-bezier(.16,1,.3,1);}
+
+/* ===== 다크 푸터 (rail-foot 이식) ===== */
+.foot2{margin-top:28px;background:linear-gradient(155deg,#1B232E,#0A0E14);border-top:2px solid var(--accent);padding:24px 20px 26px;color:#fff;}
+.foot2 .f2-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.foot2 .f2-title .f2-ic{width:26px;height:26px;border:1px solid rgba(201,168,106,.6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.foot2 .f2-title span{color:rgba(231,225,212,.5);font-weight:700;font-size:12px;}
+.f2-desc{font-size:11.5px;color:rgba(231,225,212,.55);line-height:1.7;margin-top:10px;word-break:keep-all;}
+.f2-desc b{color:#E7E1D4;}
+.f2-links{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;}
+.f2-links a{flex:1;min-width:105px;text-align:center;text-decoration:none;font-size:11.5px;font-weight:800;color:#E7E1D4;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:11px 6px;transition:all .2s;white-space:nowrap;}
+.f2-links a:hover{background:rgba(201,168,106,.15);border-color:rgba(201,168,106,.5);}
+.f2-addr{font-size:10.5px;color:rgba(231,225,212,.45);line-height:1.7;margin-top:14px;}
+.f2-copy{font-size:10px;color:rgba(231,225,212,.3);margin-top:10px;}
+
+/* 헤더 타이틀 (골드 룰 + 아이브로우) */
+.hd-eyebrow{font-size:10px;letter-spacing:3px;color:rgba(201,168,106,.85);font-weight:800;margin:14px 0 7px;}
+.hd-title-row{display:flex;gap:12px;}
+.hd-rule{flex:none;width:3px;border-radius:2px;background:linear-gradient(var(--accent),rgba(201,168,106,0));}
+
 
 /* ===== KOMO 모션 시스템 (Qualifycheck_license 이식) ===== */
 @keyframes qIn{from{opacity:0;transform:translateY(16px) scale(.99);}to{opacity:1;transform:translateY(0) scale(1);}}
@@ -217,8 +265,8 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .cmp2 .c2row:nth-child(2){animation-delay:.04s;}.cmp2 .c2row:nth-child(3){animation-delay:.08s;}
 .cmp2 .c2row:nth-child(4){animation-delay:.12s;}.cmp2 .c2row:nth-child(5){animation-delay:.16s;}
 .cmp2 .c2row:nth-child(6){animation-delay:.20s;}.cmp-verdict{animation:qIn .5s cubic-bezier(.16,1,.3,1) both;}
-.modal-save,.sms-btn{position:relative;overflow:hidden;}
-.modal-save::after,.sms-btn::after{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 100%);transform:translateX(-130%);animation:shimmer 3.2s ease-in-out infinite;pointer-events:none;}
+.modal-save,.sms-btn,.btn-gold{position:relative;overflow:hidden;}
+.modal-save::after,.sms-btn::after,.btn-gold::after{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 100%);transform:translateX(-130%);animation:shimmer 3.2s ease-in-out infinite;pointer-events:none;}
 .item,.cfg-tab,.preset-actions button,.tog-btn,.opt-block{transition:all .2s;}
 .item:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(22,29,39,.13);}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
@@ -316,13 +364,40 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .ov-ok p{font-size:13px;color:var(--muted);line-height:1.8;}
 </style>
 </head>
-<body>
+<body class="cover-open">
+<!-- ═══ 진입 커버 ═══ -->
+<div class="cover" id="coverPage">
+  <div class="cover-ring1"></div>
+  <div class="cover-glow"></div>
+  <div class="cover-vtext">COST CALCULATOR</div>
+  <div class="cover-inner">
+    <div class="cover-header-row">
+      <div class="cover-logo">KM</div>
+      <div class="brand-div"></div>
+      <div><div class="brand-main">개인택시 양수도센터</div><div class="brand-op">한국모빌리티연구소 운영</div></div>
+    </div>
+    <div class="cover-head"><div class="cover-rule"></div><h1>개인택시<br>준비자금 계산기</h1></div>
+    <div class="cover-lead">나의 준비자금을 확인하세요 <span>(구성별 맞춤 견적 비교)</span></div>
+    <div class="cover-desc">차량·보험·작업비용을 선택하시면<br>초기 소요비용과 월 납입금액을 계산해드립니다.</div>
+    <div class="cover-stats">
+      <div class="stat"><b>3 분</b><span>간편 계산</span></div>
+      <div class="stat"><b>2가지</b><span>구성 비교</span></div>
+      <div class="stat"><b>문자</b><span>견적 발송</span></div>
+    </div>
+    <div class="cover-cheer">당신의 새로운 도전을 응원합니다.<br>최고의 파트너가 되겠습니다.</div>
+    <button type="button" class="btn-gold" onclick="startCalc()">계산 시작하기 &nbsp;→</button>
+    <div class="cover-foot">KOMOLAB · 개인택시 양수도센터 1566-7114</div>
+  </div>
+</div>
 <div id="app">
   <div class="hd">
     <button class="hd-help" onclick="openGuide()" aria-label="이용 가이드">?</button>
     <div class="brand"><span class="bk">KOMO</span><span class="bs"><div class="b1">개인택시 양수도센터</div><div class="b2">한국모빌리티연구소 운영</div></span></div>
-    <h1>개인택시 준비자금 계산기</h1>
-    <div class="sub">서울특별시 기준 · 항목을 눌러 입력하세요</div>
+    <div class="hd-eyebrow">COST CALCULATOR</div>
+    <div class="hd-title-row"><div class="hd-rule"></div><div>
+      <h1>개인택시 준비자금 계산기</h1>
+      <div class="sub">서울특별시 기준 · 항목을 눌러 입력하세요</div>
+    </div></div>
     <div class="hd-total">
       <div class="lbl">총 예상 준비 자금 <small>(1년 기준)</small></div>
       <div class="amt"><span id="grandTotal">0</span><small>원</small></div>
@@ -394,10 +469,16 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 
   <button class="compare-btn" id="compareBtn" onclick="openCompare()" disabled>📊 구성 비교하기<span class="cbsub" id="compareSub">두 구성을 모두 채우면 비교할 수 있어요</span></button>
 
-  <div class="foot">
-    <b>개인택시 양수도센터</b> 1566-7114<br>
-    본 계산기는 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.<br>
-    Copyright 2026. KOMOLAB Inc.
+  <div class="foot2">
+    <div class="f2-title"><span class="f2-ic">🚕</span>개인택시 양수도센터 <span>by KOMOLAB</span></div>
+    <p class="f2-desc"><b>개인택시 양수도센터</b>는 모빌리티 전문 기업 <b>한국모빌리티연구소</b>가 운영하는 대한민국 No.1 면허 중개 센터입니다.</p>
+    <div class="f2-links">
+      <a href="tel:1566-7114">📞 대표번호 1566-7114</a>
+      <a href="http://pf.kakao.com/_faxiRn/" target="_blank" rel="noopener">💬 카카오톡 상담</a>
+      <a href="http://www.tlxc.co.kr" target="_blank" rel="noopener">🏠 공식 홈페이지</a>
+    </div>
+    <div class="f2-addr">서울특별시 송파구 올림픽로 319 교통회관 11층 개인택시양수도센터<br>본 계산기는 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.</div>
+    <div class="f2-copy">Copyright 2026. KOMOLAB Inc. All rights reserved.</div>
   </div>
 </div>
 
@@ -1306,6 +1387,16 @@ function buildReco(){
     '<div class="reco-item"><span class="rk">보험/조합</span><span class="rv">공제보험 + 조합가입</span></div>'+
     '<div class="reco-item"><span class="rk">작업</span><span class="rv">블랙박스 3채널 · 하이패스</span></div>'+
     '<div class="reco-item total"><span class="rk">예상 초기비용</span><span class="rv">약 '+comma(rb.initial)+'원</span></div>';
+}
+
+// 커버 → 계산기 진입 전환
+function startCalc(){
+  el('coverPage').classList.add('hide');
+  document.body.classList.remove('cover-open');
+  const app=el('app');
+  app.style.animation='none';void app.offsetWidth;
+  app.style.animation='coverIn .6s cubic-bezier(.16,1,.3,1)';
+  window.scrollTo(0,0);
 }
 
 // 시작
