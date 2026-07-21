@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  doc-page:not(:defined){visibility:hidden;}
+  .h-body{font-family:'Noto Sans KR',-apple-system,sans-serif;color:#1E2430;line-height:1.7;letter-spacing:-.1px;}
+  .h-body h1{font-size:26px;font-weight:900;letter-spacing:-.8px;color:#131F45;margin:0 0 4px;}
+  .h-body h2{font-size:17px;font-weight:800;color:#131F45;margin:34px 0 12px;padding-bottom:8px;border-bottom:2px solid #24356E;letter-spacing:-.3px;}
+  .h-body h3{font-size:13.5px;font-weight:800;color:#24356E;margin:20px 0 8px;}
+  .h-body p{margin:0 0 11px;font-size:12.5px;color:#3A4252;}
+  .h-body ul{margin:0 0 12px;padding-left:18px;}
+  .h-body li{font-size:12.5px;color:#3A4252;margin:4px 0;}
+  .h-body b{color:#16224A;font-weight:800;}
+  .h-body code{font-family:'SFMono-Regular',Consolas,monospace;font-size:11.5px;background:#EEF1F7;border:1px solid #E0E5EE;border-radius:4px;padding:1px 6px;color:#24356E;}
+  .h-eyebrow{font-size:11px;font-weight:800;letter-spacing:2px;color:#B8860B;margin-bottom:10px;}
+  .h-lead{font-size:13px;color:#5A6273;margin:2px 0 6px;}
+  .h-callout{background:#FDF6E0;border:1px solid #F0DCA0;border-left:4px solid #E0A82E;border-radius:9px;padding:13px 16px;margin:14px 0;}
+  .h-callout p{margin:0;font-size:12.5px;color:#5C4A16;}
+  .h-callout b{color:#8A6A14;}
+  .h-navy{background:#131F45;border-radius:10px;padding:15px 18px;margin:14px 0;color:#fff;}
+  .h-navy p{margin:0;color:#C6CEE6;font-size:12px;}
+  .h-navy code{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#F5C242;}
+  .h-navy b{color:#F5C242;}
+  .swatch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:12px 0;}
+  .sw{display:flex;align-items:center;gap:11px;border:1px solid #E0E5EE;border-radius:9px;padding:9px 11px;}
+  .sw-chip{width:34px;height:34px;border-radius:7px;flex:none;border:1px solid rgba(0,0,0,.08);}
+  .sw-meta{min-width:0;}
+  .sw-name{font-size:11.5px;font-weight:800;color:#16224A;}
+  .sw-hex{font-family:monospace;font-size:10.5px;color:#6B7280;letter-spacing:.3px;}
+  table.h-tbl{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:11.5px;}
+  table.h-tbl th{background:#24356E;color:#fff;text-align:left;font-weight:800;padding:8px 11px;font-size:11px;}
+  table.h-tbl td{border:1px solid #E4E8F0;padding:7px 11px;color:#3A4252;}
+  table.h-tbl tr:nth-child(even) td{background:#F7F9FC;}
+  table.h-tbl td b{color:#16224A;}
+  .tok{font-family:monospace;font-size:11px;color:#B8860B;font-weight:700;}
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page margin="0.8in">
+<div class="h-body">
+  <div class="h-eyebrow">DESIGN HANDOFF · KOMOLAB</div>
+  <h1>개인택시 준비자금 계산기 — 디자인 핸드오프</h1>
+  <p class="h-lead">남색 + 옐로 톤 (Navy &amp; Amber) · 모바일 우선 · 최대 폭 480px</p>
+  <p class="h-lead">참조 시안: <code>taxi_calculator_navy_yellow.html</code> · 기능 원본: <code>taxi_calculator_v1.2.html</code></p>
+
+  <h2>0. 클로드 코드 작업 지시</h2>
+  <div class="h-navy">
+    <p><b>목표</b> — <code>taxi_calculator_v1.2.html</code>의 기능·로직·데이터 연동·계산식은 <b>그대로 유지</b>하고, 아래 디자인 스펙과 <code>taxi_calculator_navy_yellow.html</code> 시안의 시각 스타일(색상·타이포·컴포넌트)만 입힌다. HTML 구조/클래스명/JS는 최대한 보존하고, 스타일 레이어만 교체한다.</p>
+  </div>
+  <ul>
+    <li>화면 구성: ①메인 ②입력 모달(면허·차량·보험/조합·작업비) ③구성 비교 ④대출 계산기·CTA ⑤문자 신청 — 시안의 5개 화면과 1:1 대응.</li>
+    <li>로고 이미지 2종을 <code>assets/</code>에 함께 전달: <code>komolab_wordmark.png</code>(컬러, 밝은 배경/헤더용), <code>komolab_mark.png</code>(화이트, 다크 배경/푸터용).</li>
+    <li>이모지·형광색 금지. 아이콘은 흑백 라인(stroke) SVG 사용.</li>
+  </ul>
+
+  <h2>1. 컬러 토큰</h2>
+  <h3>브랜드 / 액센트</h3>
+  <div class="swatch-grid">
+    <div class="sw"><div class="sw-chip" style="background:#1C2C5B;"></div><div class="sw-meta"><div class="sw-name">Navy (Primary)</div><div class="sw-hex">#1C2C5B</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#16224A;"></div><div class="sw-meta"><div class="sw-name">Navy Ink (본문 강조)</div><div class="sw-hex">#16224A</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:linear-gradient(150deg,#24356E,#131F45);"></div><div class="sw-meta"><div class="sw-name">Navy Gradient (헤더/요약)</div><div class="sw-hex">#24356E → #131F45</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#F5C242;"></div><div class="sw-meta"><div class="sw-name">Amber (Accent)</div><div class="sw-hex">#F5C242</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:linear-gradient(180deg,#FBD35E,#F5C242);"></div><div class="sw-meta"><div class="sw-name">Amber Gradient (CTA)</div><div class="sw-hex">#FBD35E → #F5C242</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#B8860B;"></div><div class="sw-meta"><div class="sw-name">Amber Deep (앰버 텍스트)</div><div class="sw-hex">#B8860B</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#E0A82E;"></div><div class="sw-meta"><div class="sw-name">Amber Border/Rule</div><div class="sw-hex">#E0A82E</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#7FC9A8;"></div><div class="sw-meta"><div class="sw-name">Mint (월 납입/절감)</div><div class="sw-hex">#7FC9A8</div></div></div>
+  </div>
+  <h3>중립 / 배경 / 상태</h3>
+  <div class="swatch-grid">
+    <div class="sw"><div class="sw-chip" style="background:#E9EAEE;"></div><div class="sw-meta"><div class="sw-name">Page BG</div><div class="sw-hex">#E9EAEE</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#F5F7FB;"></div><div class="sw-meta"><div class="sw-name">Surface Soft</div><div class="sw-hex">#F5F7FB</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#FFFFFF;"></div><div class="sw-meta"><div class="sw-name">Card</div><div class="sw-hex">#FFFFFF</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#E2E7F2;"></div><div class="sw-meta"><div class="sw-name">Border</div><div class="sw-hex">#E2E7F2</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#EDF1F9;"></div><div class="sw-meta"><div class="sw-name">Navy Tint (구성 A 셀)</div><div class="sw-hex">#EDF1F9</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#FDF6E0;"></div><div class="sw-meta"><div class="sw-name">Amber Tint (구성 B 셀)</div><div class="sw-hex">#FDF6E0</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#7C86A3;"></div><div class="sw-meta"><div class="sw-name">Muted Text</div><div class="sw-hex">#7C86A3</div></div></div>
+    <div class="sw"><div class="sw-chip" style="background:#C25454;"></div><div class="sw-meta"><div class="sw-name">Danger (이율/경고)</div><div class="sw-hex">#C25454</div></div></div>
+  </div>
+  <div class="h-callout"><p><b>구성 색상 규칙</b> — <b>구성 A = Navy</b>(테두리 #1C2C5B, 틴트 #EDF1F9), <b>구성 B = Amber</b>(테두리 #E0A82E, 틴트 #FDF6E0). 비교표·대출 카드 전반에서 이 대응을 일관되게 유지.</p></div>
+
+  <h2>2. 타이포그래피</h2>
+  <p>서체: <b>Noto Sans KR</b> (400/500/600/700/800/900). 숫자·금액은 800~900으로 강조, <code>letter-spacing:-.3px~-1px</code>로 큰 숫자 조임.</p>
+  <table class="h-tbl">
+    <thead><tr><th>역할</th><th>크기 / 두께</th><th>색상</th></tr></thead>
+    <tbody>
+      <tr><td><b>페이지 타이틀</b></td><td>21px / 800</td><td>#fff (헤더 위)</td></tr>
+      <tr><td><b>총액 (Hero 숫자)</b></td><td>28px / 800</td><td>#F5C242</td></tr>
+      <tr><td>섹션 제목 (추천 구성 등)</td><td>12.5px / 800 · 트래킹 1.5px</td><td>#1C2C5B</td></tr>
+      <tr><td>항목명 (면허·차량…)</td><td>13px / 800</td><td>#16224A</td></tr>
+      <tr><td>항목 금액</td><td>13.5px / 800</td><td>#16224A</td></tr>
+      <tr><td>본문 / 설명</td><td>11~11.5px / 600</td><td>#7C86A3</td></tr>
+      <tr><td>버튼 라벨</td><td>14px / 800</td><td>상황별</td></tr>
+    </tbody>
+  </table>
+  <div class="h-callout"><p><b>위계 규칙</b> — 어떤 경우에도 <b>제목이 본문보다 작아선 안 됨</b>. 섹션 제목 ≥ 항목명 ≥ 설명문 순서 유지. 소문자 라벨(트래킹 적용)도 최소 12px.</p></div>
+
+  <h2>3. 컴포넌트 규칙</h2>
+  <h3>모서리 반경 (radius)</h3>
+  <ul>
+    <li>화면 카드(목업 외곽): <span class="tok">24px</span> · 내부 큰 카드: <span class="tok">14px</span> · 항목/입력/버튼: <span class="tok">9~12px</span> · 칩/뱃지: <span class="tok">6~8px</span></li>
+  </ul>
+  <h3>그림자</h3>
+  <ul>
+    <li>카드: <code>0 4px 12px -6px rgba(22,34,74,.08)</code></li>
+    <li>CTA(앰버): <code>0 12px 24px -10px rgba(224,168,46,.6)</code></li>
+    <li>선택 강조(포커스 링): <code>0 0 0 3px rgba(28,44,91,.1)</code> + 1.5px Navy 보더</li>
+  </ul>
+  <h3>버튼</h3>
+  <ul>
+    <li><b>주요 CTA</b>(비교·저장·문자 신청): 앰버 그라디언트 배경 + Navy 텍스트(#16224A) + 앰버 그림자.</li>
+    <li><b>선택된 옵션</b>(연료·제조사·개월수): Navy 배경(#1C2C5B) + 흰 텍스트. 미선택: 흰 배경 + #E2E7F2 보더 + #4A5470 텍스트.</li>
+    <li><b>보조 버튼</b>(의견 보내기): 흰 배경 + Navy 텍스트 + #D5DCEC 보더.</li>
+  </ul>
+  <h3>항목 아이콘</h3>
+  <ul>
+    <li>34×34 라운드 타일. 일반 항목: 배경 #F3F4F6 + #E5E7EB 보더 + #374151 라인 아이콘. 활성/다음 액션 항목(예: 보험/조합): 배경 #22252E + 흰 아이콘.</li>
+    <li>아이콘은 24×24 viewBox stroke SVG(문서/차량/방패/공구 등). 글자 약어 사용 금지.</li>
+  </ul>
+  <h3>구성 비교표</h3>
+  <ul>
+    <li>3열 그리드 <code>1fr 64px 1fr</code>. <b>중앙 세로 기둥으로 묶지 말 것</b> — 각 항목 행마다 독립된 Navy 라벨 칩(면허/차량/보험·조합)을 배치.</li>
+    <li>좌(구성 A): 우측 정렬 + 좌측 Navy 보더. 우(구성 B): 좌측 정렬 + 우측 Amber 보더.</li>
+    <li>세부 비교(상단)와 결과 요약(하단)은 <code>결과 요약</code> 구분선으로 영역 분리.</li>
+  </ul>
+
+  <h2>4. 헤더 &amp; 푸터</h2>
+  <ul>
+    <li><b>헤더</b>: Navy 그라디언트 + 우상단 앰버 링 장식. 좌측에 <code>komolab_wordmark.png</code> + 세로 구분선 + 브랜드 스택("개인택시 양수도센터 / 한국모빌리티연구소 운영"), 우측 "?" 도움말 원. 아래 앰버 세로 룰 + 큰 타이틀 + "서울특별시 기준".</li>
+    <li><b>총액 박스</b>: 반투명 흰 배경. "총 예상 준비 자금"(1년 기준 표기 삭제) + 앰버 대형 숫자 + "초기 … · 월 … <b>(12개월)</b>".</li>
+    <li><b>푸터</b>: Navy 그라디언트 밴드. <code>komolab_mark.png</code> + 센터명 + 소개문 + 연락 칩(전화·홈페이지·카카오톡) + 구분선 + 주소 + 저작권.</li>
+  </ul>
+
+  <h2>5. 카피 규칙</h2>
+  <ul>
+    <li>'항목을 눌러 입력하세요', '1년 기준' 등의 안내 문구는 <b>삭제</b>.</li>
+    <li>월 발생 비용에는 <b>개월 수를 괄호로 표기</b> — 예: <code>월 483,000원 (12개월)</code>, <code>월 납입금액 (12개월)</code>.</li>
+    <li>금액 표기: 한글 단위 혼용 허용(예: "초기 1억 1,330만"), 상세는 "113,300,000원" 원 단위.</li>
+  </ul>
+
+  <div class="h-navy" style="margin-top:22px;">
+    <p><b>전달 파일 체크리스트</b> — ① 이 핸드오프 문서 &nbsp;② <code>taxi_calculator_navy_yellow.html</code>(디자인 시안) &nbsp;③ <code>taxi_calculator_v1.2.html</code>(기능 원본) &nbsp;④ <code>assets/komolab_wordmark.png</code>, <code>assets/komolab_mark.png</code></p>
+  </div>
+</div>
+</doc-page>
+</x-dc>
+</body>
+</html>

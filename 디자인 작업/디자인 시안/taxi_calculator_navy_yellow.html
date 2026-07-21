@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인택시 준비자금 계산기 — 디자인 시안 (남색+옐로)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#E9EAEE; font-family:'Noto Sans KR',-apple-system,sans-serif; color:#16224A; letter-spacing:-.1px; padding:40px; }
+  a { color:#1C2C5B; } a:hover { color:#131F45; }
+  .doc-title { font-size:22px; font-weight:800; color:#111827; margin:0 0 6px; }
+  .doc-sub { font-size:13px; font-weight:600; color:#6B7280; margin:0 0 28px; }
+</style>
+</head>
+<body>
+  <h1 class="doc-title">개인택시 준비자금 계산기 — 디자인 시안</h1>
+  <p class="doc-sub">남색 + 옐로 톤 · 화면: ①메인 ②입력 모달 ③구성 비교 ④대출 계산기·CTA ⑤문자 신청</p>
+  <div id="2b">
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+
+      <!-- 2b 메인 -->
+      <div style="width:360px;flex:none;">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px;">① 메인</div>
+        <div style="background:#F5F7FB;border-radius:24px;overflow:hidden;box-shadow:0 22px 54px -28px rgba(17,24,39,.4);">
+          <div style="background:linear-gradient(150deg,#24356E,#131F45);padding:24px 22px 20px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-70px;right:-50px;width:190px;height:190px;border-radius:50%;border:1px solid rgba(245,194,66,.22);"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;position:relative;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <img src="assets/komolab_wordmark.png" alt="KOMO" style="height:24px;width:auto;display:block;flex:none;">
+                <div style="width:1px;height:34px;background:linear-gradient(rgba(245,194,66,0),rgba(245,194,66,.55),rgba(245,194,66,0));"></div>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                  <span style="font-size:14px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1;">개인택시 양수도센터</span>
+                  <span style="font-size:10.5px;font-weight:700;letter-spacing:.4px;color:rgba(245,194,66,.9);line-height:1;">한국모빌리티연구소 운영</span>
+                </div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;border:1px solid rgba(245,194,66,.5);color:#F5C242;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">?</div>
+            </div>
+            <div style="display:flex;gap:13px;position:relative;">
+              <span style="flex:none;width:3px;border-radius:2px;background:linear-gradient(#F5C242,rgba(245,194,66,0));"></span>
+              <div>
+                <div style="font-size:21px;font-weight:800;color:#fff;letter-spacing:-.6px;line-height:1.25;">개인택시 준비자금 계산기</div>
+                <div style="font-size:11.5px;color:#8D9AC4;margin-top:5px;">서울특별시 기준</div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;margin-top:14px;position:relative;">
+              <div style="font-size:11.5px;font-weight:800;letter-spacing:1.2px;color:#8D9AC4;">총 예상 준비 자금</div>
+              <div style="font-size:28px;font-weight:800;color:#F5C242;letter-spacing:-1px;margin-top:5px;">₩142,800,000</div>
+              <div style="font-size:11.5px;color:#8D9AC4;margin-top:6px;">초기 <b style="color:#fff;">113,300,000원</b> · 월 <b style="color:#7FC9A8;">483,000원</b> (12개월)</div>
+            </div>
+          </div>
+          <div style="padding:14px 16px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;background:#FDF3D7;border:1px solid #F0DCA0;border-radius:9px;padding:9px 12px;font-size:11.5px;font-weight:700;color:#8A6A14;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#E0A82E;flex:none;"></span>구성 A · 보험/조합 유형을 선택하세요
+            </div>
+            <div style="background:#fff;border:1px solid #E2E7F2;border-radius:12px;padding:13px 15px;">
+              <div style="font-size:12.5px;font-weight:800;letter-spacing:1.5px;color:#1C2C5B;margin-bottom:9px;">추천 구성</div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;"><span style="color:#7C86A3;font-weight:700;">차량</span><span style="color:#16224A;font-weight:700;">쏘나타 · 일시불</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;"><span style="color:#7C86A3;font-weight:700;">보험/조합</span><span style="color:#16224A;font-weight:700;">공제보험 + 조합가입</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:7px 0 0;margin-top:5px;border-top:1px dashed #E2E7F2;"><span style="color:#16224A;font-weight:800;">예상 초기비용</span><span style="color:#1C2C5B;font-weight:800;">약 146,180,000원</span></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div style="flex:1;background:#fff;border:1px solid #1C2C5B;box-shadow:0 0 0 3px rgba(28,44,91,.1);border-radius:11px;padding:10px 12px;text-align:center;">
+                <div style="font-size:13px;font-weight:800;color:#1C2C5B;">✓ 구성 A</div>
+                <div style="font-size:12px;font-weight:800;color:#16224A;margin-top:2px;">초기 1억 1,330만</div>
+                <div style="display:flex;gap:4px;margin-top:8px;">
+                  <span style="flex:1;text-align:center;font-size:9.5px;font-weight:800;color:#1C2C5B;border:1px solid #D5DCEC;border-radius:6px;padding:5px 2px;">직접 입력</span>
+                  <span style="flex:1;text-align:center;font-size:9.5px;font-weight:800;color:#16224A;background:#F5C242;border-radius:6px;padding:5px 2px;">추천 구성</span>
+                </div>
+              </div>
+              <div style="flex:1;background:#FAFBFD;border:1px solid #E2E7F2;border-radius:11px;padding:10px 12px;text-align:center;">
+                <div style="font-size:13px;font-weight:800;color:#7C86A3;">구성 B</div>
+                <div style="font-size:12px;font-weight:700;color:#7C86A3;margin-top:2px;">비어있음</div>
+                <div style="display:flex;gap:4px;margin-top:8px;">
+                  <span style="flex:1;text-align:center;font-size:9.5px;font-weight:800;color:#7C86A3;border:1px solid #E2E7F2;border-radius:6px;padding:5px 2px;">직접 입력</span>
+                  <span style="flex:1;text-align:center;font-size:9.5px;font-weight:800;color:#7C86A3;border:1px solid #E2E7F2;border-radius:6px;padding:5px 2px;">추천 구성</span>
+                </div>
+              </div>
+            </div>
+            <div style="border:1px solid #E2E7F2;border-radius:13px;overflow:hidden;box-shadow:0 4px 12px -6px rgba(22,34,74,.08);background:#fff;">
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;">
+                <div style="width:34px;height:34px;border-radius:9px;background:#F3F4F6;border:1px solid #E5E7EB;color:#374151;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></div>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:800;color:#16224A;">면허</div><div style="font-size:10.5px;color:#7C86A3;">면허시세 + 수수료</div></div>
+                <div style="font-size:13.5px;font-weight:800;color:#16224A;">113,300,000원</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:1px solid #F0F3F9;">
+                <div style="width:34px;height:34px;border-radius:9px;background:#F3F4F6;border:1px solid #E5E7EB;color:#374151;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l1.7-4.2A2 2 0 0 1 8.6 6.5h6.8a2 2 0 0 1 1.9 1.3L19 12"></path><rect x="3.5" y="12" width="17" height="5" rx="1.5"></rect><circle cx="7.8" cy="17.8" r="1.4"></circle><circle cx="16.2" cy="17.8" r="1.4"></circle></svg></div>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:800;color:#16224A;">차량</div><div style="font-size:10.5px;color:#7C86A3;">쏘나타 · 일시불</div></div>
+                <div style="font-size:13.5px;font-weight:800;color:#16224A;">27,750,000원</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:1px solid #F0F3F9;background:#FFFDF4;box-shadow:inset 0 0 0 1.5px #E0A82E;">
+                <div style="width:34px;height:34px;border-radius:9px;background:#22252E;border:1px solid #22252E;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6z"></path></svg></div>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:800;color:#16224A;">보험/조합 <span style="font-size:9px;font-weight:800;color:#8A6A14;background:#FDF3D7;border-radius:4px;padding:1px 5px;vertical-align:middle;">가이드</span></div><div style="font-size:10.5px;color:#7C86A3;">보험 유형을 선택하세요</div></div>
+                <div style="font-size:12px;font-weight:800;color:#B8860B;">선택 →</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-top:1px solid #F0F3F9;">
+                <div style="width:34px;height:34px;border-radius:9px;background:#F6F7F8;border:1px solid #ECEDEF;color:#9CA3AF;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:800;color:#7C86A3;">차량 작업비용</div><div style="font-size:10.5px;color:#AEB6CC;">미터점 작업 항목</div></div>
+                <div style="font-size:12px;font-weight:700;color:#AEB6CC;">—</div>
+              </div>
+            </div>
+            <div style="background:linear-gradient(150deg,#24356E,#131F45);border-radius:14px;padding:16px 18px;color:#fff;">
+              <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8D9AC4;font-weight:700;">초기 소요비용</span><span style="font-size:17px;font-weight:800;color:#F5C242;">113,300,000원</span></div>
+              <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8D9AC4;font-weight:700;">월 납입금액 (12개월)</span><span style="font-size:15px;font-weight:800;color:#7FC9A8;">0원</span></div>
+              <div style="height:1px;background:rgba(255,255,255,.1);margin:7px 0;"></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="font-size:11px;color:#6B7699;">차량 할부원금</span><span style="font-size:12px;font-weight:700;">0원</span></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="font-size:11px;color:#6B7699;">총 예상 비용 (12개월)</span><span style="font-size:12px;font-weight:700;">141,050,000원</span></div>
+            </div>
+            <div style="background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;border-radius:12px;padding:14px;text-align:center;font-size:14px;font-weight:800;box-shadow:0 12px 24px -10px rgba(224,168,46,.6);">구성 비교하기<div style="font-size:10px;font-weight:700;color:#6B5410;margin-top:2px;">두 구성을 모두 채우면 비교할 수 있어요</div></div>
+            <div style="background:linear-gradient(168deg,#24356E,#131F45);color:#fff;margin:6px -16px -20px;padding:20px 22px 24px;">
+              <div style="display:flex;align-items:center;gap:9px;"><img src="assets/komolab_mark.png" alt="" style="height:22px;width:auto;display:block;"><div style="font-size:15px;font-weight:800;">개인택시 양수도센터</div></div>
+              <div style="font-size:11.5px;color:rgba(214,222,240,.62);line-height:1.75;margin-top:8px;word-break:keep-all;"><b style="color:#fff;">개인택시 양수도센터</b>는 모빌리티 전문 기업 <b style="color:#fff;">한국모빌리티연구소</b>가 운영하는 대한민국 No.1 면허 중개 센터입니다.</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;">
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:10.5px;font-weight:700;color:#C6CEE6;"><i style="width:16px;height:16px;border-radius:4px;background:#F5C242;color:#16224A;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-style:normal;">T</i>1566-7114</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:10.5px;font-weight:700;color:#C6CEE6;"><i style="width:16px;height:16px;border-radius:4px;background:#F5C242;color:#16224A;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-style:normal;">W</i>홈페이지</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:10.5px;font-weight:700;color:#C6CEE6;"><i style="width:16px;height:16px;border-radius:4px;background:#F5C242;color:#16224A;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-style:normal;">K</i>카카오톡 상담</span>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.1);margin:14px 0 10px;"></div>
+              <div style="font-size:10.5px;color:rgba(214,222,240,.5);line-height:1.7;">서울특별시 송파구 올림픽로 319 교통회관 11층 개인택시양수도센터</div>
+              <div style="font-size:10px;color:rgba(214,222,240,.38);margin-top:4px;letter-spacing:.3px;">Copyright 2026. KOMOLAB Inc. All rights reserved.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2b 모달 -->
+      <div style="width:360px;flex:none;">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px;">② 입력 모달 (차량 선택)</div>
+        <div style="background:#39415C;border-radius:24px;overflow:hidden;box-shadow:0 22px 54px -28px rgba(17,24,39,.4);display:flex;flex-direction:column;justify-content:flex-end;min-height:640px;">
+          <div style="background:#fff;border-radius:20px 20px 0 0;padding:18px 20px 24px;">
+            <div style="width:36px;height:4px;background:#E2E7F2;border-radius:2px;margin:0 auto 16px;"></div>
+            <div style="font-size:16px;font-weight:800;color:#16224A;">차량 선택</div>
+            <div style="font-size:11px;color:#7C86A3;margin:3px 0 14px;">연료 → 제조사 → 차량 순으로 선택</div>
+            <div style="background:#FDF3D7;border:1px solid #F0DCA0;border-radius:10px;padding:11px 13px;font-size:11px;line-height:1.65;color:#5C4A16;margin-bottom:14px;"><b style="color:#8A6A14;">이렇게 선택하세요</b><br>①연료 → ②제조사 → ③차량을 누르면 가격·옵션·취등록세가 자동으로 채워집니다.</div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;color:#1C2C5B;margin-bottom:7px;">① 연료 타입</div>
+            <div style="display:flex;gap:6px;margin-bottom:13px;">
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:800;color:#fff;background:#1C2C5B;border-radius:9px;padding:11px 4px;box-shadow:0 6px 14px -6px rgba(28,44,91,.5);">LPG</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">전기</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">하이브리드</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">기타</span>
+            </div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;color:#1C2C5B;margin-bottom:7px;">② 제조사</div>
+            <div style="display:flex;gap:6px;margin-bottom:13px;">
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:800;color:#fff;background:#1C2C5B;border-radius:9px;padding:11px 4px;">현대</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">기아</span>
+            </div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;color:#1C2C5B;margin-bottom:7px;">③ 차량</div>
+            <div style="display:flex;gap:6px;margin-bottom:13px;">
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:800;color:#fff;background:#1C2C5B;border-radius:9px;padding:11px 4px;">쏘나타</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">그랜저</span>
+              <span style="flex:1;text-align:center;font-size:12px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:9px;padding:11px 4px;">스타리아</span>
+            </div>
+            <div style="border:1px solid #E2E7F2;border-radius:11px;padding:4px 14px;margin-bottom:13px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:1px solid #F0F3F9;"><span style="color:#7C86A3;">차량 기본금액</span><b style="color:#16224A;">25,950,000 원</b></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:1px solid #F0F3F9;"><span style="color:#7C86A3;">옵션 금액</span><b style="color:#16224A;">약 1,020,000 원</b></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:9px 0;"><span style="color:#7C86A3;">취등록세/공채</span><b style="color:#16224A;">약 780,000 원</b></div>
+            </div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;color:#1C2C5B;margin-bottom:7px;">할부 개월수</div>
+            <div style="display:flex;gap:6px;margin-bottom:14px;">
+              <span style="flex:1;text-align:center;font-size:11.5px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:8px;padding:9px 2px;">24개월</span>
+              <span style="flex:1;text-align:center;font-size:11.5px;font-weight:700;color:#4A5470;border:1px solid #E2E7F2;border-radius:8px;padding:9px 2px;">36개월</span>
+              <span style="flex:1;text-align:center;font-size:11.5px;font-weight:800;color:#fff;background:#1C2C5B;border-radius:8px;padding:9px 2px;">60개월</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#FAFBFD;border:1px solid #E2E7F2;border-radius:10px;padding:11px 14px;margin-bottom:14px;"><span style="font-size:12px;font-weight:800;color:#16224A;">차량 소계</span><span style="font-size:16px;font-weight:800;color:#1C2C5B;">27,750,000 원</span></div>
+            <div style="background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;border-radius:11px;padding:14px;text-align:center;font-size:14px;font-weight:800;box-shadow:0 10px 20px -10px rgba(224,168,46,.55);">저장</div>
+            <div style="text-align:center;font-size:11.5px;font-weight:700;color:#7C86A3;padding-top:12px;">취소</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2b 비교 -->
+      <div style="width:360px;flex:none;">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px;">③ 구성 비교</div>
+        <div style="background:#F5F7FB;border-radius:24px;overflow:hidden;box-shadow:0 22px 54px -28px rgba(17,24,39,.4);">
+          <div style="background:linear-gradient(150deg,#24356E,#131F45);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(245,194,66,.12);border:1px solid rgba(245,194,66,.35);color:#F5C242;display:flex;align-items:center;justify-content:center;font-size:13px;">←</div>
+            <div><div style="font-size:14px;font-weight:800;">구성 비교</div><div style="font-size:10px;color:#8D9AC4;">두 구성을 항목별로 비교합니다</div></div>
+          </div>
+          <div style="padding:14px 14px 20px;">
+            <div style="background:linear-gradient(150deg,#24356E,#131F45);border-radius:11px;padding:13px 15px;font-size:11.5px;line-height:1.7;color:#C6CEE6;margin-bottom:12px;">초기비용은 <b style="color:#F5C242;">구성 A</b>가 <b style="color:#F5C242;">4,880,000원</b> 저렴합니다.<br>월 납입은 <b style="color:#7FC9A8;">구성 B</b>가 <b style="color:#7FC9A8;">122,000원</b> 적습니다.</div>
+            <div style="display:grid;grid-template-columns:1fr 64px 1fr;gap:0;margin-bottom:4px;">
+              <div style="text-align:center;"><div style="font-size:14px;font-weight:800;color:#1C2C5B;">구성 A</div><div style="font-size:10px;color:#7C86A3;">쏘나타</div></div>
+              <div></div>
+              <div style="text-align:center;"><div style="font-size:14px;font-weight:800;color:#B8860B;">구성 B</div><div style="font-size:10px;color:#7C86A3;">아이오닉5</div></div>
+            </div>
+            <div style="position:relative;">
+              
+              <div style="position:relative;display:grid;grid-template-columns:1fr 64px 1fr;margin-bottom:7px;">
+                <div style="background:#EDF1F9;border-left:3px solid #1C2C5B;border-radius:10px 0 0 10px;padding:11px 10px;text-align:right;"><div style="font-size:12.5px;font-weight:800;color:#16224A;">113,300,000원</div><div style="font-size:9px;font-weight:800;color:#1C2C5B;margin-top:3px;">✎ 수정</div></div>
+                <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#24356E,#131F45);border-radius:9px;margin:0 5px;color:#F5C242;font-size:10px;font-weight:800;">면허</div>
+                <div style="background:#FDF6E0;border-right:3px solid #E0A82E;border-radius:0 10px 10px 0;padding:11px 10px;"><div style="font-size:12.5px;font-weight:800;color:#16224A;">113,300,000원</div><div style="font-size:9px;font-weight:800;color:#B8860B;margin-top:3px;">✎ 수정</div></div>
+              </div>
+              <div style="position:relative;display:grid;grid-template-columns:1fr 64px 1fr;margin-bottom:7px;">
+                <div style="background:#EDF1F9;border-left:3px solid #1C2C5B;border-radius:10px 0 0 10px;padding:11px 10px;text-align:right;"><div style="font-size:12.5px;font-weight:800;color:#1F5F42;">27,750,000원 ▾</div><div style="font-size:9.5px;color:#7C86A3;margin-top:2px;">일시불</div></div>
+                <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#24356E,#131F45);border-radius:9px;margin:0 5px;color:#F5C242;font-size:10px;font-weight:800;">차량</div>
+                <div style="background:#FDF6E0;border-right:3px solid #E0A82E;border-radius:0 10px 10px 0;padding:11px 10px;"><div style="font-size:12.5px;font-weight:800;color:#16224A;">44,560,000원</div><div style="font-size:9.5px;color:#7C86A3;margin-top:2px;">전액할부 60개월</div></div>
+              </div>
+              <div style="position:relative;display:grid;grid-template-columns:1fr 64px 1fr;">
+                <div style="background:#EDF1F9;border-left:3px solid #1C2C5B;border-radius:10px 0 0 10px;padding:11px 10px;text-align:right;"><div style="font-size:12.5px;font-weight:800;color:#16224A;">4,400,000원</div><div style="font-size:9.5px;color:#7C86A3;margin-top:2px;">공제 + 조합</div></div>
+                <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#24356E,#131F45);border-radius:9px;margin:0 5px;color:#F5C242;font-size:10px;font-weight:800;text-align:center;">보험<br>/조합</div>
+                <div style="background:#FDF6E0;border-right:3px solid #E0A82E;border-radius:0 10px 10px 0;padding:11px 10px;"><div style="font-size:12.5px;font-weight:800;color:#B8860B;">4,400,000원</div><div style="font-size:9.5px;color:#7C86A3;margin-top:2px;">공제 + 조합</div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#7C86A3;margin:14px 2px 10px;"><span style="flex:1;height:1px;background:#E2E7F2;"></span>결과 요약<span style="flex:1;height:1px;background:#E2E7F2;"></span></div>
+            <div style="position:relative;">
+              
+              <div style="position:relative;display:grid;grid-template-columns:1fr 64px 1fr;">
+                <div style="background:#fff;border:1px solid #D5DCEC;border-right:none;border-radius:10px 0 0 10px;padding:13px 10px;text-align:right;box-shadow:0 8px 18px -12px rgba(22,34,74,.25);"><div style="font-size:14px;font-weight:800;color:#1C2C5B;">146,180,000원 ▾</div></div>
+                <div style="display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#24356E,#131F45);border-radius:9px;margin:0 5px;color:#F5C242;font-size:10px;font-weight:800;text-align:center;">초기<br>비용</div>
+                <div style="background:#fff;border:1px solid #F0DCA0;border-left:none;border-radius:0 10px 10px 0;padding:13px 10px;box-shadow:0 8px 18px -12px rgba(22,34,74,.25);"><div style="font-size:14px;font-weight:800;color:#16224A;">151,060,000원</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2b 대출+CTA -->
+      <div style="width:360px;flex:none;">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px;">④ 대출 계산기 · CTA</div>
+        <div style="background:#F5F7FB;border-radius:24px;overflow:hidden;box-shadow:0 22px 54px -28px rgba(17,24,39,.4);padding:16px 14px 20px;">
+          <div style="background:#fff;border:1px solid #E2E7F2;border-radius:14px;padding:15px;box-shadow:0 4px 12px -6px rgba(22,34,74,.08);">
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13.5px;font-weight:800;color:#16224A;">대출 계산기</span><span style="font-size:10.5px;font-weight:800;color:#8A6A14;background:#FDF3D7;border:1px solid #F0DCA0;border-radius:7px;padding:4px 10px;">▲ 접기</span></div>
+            <div style="margin-top:12px;">
+              <div style="font-size:12px;font-weight:800;letter-spacing:1px;color:#1C2C5B;margin-bottom:6px;">현재 보유 금액</div>
+              <div style="border:1.5px solid #1C2C5B;border-radius:9px;padding:12px 14px;font-size:14px;font-weight:700;color:#16224A;background:#fff;box-shadow:0 0 0 3px rgba(28,44,91,.08);">50,000,000</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+              <span style="flex:1;font-size:11px;font-weight:700;color:#7C86A3;">대출 계산에 차량 금액</span>
+              <span style="font-size:11px;font-weight:800;color:#fff;background:#1C2C5B;border-radius:7px;padding:7px 14px;">포함</span>
+              <span style="font-size:11px;font-weight:700;color:#7C86A3;border:1px solid #E2E7F2;border-radius:7px;padding:7px 14px;">제외</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;">
+              <div style="background:#EDF1F9;border-left:3px solid #1C2C5B;border-radius:9px;padding:11px;text-align:center;"><div style="font-size:12px;color:#7C86A3;font-weight:700;">구성 A 필요 대출</div><div style="font-size:15px;font-weight:800;color:#16224A;margin-top:4px;">96,180,000원</div></div>
+              <div style="background:#FDF6E0;border-left:3px solid #E0A82E;border-radius:9px;padding:11px;text-align:center;"><div style="font-size:12px;color:#7C86A3;font-weight:700;">구성 B 필요 대출</div><div style="font-size:15px;font-weight:800;color:#16224A;margin-top:4px;">101,060,000원</div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:11px;font-weight:800;color:#4A5470;">은행별 대출 가능 금액 · 이율</span><span style="font-size:9px;font-weight:800;color:#8A6A14;background:#FDF3D7;border-radius:5px;padding:3px 7px;">기준일 연동 예정</span></div>
+            <div style="display:grid;grid-template-columns:1.5fr 1fr 1.1fr;gap:6px;padding:9px 10px;background:#FAFBFD;border-radius:8px;font-size:11px;margin-bottom:5px;"><b style="color:#16224A;">A은행</b><span style="text-align:center;color:#C25454;font-weight:800;">연 5.2%</span><span style="text-align:right;font-weight:800;color:#16224A;">130,000,000원</span></div>
+            <div style="display:grid;grid-template-columns:1.5fr 1fr 1.1fr;gap:6px;padding:9px 10px;background:#FAFBFD;border-radius:8px;font-size:11px;margin-bottom:5px;"><b style="color:#16224A;">B은행</b><span style="text-align:center;color:#C25454;font-weight:800;">연 5.6%</span><span style="text-align:right;font-weight:800;color:#16224A;">120,000,000원</span></div>
+            <div style="display:grid;grid-template-columns:1.5fr 1fr 1.1fr;gap:6px;padding:9px 10px;background:#FAFBFD;border-radius:8px;font-size:11px;"><b style="color:#16224A;">C캐피탈</b><span style="text-align:center;color:#C25454;font-weight:800;">연 6.9%</span><span style="text-align:right;font-weight:800;color:#16224A;">150,000,000원</span></div>
+          </div>
+          <div style="background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;border-radius:12px;padding:15px;text-align:center;font-size:14px;font-weight:800;box-shadow:0 12px 24px -10px rgba(224,168,46,.6);margin-top:14px;">문자로 견적 받기<div style="font-size:10px;font-weight:700;color:#6B5410;margin-top:2px;">비교 견적을 이미지로 보내드립니다</div></div>
+          <div style="border:1px solid #D5DCEC;background:#fff;color:#1C2C5B;border-radius:11px;padding:12px;text-align:center;font-size:12px;font-weight:800;margin-top:8px;">의견 보내기</div>
+        </div>
+      </div>
+
+      <!-- 2b 문자 신청 -->
+      <div style="width:360px;flex:none;">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px;">⑤ 문자 신청</div>
+        <div style="background:#F5F7FB;border-radius:24px;overflow:hidden;box-shadow:0 22px 54px -28px rgba(17,24,39,.4);">
+          <div style="background:linear-gradient(150deg,#24356E,#131F45);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(245,194,66,.12);border:1px solid rgba(245,194,66,.35);color:#F5C242;display:flex;align-items:center;justify-content:center;font-size:13px;">←</div>
+            <div><div style="font-size:14px;font-weight:800;">문자로 견적 받기</div><div style="font-size:10px;color:#8D9AC4;">입력하신 번호로 견적을 보내드립니다</div></div>
+          </div>
+          <div style="padding:16px 14px 20px;">
+            <div style="background:#fff;border:1px solid #E2E7F2;border-radius:14px;padding:15px;box-shadow:0 4px 12px -6px rgba(22,34,74,.08);">
+              <div style="border:1px solid #E2E7F2;border-radius:10px;height:150px;background:repeating-linear-gradient(45deg,#F3F5FA,#F3F5FA 10px,#ECEFF6 10px,#ECEFF6 20px);display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#7C86A3;">견적 비교 이미지 미리보기</div>
+              <div style="background:#FDF3D7;border:1px solid #F0DCA0;border-radius:9px;padding:10px 12px;font-size:11px;color:#5C4A16;line-height:1.6;margin:12px 0;">위 <b style="color:#8A6A14;">비교 견적 이미지</b>를 입력하신 번호로 <b style="color:#8A6A14;">문자(MMS)</b> 발송해 드립니다.</div>
+              <div style="font-size:12px;font-weight:800;letter-spacing:1px;color:#1C2C5B;margin-bottom:6px;">이름 *</div>
+              <div style="border:1px solid #E2E7F2;border-radius:9px;padding:12px 14px;font-size:13px;color:#AEB6CC;margin-bottom:11px;">홍길동</div>
+              <div style="font-size:12px;font-weight:800;letter-spacing:1px;color:#1C2C5B;margin-bottom:6px;">연락처 (휴대폰) *</div>
+              <div style="border:1px solid #E2E7F2;border-radius:9px;padding:12px 14px;font-size:13px;color:#AEB6CC;margin-bottom:11px;">010-0000-0000</div>
+              <div style="display:flex;gap:8px;align-items:flex-start;font-size:11px;color:#7C86A3;line-height:1.5;margin-bottom:13px;"><span style="width:15px;height:15px;border:1.5px solid #1C2C5B;border-radius:4px;background:#1C2C5B;color:#F5C242;font-size:10px;display:flex;align-items:center;justify-content:center;flex:none;">✓</span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</div>
+              <div style="background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;border-radius:11px;padding:14px;text-align:center;font-size:13.5px;font-weight:800;box-shadow:0 10px 20px -10px rgba(224,168,46,.55);">견적 이미지 문자 신청</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
