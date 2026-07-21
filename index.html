@@ -172,6 +172,9 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .manual .mh{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--primary);cursor:pointer;}
 .manual .mh .tgl{margin-left:auto;font-size:11px;color:var(--muted);}
 .manual .mbody{margin-top:10px;}
+.manual-btn{display:block;width:100%;margin-top:12px;padding:13px;border-radius:10px;border:1.5px solid var(--primary);background:var(--card);color:var(--primary);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;transition:all .15s;}
+.manual-btn:active{transform:scale(.98);background:#F5F1E8;}
+.manual-exit{display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1.5px dashed var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
 .modal-save{width:100%;padding:15px;border-radius:12px;border:none;background:var(--goldgrad);color:#241D0F;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;}
 .modal-close{width:100%;padding:12px;border-radius:12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-top:4px;}
 .divider{height:1px;background:var(--border);margin:16px 0;}
@@ -402,6 +405,7 @@ body.cover-open{overflow:hidden;}
       <div class="lbl">총 예상 준비 자금 <small>(1년 기준)</small></div>
       <div class="amt"><span id="grandTotal">0</span><small>원</small></div>
       <div class="sub2" id="actualLine">초기 0원 · 월 0원</div>
+      <div class="sub2" id="hdDate" style="margin-top:3px;">🗓 데이터 기준일 확인 중…</div>
     </div>
   </div>
 
@@ -514,7 +518,7 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],combineFee:0,
-  carRate:[],dateLicense:'',dateCar:'',dateCombine:''};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
+  carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:''};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
 function newCfg(){return{car:null,ins:null,work:null,licOvr:0};}
@@ -565,10 +569,13 @@ async function loadData(){
     DB.combineFee=N(d.combineFee);
     DB.carRate=(d.carRate||[]).map(N);                 // 할부율(연%) — DB 연동 예정
     DB.dateLicense=d.dateLicense||'';DB.dateCar=d.dateCar||'';DB.dateCombine=d.dateCombine||'';
+    DB.dataDate=d.dataDate||'';
+    el('hdDate').textContent='🗓 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
     console.error(e);fallback();
     setStatus('err','샘플 데이터 표시 중');
+    el('hdDate').textContent='🗓 샘플 데이터 기준 (실데이터 연동 대기)';
   }
   renderAll();
   renderConfigs();
@@ -868,23 +875,31 @@ function openGuide(){
 }
 
 // ── 면허 모달 (기준일 + 직접입력) ──
-function openLicense(){
+let licManual=false;
+function openLicense(){licManual=S.licOvr>0;renderLicModal();}
+function renderLicModal(){
   const ov=S.licOvr>0?comma(S.licOvr):'';
-  openModalHTML(`
-    <h3>📄 면허 비용</h3>
+  let h=`<h3>📄 면허 비용</h3>
     <div class="mdesc">서울특별시 개인택시 면허 기준</div>
-    <div class="guide">면허 시세와 중개 수수료는 <b>데이터에서 자동 반영</b>됩니다. 필요하면 아래에서 <b>직접 입력</b>으로 조정할 수 있어요.</div>
-    <div class="mrow"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
+    <div class="guide">면허 시세와 중개 수수료는 <b>데이터에서 자동 반영</b>됩니다. 다른 금액으로 계산하려면 <b>[입력하기]</b>를 눌러 직접 입력하세요.</div>`;
+  if(!licManual){
+    h+=`<div class="mrow"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
     <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
-    <div class="field" style="margin-top:16px;"><label>✏️ 면허 비용 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
+    <button class="manual-btn" onclick="licManual=true;renderLicModal()">✏️ 입력하기</button>`;
+  }else{
+    h+=`<div class="mrow"><span class="ml">면허 시세</span></div>
+    <div class="mrow"><span class="ml">수수료</span></div>
+    <div class="field" style="margin-top:14px;"><label>✏️ 면허 비용 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
-    <button class="modal-save" onclick="saveLicense()">저장</button>
-    <button class="modal-close" onclick="closeModal()">닫기</button>
-  `);
+    <button class="manual-exit" onclick="licManual=false;renderLicModal()">↩ 자동 계산 사용</button>`;
+  }
+  h+=`<button class="modal-save" onclick="saveLicense()">저장</button>
+    <button class="modal-close" onclick="closeModal()">닫기</button>`;
+  openModalHTML(h);
 }
-function saveLicense(){S.licOvr=el('licOvr')?N(el('licOvr').value):0;closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');}
+function saveLicense(){S.licOvr=(licManual&&el('licOvr'))?N(el('licOvr').value):0;closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');}
 
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
@@ -1028,6 +1043,11 @@ function renderInsModal(){
       </div>
       <div class="refdate">${refDate(DB.dateCombine)}</div>
       <div class="sublabel">${locked?'<b style="color:var(--primary)">공제보험 가입 시 조합 가입이 필수입니다.</b>':'조합 가입은 선택사항입니다. (특정 경우 제외)'}</div>`;
+    // 보험료(1년) + 조합가입비 총액
+    const annualNow=tmpIns.type==='공제'?(DB.insurance[i]||0):(tmpIns.saCustom>0?tmpIns.saCustom:((DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0));
+    const combNow=(tmpIns.type==='공제'||tmpIns.combine)?(DB.combineFee||0):0;
+    h+=`<div class="mrow" style="margin-top:12px;"><span class="ml"><b>보험 초기비용 총액</b><br><small style="color:var(--muted)">보험료(1년) + 조합가입비</small></span><span class="mv" style="color:var(--primary);font-size:17px;">${won(annualNow+combNow)}</span></div>`;
+    if(combNow)h+=`<div class="alert info">ℹ️ ${tmpIns.type==='공제'?'공제보험은 <b>조합 가입이 필수</b>이므로 가입비 '+comma(DB.combineFee)+'원이 총액에 자동 포함됩니다.':'선택하신 <b>조합 가입비 '+comma(DB.combineFee)+'원</b>이 총액에 포함되었습니다.'}</div>`;
   }
   h+=`<button class="modal-save" onclick="saveIns()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
   openModalHTML(h);
@@ -1045,59 +1065,62 @@ function saveIns(){
 let tmpWork={bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
 function openWork(){
   tmpWork=S.work?{bb:S.work.bb,bbCh:S.work.bbCh,hi:S.work.hi,pedal:S.work.pedal,btGat:S.work.btGat,ovr:S.work.ovr||0}:{bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
+  tmpWork.manual=tmpWork.ovr>0;
   renderWorkModal();
 }
 function renderWorkModal(){
   const i=S.car?S.car.idx:-1;
   const meter=(i>=0&&!isForeign(i))?DB.meterWork[i]:0;
+  const M=!!tmpWork.manual;   // 직접 입력 모드: 금액 숨기고 항목명·체크박스만
+  const amt=v=>M?'':`<span class="mv">${v}</span>`;
   let h=`<h3>🔧 차량 작업비용</h3><div class="mdesc">미터점 작업 항목 (부가세 포함)</div>`;
   h+=`<div class="guide"><span class="gt">필수와 선택</span>
-    <b>① 필수 항목</b>은 자동 합산, <b>② 선택 항목</b>은 체크 시 추가됩니다. 필요하면 <b>직접 입력</b>으로 총액을 조정할 수 있어요.</div>`;
+    <b>① 필수 항목</b>은 자동 합산, <b>② 선택 항목</b>은 체크 시 추가됩니다. 총액을 직접 넣으려면 <b>[입력하기]</b>를 누르세요.</div>`;
   h+=`<div class="subtitle">① 필수 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(자동 포함)</small></div>`;
-  if(i>=0&&!isForeign(i))h+=`<div class="mrow"><span class="ml">미터기 작업비</span><span class="mv">${meter===0?'0 원':won(meter)}</span></div>`;
-  h+=`<div class="mrow"><span class="ml">갓등</span><span class="mv">${won(DB.reqItems[0])}</span></div>
-    <div class="mrow"><span class="ml">경광벨(경고등)</span><span class="mv">${won(DB.reqItems[1])}</span></div>
-    <div class="mrow"><span class="ml">미터기 거치대</span><span class="mv">${won(DB.reqItems[2])}</span></div>
-    <div class="mrow"><span class="ml">빈차등</span><span class="mv">${won(DB.reqItems[3])}</span></div>`;
+  if(i>=0&&!isForeign(i))h+=`<div class="mrow"><span class="ml">미터기 작업비</span>${amt(meter===0?'0 원':won(meter))}</div>`;
+  h+=`<div class="mrow"><span class="ml">갓등</span>${amt(won(DB.reqItems[0]))}</div>
+    <div class="mrow"><span class="ml">경광벨(경고등)</span>${amt(won(DB.reqItems[1]))}</div>
+    <div class="mrow"><span class="ml">미터기 거치대</span>${amt(won(DB.reqItems[2]))}</div>
+    <div class="mrow"><span class="ml">빈차등</span>${amt(won(DB.reqItems[3]))}</div>`;
   h+=`<div class="subtitle">② 선택 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(체크 시 추가)</small></div>
     <div class="opt-block">
       <div class="opt-head">
         <input type="checkbox" id="w_bb" ${tmpWork.bb?'checked':''} onchange="tmpWork.bb=this.checked;if(!this.checked)tmpWork.bbCh='';renderWorkModal();">
-        <label>블랙박스</label><div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(tmpWork.bbCh==='3채널'?DB.selItems[0]:DB.selItems[1]):'—'}</div>
+        <label>블랙박스</label>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(tmpWork.bbCh==='3채널'?DB.selItems[0]:DB.selItems[1]):'—'}</div>`}
       </div>`;
   if(tmpWork.bb){
     h+=`<div class="tog-row" style="margin-top:10px;">
-      <button class="tog-btn${tmpWork.bbCh==='3채널'?' on':''}" onclick="tmpWork.bbCh='3채널';renderWorkModal();">3채널 (${comma(DB.selItems[0])})</button>
-      <button class="tog-btn${tmpWork.bbCh==='5채널'?' on':''}" onclick="tmpWork.bbCh='5채널';renderWorkModal();">5채널 (${comma(DB.selItems[1])})</button>
+      <button class="tog-btn${tmpWork.bbCh==='3채널'?' on':''}" onclick="tmpWork.bbCh='3채널';renderWorkModal();">3채널${M?'':' ('+comma(DB.selItems[0])+')'}</button>
+      <button class="tog-btn${tmpWork.bbCh==='5채널'?' on':''}" onclick="tmpWork.bbCh='5채널';renderWorkModal();">5채널${M?'':' ('+comma(DB.selItems[1])+')'}</button>
     </div>`;
   }
   h+=`</div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_hi" ${tmpWork.hi?'checked':''} onchange="tmpWork.hi=this.checked;renderWorkModal();">
-      <label>미터기 연동형 하이패스</label><div class="oa">${won(DB.selItems[2])}</div></div></div>
+      <label>미터기 연동형 하이패스</label>${M?'':`<div class="oa">${won(DB.selItems[2])}</div>`}</div></div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_pedal" ${tmpWork.pedal?'checked':''} onchange="tmpWork.pedal=this.checked;renderWorkModal();">
-      <label>블랙박스 페달 추가</label><div class="oa">${won(DB.selItems[3])}</div></div></div>
+      <label>블랙박스 페달 추가</label>${M?'':`<div class="oa">${won(DB.selItems[3])}</div>`}</div></div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_bt" ${tmpWork.btGat?'checked':''} onchange="tmpWork.btGat=this.checked;renderWorkModal();">
-      <label>블루투스(자석) 갓등</label><div class="oa">${won(DB.selItems[4])}</div></div></div>`;
-  const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
-  h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
-    <div class="manual">
-      <div class="mh" onclick="toggleManual('workManBody')">✏️ 작업비 직접 입력 <span class="tgl">펼치기/접기</span></div>
-      <div class="mbody" id="workManBody" style="display:${tmpWork.ovr>0?'block':'none'};">
-        <div class="field" style="margin-bottom:8px;"><label>작업비 총액 직접 입력 (비우면 위 소계 사용)</label>
-          <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
-      </div>
-    </div>
-    <div class="alert info">ℹ️ 모든 항목은 부가세 포함 금액입니다.</div>
+      <label>블루투스(자석) 갓등</label>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></div>`;
+  if(!M){
+    const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
+    h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
+    <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">✏️ 입력하기</button>`;
+  }else{
+    h+=`<div class="field" style="margin-top:14px;"><label>작업비 총액 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
+      <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
+    <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">↩ 자동 계산 사용</button>`;
+  }
+  h+=`<div class="alert info">ℹ️ 모든 항목은 부가세 포함 금액입니다.</div>
     <div class="sublabel" style="text-align:right;">출처: 개인택시 양수도센터 직영미터점</div>
     <button class="modal-save" onclick="saveWork()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
   openModalHTML(h);
 }
 function saveWork(){
   if(tmpWork.bb&&!tmpWork.bbCh){toast('블랙박스 채널을 선택해 주세요');return;}
-  tmpWork.ovr=el('workOvr')?N(el('workOvr').value):0;
+  tmpWork.ovr=(tmpWork.manual&&el('workOvr'))?N(el('workOvr').value):0;
   S.work={bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:tmpWork.ovr};
   closeModal();renderAll();refreshCmp();toast('작업비 정보가 저장되었습니다',' green');
 }
@@ -1158,11 +1181,12 @@ function openCompare(){
   let verdict='';
   if(A.initial!==B.initial){const c=A.initial<B.initial?nA:nB,d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
   if(A.monthly!==B.monthly){const c=A.monthly<B.monthly?nA:nB,d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 적습니다.`;}
+  if(A.grand!==B.grand){const c=A.grand<B.grand?nA:nB,d=Math.abs(A.grand-B.grand);verdict+=`<br>총 비용(1년 기준)은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 저렴합니다.`;}
   let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
-  h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div><div class="cc">${carA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div><div class="cc">${carB}</div></div></div>`;
+  h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div></div></div>`;
   h+=c2Item('면허','license',A.license,sA.licOvr>0?'직접입력':'',B.license,sB.licOvr>0?'직접입력':'');
-  h+=c2Item('차량','car',A.carFull,payLabel(sA.car),B.carFull,payLabel(sB.car));
+  h+=c2Item('차량','car',A.carFull,carA+' · '+payLabel(sA.car),B.carFull,carB+' · '+payLabel(sB.car));
   h+=c2Item('보험<br>/조합','ins',A.insAnnual+A.combine,insLabel(sA.ins),B.insAnnual+B.combine,insLabel(sB.ins));
   h+=c2Item('작업<br>비용','work',A.work,'',B.work,'');
   h+=`</div>`;
@@ -1255,7 +1279,7 @@ function drawQuoteImage(){
   const sA=CONFIGS[0],sB=CONFIGS[1],A=computeBreakdown(sA),B=computeBreakdown(sB);
   const carA=sA.car?DB.carNames[sA.car.idx]:'—',carB=sB.car?DB.carNames[sB.car.idx]:'—';
   const items=[['면허',A.license,B.license,'',''],
-    ['차량',A.carFull,B.carFull,payLabel(sA.car),payLabel(sB.car)],
+    ['차량',A.carFull,B.carFull,carA+' · '+payLabel(sA.car),carB+' · '+payLabel(sB.car)],
     ['보험/조합',A.insAnnual+A.combine,B.insAnnual+B.combine,insLabel(sA.ins),insLabel(sB.ins)],
     ['작업비용',A.work,B.work,'','']];
   const tots=[['초기 소요비용',A.initial,B.initial,'',''],
@@ -1277,11 +1301,8 @@ function drawQuoteImage(){
   g.fillStyle='#27ae60';rr(lX,bodyTop+6,sideW-4,headH-12,10);g.fill();
   g.fillStyle='#f4a017';rr(rX+4,bodyTop+6,sideW-4,headH-12,10);g.fill();
   g.fillStyle='#fff';g.font=F(800,13);
-  g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+25);
-  g.fillText(CFG_NAMES[1],rX+4+(sideW-4)/2,bodyTop+25);
-  g.font=F(600,10);
-  g.fillText(carA,lX+(sideW-4)/2,bodyTop+41);
-  g.fillText(carB,rX+4+(sideW-4)/2,bodyTop+41);
+  g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+31);
+  g.fillText(CFG_NAMES[1],rX+4+(sideW-4)/2,bodyTop+31);
   g.font=F(800,11);g.fillText('항목',cX+centerW/2,bodyTop+31);
   let y=bodyTop+headH;
   function row(label,a,b,sa,sb,h,big){
