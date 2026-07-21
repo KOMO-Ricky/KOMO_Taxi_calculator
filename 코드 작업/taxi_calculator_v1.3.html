@@ -629,6 +629,7 @@ function carFullOf(car){
     const rate=car.trim==='영업용'?0.024:car.trim==='일반용'?0.07:0;
     return fv+Math.floor(fv*rate);
   }
+  if(car.priceOvr>0)return car.priceOvr;   // 직접 입력
   const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0, tax=DB.taxFee[i]||0;
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
@@ -641,6 +642,11 @@ function carInstOf(car){
     const fv=car.foreignPrice||0;
     if(car.payType==='전액할부')return fv;
     if(car.payType==='일부선납')return Math.max(0,fv-(car.down||0));
+    return 0;
+  }
+  if(car.priceOvr>0){
+    if(car.payType==='전액할부')return car.priceOvr;
+    if(car.payType==='일부선납')return Math.max(0,car.priceOvr-(car.down||0));
     return 0;
   }
   const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0;
@@ -893,11 +899,13 @@ function renderLicModal(){
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
     <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
-    <button class="manual-btn" onclick="licManual=true;renderLicModal()">✏️ 입력하기</button>`;
+    <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
+    <button class="manual-btn" onclick="licManual=true;renderLicModal()">입력하기</button>`;
   }else{
     h+=`<div class="mrow"><span class="ml">면허 시세</span></div>
     <div class="mrow"><span class="ml">수수료</span></div>
-    <div class="field" style="margin-top:14px;"><label>✏️ 면허 비용 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
+    <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
+    <div class="field"><label>금액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
     <button class="manual-exit" onclick="licManual=false;renderLicModal()">↩ 자동 계산 사용</button>`;
   }
@@ -910,7 +918,8 @@ function saveLicense(){S.licOvr=(licManual&&el('licOvr'))?N(el('licOvr').value):
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
 function openCar(){
-  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
+  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceOvr:S.car.priceOvr||0}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceOvr:0};
+  tmpCar.priceManual=(tmpCar.priceOvr>0);
   renderCarModal();
 }
 function renderCarModal(){
@@ -944,19 +953,30 @@ function renderCarModal(){
             <button class="tog-btn${tmpCar.trim==='일반용'?' on':''}" onclick="selTrim('일반용')">일반용 (7%)</button>
           </div></div>`;
     }else{
-      const base=DB.carPrice[i], opt=DB.carOptAmt[i], tax=DB.taxFee[i], sub=DB.evSubsidy[i]||0;
-      const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
-      h+=`<div class="divider"></div>
-        <div class="guide" style="margin-bottom:10px;">아래 금액은 <b>선택한 차량에 맞춰 자동 계산</b>된 값입니다. 보조금·개별소비세 감면이 있으면 자동 차감됩니다.</div>
+      h+=`<div class="divider"></div>`;
+      if(!tmpCar.priceManual){
+        const base=DB.carPrice[i], opt=DB.carOptAmt[i], tax=DB.taxFee[i], sub=DB.evSubsidy[i]||0;
+        const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
+        h+=`<div class="guide" style="margin-bottom:10px;">아래 금액은 <b>선택한 차량에 맞춰 자동 계산</b>된 값입니다. 보조금·개별소비세 감면이 있으면 자동 차감됩니다.</div>
         <div class="mrow"><span class="ml">차량 기본금액</span><span class="mv">${base?comma(base)+' 원':'—'}</span></div>
         <div class="mrow"><span class="ml">옵션 금액</span><span class="mv">${opt?'약 '+comma(opt)+' 원':'0 원'}</span></div>`;
-      if(DB.carOptDesc[i])h+=`<div class="sublabel">${DB.carOptDesc[i]}</div>`;
-      if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;
-        if(isEV(i))h+=`<div class="sublabel">🗓 ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
-      if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
-      h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
+        if(DB.carOptDesc[i])h+=`<div class="sublabel">${DB.carOptDesc[i]}</div>`;
+        if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;
+          if(isEV(i))h+=`<div class="sublabel">🗓 ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
+        if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
+        h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
+        h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
+        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
+          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;renderCarModal()">입력하기</button>`;
+      }else{
+        h+=`<div class="mrow"><span class="ml">차량 기본금액</span></div>
+        <div class="mrow"><span class="ml">취등록세/공채</span></div>
+        <div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
+        <div class="field"><label>차량 총액 입력 <span style="font-weight:600;color:var(--muted)">(취등록세 포함, 비우면 자동 계산)</span></label>
+          <input class="inp" type="text" inputmode="numeric" id="carOvr" placeholder="예) 30,000,000" value="${tmpCar.priceOvr?comma(tmpCar.priceOvr):''}" oninput="fmtInput(this)"></div>
+        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;tmpCar.priceOvr=0;renderCarModal()">↩ 자동 계산 사용</button>`;
+      }
     }
-    h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
     h+=`<div class="subtitle">차량 할부 여부 * <span class="qm" onclick="tip('pay')">?</span></div>
       <div class="sel-wrap"><select id="payType" onchange="selPay(this.value)">
         <option value="">-- 선택 --</option>
@@ -982,7 +1002,8 @@ function renderCarModal(){
   h+=`<button class="modal-save" onclick="saveCar()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
   openModalHTML(h);
 }
-function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months};}
+function readCarInputs(){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);if(el('carOvr'))tmpCar.priceOvr=N(el('carOvr').value);}
+function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceOvr:(el('carOvr')?N(el('carOvr').value):tmpCar.priceOvr)};}
 function previewCarSub(){return carFullOf(tmpCarState());}
 function previewMonthly(){return monthlyOf(tmpCarState());}
 function readFPrice(){const e=el('fPrice');return e?N(e.value):tmpCar.foreignPrice;}
@@ -990,8 +1011,8 @@ function selFuel(f){tmpCar.fuel=f;tmpCar.maker='';tmpCar.idx=-1;renderCarModal()
 function selMaker(m){tmpCar.maker=m;tmpCar.idx=-1;renderCarModal();}
 function selCar(i){tmpCar.idx=i;tmpCar.payType='';renderCarModal();}
 function selTrim(t){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);tmpCar.trim=t;renderCarModal();}
-function selPay(v){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);tmpCar.payType=v;renderCarModal();}
-function selMonths(m){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);tmpCar.months=m;renderCarModal();}
+function selPay(v){readCarInputs();tmpCar.payType=v;renderCarModal();}
+function selMonths(m){readCarInputs();tmpCar.months=m;renderCarModal();}
 function saveCar(){
   if(tmpCar.idx<0){toast('차량을 선택해 주세요');return;}
   if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);
@@ -1002,7 +1023,8 @@ function saveCar(){
   }
   if(!tmpCar.payType){toast('할부 여부를 선택해 주세요');return;}
   if(tmpCar.payType==='일부선납'&&!tmpCar.down){toast('선납금액을 입력해 주세요');return;}
-  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months};
+  if(el('carOvr'))tmpCar.priceOvr=N(el('carOvr').value);
+  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceOvr:tmpCar.priceManual?tmpCar.priceOvr:0};
   autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
@@ -1012,6 +1034,7 @@ let tmpIns={type:'',combine:false,saCustom:0};
 function openIns(){
   if(!S.car){toast('차량을 먼저 선택해 주세요');return;}
   tmpIns=S.ins?{type:S.ins.type,combine:S.ins.combine,saCustom:S.ins.saCustom||0}:{type:'',combine:false,saCustom:0};
+  tmpIns.saManual=(tmpIns.saCustom>0);
   renderInsModal();
 }
 function renderInsModal(){
@@ -1033,9 +1056,15 @@ function renderInsModal(){
     const rng=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
     const mid=(DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
     h+=`<div class="field" style="margin-top:14px;"><label>사보험 예상 범위 (1년) <span class="qm" onclick="tip('sabom')">?</span></label><div class="amt-disp">${rng}</div></div>
-      <div class="alert warn">⚠️ 사보험은 <b>가입자마다 상이</b>합니다. 실제 견적 금액을 아래에 <b>직접 입력</b>하시면 그 값으로 계산됩니다.</div>
-      <div class="field" style="margin-top:12px;"><label>사보험료 직접 입력 (1년, 비우면 예상 중앙값 ${comma(mid)}원 사용)</label>
-        <input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(mid||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this)"></div>`;
+      <div class="alert warn">⚠️ 사보험은 <b>가입자마다 상이</b>합니다. 실제 견적 금액이 있으면 직접 입력하세요.</div>
+      <div class="subtitle" style="margin-top:14px;">✏️ 사보험료 직접 입력하기</div>`;
+    if(!tmpIns.saManual){
+      h+=`<button class="manual-btn" onclick="syncSa();tmpIns.saManual=true;renderInsModal()">입력하기</button>`;
+    }else{
+      h+=`<div class="field"><label>사보험료 (1년) 입력 <span style="font-weight:600;color:var(--muted)">(비우면 예상 중앙값 ${comma(mid)}원)</span></label>
+        <input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(mid||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this)"></div>
+        <button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">↩ 예상 범위 사용</button>`;
+    }
   }
   if(tmpIns.type){
     const locked=tmpIns.type==='공제';
@@ -1043,7 +1072,7 @@ function renderInsModal(){
     h+=`<div class="subtitle">조합 가입 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(1회성 초기비용)</small></div>
       <div class="opt-block">
         <div class="opt-head">
-          <input type="checkbox" id="chkCombine" ${checked?'checked':''} ${locked?'disabled':''} onchange="tmpIns.combine=this.checked;syncSa();renderInsModal();">
+          <input type="checkbox" id="chkCombine" ${checked?'checked':''} ${locked?'disabled':''} onchange="syncSa();tmpIns.combine=this.checked;renderInsModal();">
           <label>서울개인택시조합 가입비</label>
           <div class="oa">${won(DB.combineFee)}</div>
         </div>
@@ -1114,9 +1143,11 @@ function renderWorkModal(){
   if(!M){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
-    <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">✏️ 입력하기</button>`;
+    <div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">입력하기</button>`;
   }else{
-    h+=`<div class="field" style="margin-top:14px;"><label>작업비 총액 직접 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
+    h+=`<div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    <div class="field"><label>작업비 총액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
     <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">↩ 자동 계산 사용</button>`;
   }
