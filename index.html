@@ -518,7 +518,8 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],combineFee:0,
-  carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:''};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
+  carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
+  dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[]};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
 function newCfg(){return{car:null,ins:null,work:null,licOvr:0};}
@@ -570,6 +571,10 @@ async function loadData(){
     DB.carRate=(d.carRate||[]).map(N);                 // 할부율(연%) — DB 연동 예정
     DB.dateLicense=d.dateLicense||'';DB.dateCar=d.dateCar||'';DB.dateCombine=d.dateCombine||'';
     DB.dataDate=d.dataDate||'';
+    DB.dateLoan=d.dateLoan||'';
+    DB.loanBanks=(d.loanBanks||[]).map(v=>String(v).trim()).filter(Boolean);
+    DB.loanLimits=(d.loanLimits||[]).map(N);
+    DB.loanRates=(d.loanRates||[]).map(v=>{let x=parseFloat(v)||0;return (x>0&&x<1)?Math.round(x*1000)/10:x;});   // 0.052 → 5.2
     el('hdDate').textContent='🗓 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
@@ -600,7 +605,8 @@ function fallback(){
     reqItems:[60000,20000,30000,100000],
     combineFee:1500000,
     carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부율 DB 연동 예정 (지금은 0% = 무이자)
-    dateLicense:'',dateCar:'',dateCombine:''};
+    dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
+    dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9]};
 }
 
 // ── 차량 헬퍼 ──
@@ -945,7 +951,8 @@ function renderCarModal(){
         <div class="mrow"><span class="ml">차량 기본금액</span><span class="mv">${base?comma(base)+' 원':'—'}</span></div>
         <div class="mrow"><span class="ml">옵션 금액</span><span class="mv">${opt?'약 '+comma(opt)+' 원':'0 원'}</span></div>`;
       if(DB.carOptDesc[i])h+=`<div class="sublabel">${DB.carOptDesc[i]}</div>`;
-      if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;}
+      if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;
+        if(isEV(i))h+=`<div class="sublabel">🗓 ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
       if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
       h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
     }
@@ -1214,10 +1221,10 @@ function openCompare(){
         <div class="lnc">${CFG_NAMES[0]} 필요 대출<b id="loanNeedA">0원</b></div>
         <div class="lno">${CFG_NAMES[1]} 필요 대출<b id="loanNeedB">0원</b></div>
       </div>
-      <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(LOAN_DATE)}</span></div>
+      <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(DB.dateLoan)}</span></div>
       <div class="bank-row hd"><div>은행/기관</div><div class="br">이율</div><div class="bl">한도</div></div>
-      ${LOAN_BANKS.map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rate}</div><div class="bl">${comma(bk.limit)}원</div></div>`).join('')}
-      <div class="sublabel" style="margin-top:4px;">※ 은행별 금액·이율은 예시이며 DB 연동 후 실제 값으로 표시됩니다.</div>
+      ${loanBankList().map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rate?'연 '+bk.rate+'%':'—'}</div><div class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</div></div>`).join('')}
+      <div class="sublabel" style="margin-top:4px;">※ 은행별 한도·최저 이율은 참고용이며 실제 심사 결과와 다를 수 있습니다.</div>
     </div>
   </div>`;
   h+=`<div class="cmp-cta">
@@ -1229,12 +1236,10 @@ function openCompare(){
   el('cmpPage').classList.add('show');el('cmpPage').scrollTop=0;
 }
 // 대출 계산기 데이터 (DB 연동 예정)
-const LOAN_BANKS=[
-  {name:'A은행',rate:'연 5.2%',limit:130000000},
-  {name:'B은행',rate:'연 5.6%',limit:120000000},
-  {name:'C캐피탈',rate:'연 6.9%',limit:150000000}
-];
-const LOAN_DATE='';   // 기준일 DB 연동 예정
+// 대출 은행 데이터 (스프레드시트 Y3:Y / Z3:Z / AA3:AA 연동)
+function loanBankList(){
+  return (DB.loanBanks||[]).map((n,i)=>({name:n,limit:DB.loanLimits[i]||0,rate:DB.loanRates[i]||0}));
+}
 let loanCash=0, loanOpen=false, loanInclCar=true;
 function toggleLoan(){
   loanOpen=!loanOpen;
