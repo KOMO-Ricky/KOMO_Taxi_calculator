@@ -52,18 +52,26 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .coach.done{background:#E7F5EE;border-color:#A8D8C2;border-left-color:var(--success);color:var(--success);}
 .coach.done b{color:var(--success);}
 
+/* 페이지 소개 */
+.page-intro{margin:18px 16px 2px;}
+.page-intro .pi-title{font-size:18px;font-weight:800;color:var(--primary);line-height:1.4;letter-spacing:-.4px;}
+.page-intro .pi-sub{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:7px;word-break:keep-all;}
+.page-intro .pi-sub b{color:var(--primary);font-weight:700;}
+
 /* 추천 구성 (상단 블록) */
-.reco{margin:16px 16px 0;background:linear-gradient(135deg,#FDF6E0,#FFFFFF);border:1.5px solid var(--accent-light);border-radius:16px;padding:14px 16px;}
-.reco-h{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#B8860B;margin-bottom:8px;}
+.reco{position:relative;margin:16px 16px 0;background:linear-gradient(135deg,#FDF6E0,#FFFFFF);border:2px solid var(--accent);border-radius:18px;padding:18px 18px 16px;box-shadow:0 10px 26px -14px rgba(224,168,46,.55);}
+.reco-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#16224A;background:linear-gradient(180deg,#FBD35E,#F5C242);border-radius:999px;padding:5px 12px;margin-bottom:10px;box-shadow:0 4px 10px -4px rgba(224,168,46,.6);}
+.reco-h{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:800;color:#B8860B;margin-bottom:5px;}
+.reco-sub{font-size:12px;color:#8A6A14;line-height:1.6;margin-bottom:12px;word-break:keep-all;}
 .reco-body{font-size:12px;color:var(--text);line-height:1.7;}
 .reco-body b{color:var(--primary);}
-.reco-item{display:flex;gap:10px;align-items:baseline;padding:4px 0;font-size:12.5px;}
+.reco-item{display:flex;gap:10px;align-items:baseline;padding:5px 0;font-size:13px;}
 .reco-item .rk{flex:0 0 84px;color:#B8860B;font-weight:800;white-space:nowrap;}
 .reco-item .rv{color:var(--primary);font-weight:600;}
-.reco-item.total{margin-top:6px;padding-top:9px;border-top:1px dashed var(--accent-light);}
-.reco-item.total .rk{color:var(--primary);}
-.reco-item.total .rv{color:var(--info);font-weight:800;font-size:14px;}
-.reco-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.reco-item.total{margin-top:8px;padding-top:11px;border-top:1px dashed var(--accent);}
+.reco-item.total .rk{color:var(--primary);font-size:14px;}
+.reco-item.total .rv{color:#B8860B;font-weight:800;font-size:19px;letter-spacing:-.5px;}
+.reco-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
 .reco-note b{color:#B8860B;}
 
 /* ===== 구성 선택 탭 + 감싸기 박스 (예시 A+B 혼합) ===== */
@@ -191,7 +199,16 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .toast.blue b,.toast.green b{color:#fff;}
 
 /* 결과 요약 카드 */
-.summary{margin:14px 16px 0;background:linear-gradient(135deg,#24356E,#131F45);color:#fff;border:1px solid rgba(245,194,66,.35);border-radius:16px;padding:18px 20px;}
+.summary{margin:14px 16px 0;background:linear-gradient(135deg,#24356E,#131F45);color:#fff;border:1.5px solid rgba(245,194,66,.35);border-radius:16px;padding:16px 20px 18px;transition:background .25s,border-color .25s;}
+.summary.sumA{background:linear-gradient(135deg,#24356E,#131F45);border-color:rgba(120,145,215,.55);}
+.summary.sumB{background:linear-gradient(135deg,#5A4A16,#3A2E08);border-color:rgba(245,194,66,.7);}
+.sum-head{display:flex;align-items:center;font-size:12px;font-weight:700;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sum-head b{font-weight:800;}
+.summary.sumA .sum-head{color:#AEC0EC;}
+.summary.sumB .sum-head{color:#F5C242;}
+.sum-head .sh-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-right:7px;}
+.summary.sumA .sh-dot{background:#5D77C4;box-shadow:0 0 0 3px rgba(93,119,196,.28);}
+.summary.sumB .sh-dot{background:#F5C242;box-shadow:0 0 0 3px rgba(245,194,66,.28);}
 .summary .sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;}
 .summary .sr .sl{font-size:13px;color:#8D9AC4;}
 .summary .sr .sv{font-size:16px;font-weight:700;}
@@ -305,7 +322,9 @@ body.cover-open{overflow:hidden;}
 .c2row .cheap .val{color:var(--success);}
 .c2row .cheap.cR .val{color:#B8860B;}
 .c2row .cheap .val::after{content:" ▼";font-size:9px;}
-.c2row .edit-ic{font-size:9px;color:var(--info);margin-top:4px;font-weight:700;}
+.c2row .edit-ic{display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:#16224A;background:rgba(245,194,66,.28);border:1px solid rgba(224,168,46,.55);border-radius:999px;margin-top:7px;padding:3px 8px;font-weight:800;white-space:nowrap;align-self:flex-end;}
+.c2row .cR .edit-ic{align-self:flex-start;}
+.c2row.editable .cL:active .edit-ic,.c2row.editable .cR:active .edit-ic{background:var(--accent);}
 .c2row.editable .cL,.c2row.editable .cR{cursor:pointer;transition:.12s;}
 .c2row.editable .cL:active,.c2row.editable .cR:active{transform:scale(.98);}
 .c2row.head{margin-bottom:4px;}
@@ -343,11 +362,14 @@ body.cover-open{overflow:hidden;}
 .loan-h{font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
 .loan-tgl{font-size:12px;font-weight:700;color:var(--info);background:#eef5ff;border-radius:8px;padding:5px 11px;}
 .loan-h:active .loan-tgl{filter:brightness(.94);}
-.loan-need{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 14px;}
-.loan-need>div{background:#F5F7FB;border-radius:10px;padding:11px 10px;font-size:11px;color:var(--muted);text-align:center;}
-.loan-need .lnc{border-left:4px solid var(--green);}
-.loan-need .lno{border-left:4px solid var(--orange);}
-.loan-need b{display:block;font-size:16px;color:var(--primary);margin-top:5px;}
+.loan-need{display:grid;grid-template-columns:1fr 52px 1fr;gap:0;margin:8px 0 14px;align-items:stretch;}
+.loan-need>div{padding:12px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden;}
+.loan-need .lnc{background:#EDF1F9;border-left:3px solid var(--green);border-radius:11px 0 0 11px;box-shadow:var(--shadow);}
+.loan-need .lno{background:#FDF6E0;border-right:3px solid var(--orange);border-radius:0 11px 11px 0;box-shadow:var(--shadow);}
+.loan-need .lnm{background:linear-gradient(150deg,#24356E,#131F45);color:var(--accent);border-radius:10px;margin:0 4px;font-size:11px;font-weight:800;box-shadow:inset 0 0 0 1px rgba(245,194,66,.3);}
+.loan-need .lnlbl{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.loan-need b{display:block;font-size:clamp(14px,4vw,17px);color:var(--primary);margin-top:4px;letter-spacing:-.3px;white-space:nowrap;}
+.loan-need .lnsub{font-size:10px;color:var(--muted);margin-top:2px;}
 .loan-bh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .loan-bh .lbt{font-size:12px;font-weight:700;color:var(--muted);}
 .loan-bh .lbd{font-size:10px;color:var(--info);font-weight:600;background:#eef5ff;border-radius:7px;padding:3px 7px;}
@@ -369,6 +391,20 @@ body.cover-open{overflow:hidden;}
 .agree{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);margin:12px 0;line-height:1.5;cursor:pointer;}
 .agree input{width:18px;height:18px;accent-color:var(--accent);margin-top:1px;flex-shrink:0;}
 .ov-note{font-size:11px;color:#B8860B;margin-top:12px;line-height:1.6;background:#fff7e6;border-radius:10px;padding:10px 12px;}
+.sms-bank{border:1.5px solid var(--accent);background:linear-gradient(135deg,#FDF6E0,#FFFFFF);border-radius:13px;padding:13px 14px;margin-bottom:16px;}
+.sms-bank .smsb-h{font-size:13px;font-weight:800;color:#B8860B;margin-bottom:6px;}
+.sms-bank .smsb-note{font-size:11px;color:#8A6A14;line-height:1.6;margin-bottom:10px;word-break:keep-all;}
+.sms-bank .smsb-note b{color:var(--primary);}
+.sms-bank .smsb-need{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;}
+.sms-bank .smsb-need span{background:#fff;border:1px solid var(--border);border-radius:9px;padding:8px 9px;font-size:10.5px;color:var(--muted);font-weight:700;text-align:center;}
+.sms-bank .smsb-need b{display:block;font-size:14px;color:var(--primary);margin-top:3px;letter-spacing:-.3px;}
+.sms-bank .smsb-row{display:grid;grid-template-columns:1.5fr 1fr 1.2fr;gap:6px;padding:8px 10px;background:#fff;border-radius:8px;margin-bottom:5px;font-size:11.5px;align-items:center;}
+.sms-bank .smsb-row.hd{background:transparent;font-size:10px;color:var(--muted);font-weight:700;padding:2px 10px;}
+.sms-bank .smsb-row .bn{font-weight:700;color:var(--primary);}
+.sms-bank .smsb-row .br{color:var(--danger);font-weight:700;text-align:center;}
+.sms-bank .smsb-row .bl{text-align:right;font-weight:700;}
+.sms-bank .smsb-empty{font-size:11px;color:var(--muted);text-align:center;padding:8px;}
+.sms-bank .smsb-date{font-size:10px;color:var(--muted);margin-top:6px;text-align:right;}
 .ov-ok{text-align:center;padding:26px 10px;}
 .ov-ok .ok-ic{font-size:46px;}
 .ov-ok h3{font-size:19px;font-weight:800;margin:12px 0 6px;}
@@ -391,7 +427,7 @@ body.cover-open{overflow:hidden;}
     <div class="cover-lead">나의 준비자금을 확인하세요 <span>(구성별 맞춤 견적 비교)</span></div>
     <div class="cover-desc">차량·보험·작업비용을 선택하시면<br>초기 소요비용과 월 납입금액을 계산해드립니다.</div>
     <div class="cover-cheer">당신의 새로운 도전을 응원합니다.<br>최고의 파트너가 되겠습니다.</div>
-    <button type="button" class="btn-gold" onclick="startCalc()">나의 개인택시 양수 견적은? &nbsp;→</button>
+    <button type="button" class="btn-gold" onclick="startCalc()">나의 개인택시 양수 준비자금 알아보기 &nbsp;→</button>
     <div class="cover-foot">KOMOLAB · 개인택시 양수도센터 1566-7114</div>
   </div>
 </div>
@@ -403,13 +439,14 @@ body.cover-open{overflow:hidden;}
     <div class="hd-title-row"><div class="hd-rule"></div><div>
       <h1>개인택시 준비자금 계산기</h1>
       <div class="sub">서울특별시 기준</div>
+      <div class="sub hd-date" id="hdDate" style="margin-top:5px;">🗓 데이터 기준일 확인 중…</div>
     </div></div>
-    <div class="hd-total">
-      <div class="lbl">총 예상 준비 자금</div>
-      <div class="amt"><span id="grandTotal">0</span><small>원</small></div>
-      <div class="sub2" id="actualLine">초기 0원 · 월 0원</div>
-      <div class="sub2" id="hdDate" style="margin-top:3px;">🗓 데이터 기준일 확인 중…</div>
-    </div>
+  </div>
+
+  <!-- 페이지 소개 -->
+  <div class="page-intro">
+    <div class="pi-title">구성을 담아, 나의 양수 준비자금을<br>케이스별로 비교해 보세요</div>
+    <div class="pi-sub">차량·보험·작업비용을 자유롭게 조합해 <b>1번·2번 구성</b>을 나란히 견줄 수 있어요.</div>
   </div>
 
   <!-- 코치 안내 -->
@@ -417,7 +454,9 @@ body.cover-open{overflow:hidden;}
 
   <!-- 추천 구성 (상단) -->
   <div class="reco" id="recoBox" style="display:none;">
+    <div class="reco-badge">👥 준비 고객이 가장 많이 선택</div>
     <div class="reco-h">⭐ 추천 구성</div>
+    <div class="reco-sub">무엇부터 담을지 고민된다면, 가장 많은 고객이 선택한 이 조합으로 시작해 보세요.</div>
     <div class="reco-body" id="recoBody"></div>
     <div class="reco-note">아래 <b>1·2번 구성</b>의 <b>[추천 구성]</b> 버튼을 누르면 해당 칸에 이 조합이 채워집니다.</div>
   </div>
@@ -464,7 +503,8 @@ body.cover-open{overflow:hidden;}
   </div>
 
   <!-- 결과 요약 -->
-  <div class="summary">
+  <div class="summary sumA" id="sumBox">
+    <div class="sum-head"><span class="sh-dot"></span><b id="sumHeadName">1번 구성</b>&nbsp;기준 총 비용</div>
     <div class="sr big"><span class="sl">초기 소요비용</span><span class="sv"><span id="sumInitial">0</span>원</span></div>
     <div class="sr big2"><span class="sl">월 납입금액 <small id="sumMonthsLbl"></small></span><span class="sv"><span id="sumMonthly">0</span>원</span></div>
     <hr>
@@ -770,13 +810,13 @@ function renderAll(){
     }
   }else{wi.classList.add('empty');wi.classList.remove('done');wr.textContent='—';wd.textContent='미터점 작업 항목';}
 
-  el('grandTotal').textContent=comma(b.grand);
-  el('actualLine').innerHTML='초기 <b style="color:#FBD35E">'+comma(b.initial)+'</b>원 · 월 <b style="color:#7FC9A8">'+comma(b.monthly)+'</b>원';
   el('sumInitial').textContent=comma(b.initial);
   el('sumMonthly').textContent=comma(b.monthly);
   el('sumMonthsLbl').textContent=b.monthly?'('+b.months+'개월'+(b.rate?' · '+b.rate+'%':'')+')':'';
   el('sumInst').textContent=comma(b.carInst);
   el('sumTotal').textContent=comma(b.grand);
+  const sb=el('sumBox');if(sb)sb.className='summary sum'+(activeCfg===0?'A':'B');
+  const shn=el('sumHeadName');if(shn)shn.textContent=CFG_NAMES[activeCfg];
 
   renderConfigs();
   renderCoach();
@@ -1201,9 +1241,9 @@ function insLabel(ins){if(!ins)return '—';return ins.type+((ins.type==='공제
 function c2Item(label,key,valA,subA,valB,subB){
   const aC=(valA<valB)?'cheap':'', bC=(valB<valA)?'cheap':'';
   return `<div class="c2row editable">
-    <div class="cL ${aC}" onclick="editCmp(0,'${key}')"><div class="val">${comma(valA)}원</div>${subA?`<div class="sub">${subA}</div>`:''}<div class="edit-ic">✏️ 수정</div></div>
+    <div class="cL ${aC}" onclick="editCmp(0,'${key}')"><div class="val">${comma(valA)}원</div>${subA?`<div class="sub">${subA}</div>`:''}<div class="edit-ic">🔍 상세보기/수정</div></div>
     <div class="cM">${label}</div>
-    <div class="cR ${bC}" onclick="editCmp(1,'${key}')"><div class="val">${comma(valB)}원</div>${subB?`<div class="sub">${subB}</div>`:''}<div class="edit-ic">✏️ 수정</div></div>
+    <div class="cR ${bC}" onclick="editCmp(1,'${key}')"><div class="val">${comma(valB)}원</div>${subB?`<div class="sub">${subB}</div>`:''}<div class="edit-ic">🔍 상세보기/수정</div></div>
   </div>`;
 }
 function c2Total(label,valA,valB,subA,subB,sep){
@@ -1237,7 +1277,7 @@ function openCompare(){
   h+=c2Total('초기<br>소요비용',A.initial,B.initial);
   h+=c2Total('월<br>납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불');
   h+=`</div>`;
-  h+=`<div class="cmp-hint">💡 각 항목의 <b>✏️ 수정</b>을 눌러 값을 바로 바꿀 수 있어요</div>`;
+  h+=`<div class="cmp-hint">💡 각 항목 박스를 누르면 <b>🔍 상세보기/수정</b> 창이 열려 값을 바로 바꿀 수 있어요</div>`;
   // 대출 계산기 (접기/펼치기)
   h+=`<div class="loan-card">
     <div class="loan-h" onclick="toggleLoan()">💳 대출 계산기<span class="loan-tgl" id="loanTgl">${loanOpen?'▲ 접기':'▼ 펼치기'}</span></div>
@@ -1251,10 +1291,11 @@ function openCompare(){
           <button class="tog-btn${!loanInclCar?' on':''}" id="loanExcBtn" onclick="setLoanCar(false)">제외</button>
         </div>
       </div>
-      <div class="loan-cap">필요 대출 = <b>초기 소요비용</b> − 보유 금액 <span id="loanCapCar"></span></div>
+      <div class="loan-cap">추가 필요 자금 = <b>초기 소요비용</b> − 보유 금액 <span id="loanCapCar"></span></div>
       <div class="loan-need">
-        <div class="lnc">${CFG_NAMES[0]} 필요 대출<b id="loanNeedA">0원</b></div>
-        <div class="lno">${CFG_NAMES[1]} 필요 대출<b id="loanNeedB">0원</b></div>
+        <div class="lnc"><div class="lnlbl">${CFG_NAMES[0]}</div><b id="loanNeedA">0원</b><div class="lnsub">추가 필요 자금</div></div>
+        <div class="lnm">대출</div>
+        <div class="lno"><div class="lnlbl">${CFG_NAMES[1]}</div><b id="loanNeedB">0원</b><div class="lnsub">추가 필요 자금</div></div>
       </div>
       <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(DB.dateLoan)}</span></div>
       <div class="bank-row hd"><div>은행/기관</div><div class="br">이율</div><div class="bl">한도</div></div>
@@ -1368,12 +1409,31 @@ function quoteImageURL(){try{return drawQuoteImage().toDataURL('image/png');}cat
 
 // ── 문자 발송 신청 (이미지 MMS · 솔라피 연동 예정) ──
 let lastQuoteImg='';
+// 대출 계산기에 값이 입력된 고객에게는 은행 참고 정보를 함께 발송
+function smsHasLoan(){return loanCash>0;}
+function smsBankBlock(){
+  if(!smsHasLoan())return '';
+  const A=computeBreakdown(CONFIGS[0]), B=computeBreakdown(CONFIGS[1]);
+  const baseA=A.initial-(loanInclCar?0:A.carUpfront), baseB=B.initial-(loanInclCar?0:B.carUpfront);
+  const na=Math.max(0,baseA-loanCash), nb=Math.max(0,baseB-loanCash);
+  const banks=loanBankList();
+  const rows=banks.map(bk=>`<div class="smsb-row"><span class="bn">${bk.name}</span><span class="br">${bk.rate?'연 '+bk.rate+'%':'—'}</span><span class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</span></div>`).join('');
+  return `<div class="sms-bank">
+    <div class="smsb-h">🏦 대출 참고 정보가 함께 발송됩니다</div>
+    <div class="smsb-note">대출 계산기에 <b>보유 금액</b>을 입력하셔서, 아래 <b>은행별 한도·이율 안내</b>가 견적과 함께 문자로 발송됩니다.</div>
+    <div class="smsb-need"><span>${CFG_NAMES[0]} 추가 필요 자금<b>${comma(na)}원</b></span><span>${CFG_NAMES[1]} 추가 필요 자금<b>${comma(nb)}원</b></span></div>
+    <div class="smsb-row hd"><span class="bn">은행/기관</span><span class="br">이율</span><span class="bl">한도</span></div>
+    ${rows||'<div class="smsb-empty">은행 정보 준비 중</div>'}
+    <div class="smsb-date">정보 기준일 ${DB.dateLoan||'-'} · 실제 심사 결과와 다를 수 있습니다</div>
+  </div>`;
+}
 function openSms(){
   lastQuoteImg=quoteImageURL();
   el('smsWrap').innerHTML=`
     <div class="ov-card">
       <div class="ov-imgwrap">${lastQuoteImg?`<img class="ov-img" src="${lastQuoteImg}" alt="견적 비교 이미지">`:'<div class="ov-sum">이미지 생성에 실패했습니다</div>'}</div>
       <div class="ov-sum" style="margin-top:12px;">📷 위 <b>비교 견적 이미지</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
+      ${smsBankBlock()}
       <div class="field"><label>이름 *</label><input class="inp" id="smsName" placeholder="홍길동"></div>
       <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
       <label class="agree"><input type="checkbox" id="smsAgree"><span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</span></label>
