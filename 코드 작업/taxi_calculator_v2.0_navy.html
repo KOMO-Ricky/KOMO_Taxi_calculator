@@ -73,6 +73,14 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .reco-item.total .rv{color:#B8860B;font-weight:800;font-size:19px;letter-spacing:-.5px;}
 .reco-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
 .reco-note b{color:#B8860B;}
+.reco-apply{display:flex;gap:8px;margin-top:11px;}
+.reco-apply button{flex:1;padding:12px 6px;border-radius:11px;border:none;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:transform .12s,filter .1s;position:relative;padding-left:22px;}
+.reco-apply button::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;}
+.reco-apply button:active{transform:scale(.96);filter:brightness(.96);}
+.reco-apply button:nth-child(1){background:linear-gradient(150deg,#24356E,#131F45);color:#fff;box-shadow:0 8px 18px -9px rgba(19,31,69,.7);}
+.reco-apply button:nth-child(1)::before{background:#5D77C4;box-shadow:0 0 0 2px rgba(93,119,196,.4);}
+.reco-apply button:nth-child(2){background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;box-shadow:0 8px 18px -9px rgba(224,168,46,.7);}
+.reco-apply button:nth-child(2)::before{background:#B8860B;}
 
 /* ===== 구성 선택 탭 + 감싸기 박스 (예시 A+B 혼합) ===== */
 .cfgwrap{padding:0 16px;margin-top:16px;}
@@ -201,15 +209,30 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 /* 결과 요약 카드 */
 .summary{margin:14px 16px 0;background:linear-gradient(135deg,#24356E,#131F45);color:#fff;border:1.5px solid rgba(245,194,66,.35);border-radius:16px;padding:16px 20px 18px;transition:background .25s,border-color .25s;}
 .summary.sumA{background:linear-gradient(135deg,#24356E,#131F45);border-color:rgba(120,145,215,.55);}
-.summary.sumB{background:linear-gradient(135deg,#5A4A16,#3A2E08);border-color:rgba(245,194,66,.7);}
+/* 2번 구성: 밝은 앰버 카드 (칙칙함 개선) */
+.summary.sumB{background:linear-gradient(140deg,#FEF7E2,#FFFFFF);color:#16224A;border-color:var(--accent);box-shadow:0 8px 22px -12px rgba(224,168,46,.5);}
+.summary.sumB .sr .sl{color:#9A7A28;}
+.summary.sumB .sr .sv{color:#16224A;}
+.summary.sumB .sr.big .sl,.summary.sumB .sr.big2 .sl{color:#16224A;}
+.summary.sumB .sr.big .sv{color:#B8860B;}
+.summary.sumB .sr.big2 .sv{color:#2E9E6E;}
+.summary.sumB .sr .sv small,.summary.sumB .sr .sl small{color:#9A7A28;}
+.summary.sumB hr{border-top-color:rgba(184,134,11,.18);}
 .sum-head{display:flex;align-items:center;font-size:12px;font-weight:700;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.12);}
 .sum-head b{font-weight:800;}
 .summary.sumA .sum-head{color:#AEC0EC;}
-.summary.sumB .sum-head{color:#F5C242;}
+.summary.sumB .sum-head{color:#B8860B;border-bottom-color:rgba(184,134,11,.2);}
 .sum-head .sh-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-right:7px;}
 .summary.sumA .sh-dot{background:#5D77C4;box-shadow:0 0 0 3px rgba(93,119,196,.28);}
-.summary.sumB .sh-dot{background:#F5C242;box-shadow:0 0 0 3px rgba(245,194,66,.28);}
+.summary.sumB .sh-dot{background:#F5C242;box-shadow:0 0 0 3px rgba(245,194,66,.35);}
 .summary .sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;}
+.summary .sr-click{cursor:pointer;border-radius:10px;margin:0 -8px;padding-left:8px;padding-right:8px;transition:background .12s;}
+.summary .sr-click:active{transform:scale(.99);}
+.summary.sumA .sr-click:hover{background:rgba(255,255,255,.06);}
+.summary.sumB .sr-click:hover{background:rgba(184,134,11,.08);}
+.summary .sr-view{display:inline-flex;align-items:center;font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:5px;vertical-align:middle;}
+.summary.sumA .sr-view{color:#16224A;background:var(--accent);}
+.summary.sumB .sr-view{color:#fff;background:#B8860B;}
 .summary .sr .sl{font-size:13px;color:#8D9AC4;}
 .summary .sr .sv{font-size:16px;font-weight:700;}
 .summary .sr.big .sv{font-size:23px;font-weight:800;color:var(--accent-light);}
@@ -322,9 +345,9 @@ body.cover-open{overflow:hidden;}
 .c2row .cheap .val{color:var(--success);}
 .c2row .cheap.cR .val{color:#B8860B;}
 .c2row .cheap .val::after{content:" ▼";font-size:9px;}
-.c2row .edit-ic{display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:#16224A;background:rgba(245,194,66,.28);border:1px solid rgba(224,168,46,.55);border-radius:999px;margin-top:7px;padding:3px 8px;font-weight:800;white-space:nowrap;align-self:flex-end;}
+.c2row .edit-ic{display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:#3A4A78;background:#fff;border:1px solid #C9D3E8;border-radius:999px;margin-top:7px;padding:3px 8px;font-weight:800;white-space:nowrap;align-self:flex-end;box-shadow:0 1px 2px rgba(22,34,74,.06);}
 .c2row .cR .edit-ic{align-self:flex-start;}
-.c2row.editable .cL:active .edit-ic,.c2row.editable .cR:active .edit-ic{background:var(--accent);}
+.c2row.editable .cL:active .edit-ic,.c2row.editable .cR:active .edit-ic{background:#EDF1F9;border-color:var(--primary);}
 .c2row.editable .cL,.c2row.editable .cR{cursor:pointer;transition:.12s;}
 .c2row.editable .cL:active,.c2row.editable .cR:active{transform:scale(.98);}
 .c2row.head{margin-bottom:4px;}
@@ -458,7 +481,11 @@ body.cover-open{overflow:hidden;}
     <div class="reco-h">⭐ 추천 구성</div>
     <div class="reco-sub">무엇부터 담을지 고민된다면, 가장 많은 고객이 선택한 이 조합으로 시작해 보세요.</div>
     <div class="reco-body" id="recoBody"></div>
-    <div class="reco-note">아래 <b>1·2번 구성</b>의 <b>[추천 구성]</b> 버튼을 누르면 해당 칸에 이 조합이 채워집니다.</div>
+    <div class="reco-note">아래 버튼을 누르면 해당 구성에 이 추천 조합이 그대로 채워집니다.</div>
+    <div class="reco-apply">
+      <button onclick="cfgApplyReco(0)">1번 구성에 적용</button>
+      <button onclick="cfgApplyReco(1)">2번 구성에 적용</button>
+    </div>
   </div>
 
   <!-- 구성 선택 탭 + 감싸기 박스 -->
@@ -495,17 +522,12 @@ body.cover-open{overflow:hidden;}
         </div>
       </div>
     </div>
-    <div class="preset-actions">
-      <button class="pa-name" onclick="renameConfig()">✏️ 선택 구성 명칭 변경</button>
-      <button class="pa-clear" onclick="clearConfig()">↺ 선택 구성 초기화</button>
-      <button class="pa-clear" onclick="resetAllCfg()">⟲ 전체 초기화</button>
-    </div>
   </div>
 
   <!-- 결과 요약 -->
   <div class="summary sumA" id="sumBox">
     <div class="sum-head"><span class="sh-dot"></span><b id="sumHeadName">1번 구성</b>&nbsp;기준 총 비용</div>
-    <div class="sr big"><span class="sl">초기 소요비용</span><span class="sv"><span id="sumInitial">0</span>원</span></div>
+    <div class="sr big sr-click" onclick="openInitialDetail()"><span class="sl">초기 소요비용 <span class="sr-view">🔍 상세보기</span></span><span class="sv"><span id="sumInitial">0</span>원</span></div>
     <div class="sr big2"><span class="sl">월 납입금액 <small id="sumMonthsLbl"></small></span><span class="sv"><span id="sumMonthly">0</span>원</span></div>
     <hr>
     <div class="sr"><span class="sl">차량 할부원금</span><span class="sv"><span id="sumInst">0</span>원</span></div>
@@ -833,8 +855,8 @@ function renderConfigs(){
     btn.onclick=()=>selectCfg(i);
     btn.innerHTML='<span class="cn">'+(i===activeCfg?'✓ ':'')+CFG_NAMES[i]+'</span><span class="cv">'+amt+'</span>'+
       '<div class="cf-acts">'+
-      '<button onclick="event.stopPropagation();flashBtn(this);cfgDirectInput('+i+')">✏️ 직접 입력</button>'+
-      '<button class="rec" onclick="event.stopPropagation();flashBtn(this);cfgApplyReco('+i+')">⭐ 추천 구성</button>'+
+      '<button onclick="event.stopPropagation();flashBtn(this);renameConfig('+i+')">✏️ 이름 변경</button>'+
+      '<button onclick="event.stopPropagation();flashBtn(this);clearConfig('+i+')">↺ 초기화</button>'+
       '</div>';
     row.appendChild(btn);
   }
@@ -863,14 +885,17 @@ function cfgApplyReco(i){
   if(!CFG_NAMED[i])CFG_NAMES[i]='추천 구성';
   activeCfg=i;S=CONFIGS[i];
   renderAll();
+  el('cfgBox').scrollIntoView({behavior:'smooth',block:'center'});
   toast(CFG_NAMES[i]+'에 추천 구성을 적용했습니다',' green');
 }
-function renameConfig(){
-  const i=activeCfg;
-  promptModal('선택 구성 명칭 변경',CFG_NAMES[i],(v)=>{CFG_NAMED[i]=!!v;CFG_NAMES[i]=v||((i+1)+'번 구성');if(!v)autoNameCfg(i);renderAll();toast('명칭을 변경했습니다',' green');});
+function renameConfig(i){
+  if(i===undefined)i=activeCfg;
+  activeCfg=i;S=CONFIGS[i];
+  promptModal(((i+1)+'번 구성') + ' 이름 변경',CFG_NAMES[i],(v)=>{CFG_NAMED[i]=!!v;CFG_NAMES[i]=v||((i+1)+'번 구성');if(!v)autoNameCfg(i);renderAll();toast('명칭을 변경했습니다',' green');});
 }
-function clearConfig(){
-  const i=activeCfg;
+function clearConfig(i){
+  if(i===undefined)i=activeCfg;
+  activeCfg=i;S=CONFIGS[i];
   if(!isFilled(CONFIGS[i])){toast(CFG_NAMES[i]+'은(는) 이미 비어있습니다');return;}
   confirmModal('선택하신 <b>'+CFG_NAMES[i]+'</b>을(를) 초기화하시겠습니까?<br>입력한 내용이 모두 지워집니다.',()=>{CONFIGS[i]=newCfg();S=CONFIGS[i];CFG_NAMED[i]=false;CFG_NAMES[i]=(i+1)+'번 구성';renderAll();toast(CFG_NAMES[i]+' 초기화되었습니다',' blue');});
 }
@@ -900,6 +925,24 @@ function renderCoach(){
 
 /* ===== 모달 공통 ===== */
 function openModalHTML(html){el('modalContent').innerHTML='<div class="modal-grip"></div>'+html;el('modalBg').classList.add('show');}
+// 초기 소요비용 상세보기 (열람 전용)
+function openInitialDetail(){
+  const b=computeBreakdown(S);
+  const rows=[
+    ['면허 비용',b.license],
+    ['차량 초기 납입',b.carUpfront],
+    ['차량 작업비용',b.work],
+    [(b.insType==='사보험'?'사보험 (초기)':'공제보험 (초기 1년)'),b.insInitial],
+    ['조합 가입비',b.combine],
+  ].filter(r=>r[1]>0);
+  let h=`<h3>🔍 초기 소요비용 상세</h3><div class="mdesc"><b>${CFG_NAMES[activeCfg]}</b> 기준 · 계약 시점에 필요한 현금</div>`;
+  rows.forEach(([k,v])=>{h+=`<div class="mrow"><span class="ml">${k}</span><span class="mv">${comma(v)}원</span></div>`;});
+  h+=`<div class="mrow" style="border-top:2px solid var(--primary);margin-top:2px;"><span class="ml" style="color:var(--primary);font-weight:800;">초기 소요비용 합계</span><span class="mv accent">${comma(b.initial)}원</span></div>`;
+  if(b.carInst>0)h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 차량 할부 원금 <b>${comma(b.carInst)}원</b>은 매월 나눠 내므로 초기 소요비용에는 포함되지 않습니다.</div>`;
+  else h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 초기 소요비용은 계약 시점에 준비해야 하는 현금 기준입니다.</div>`;
+  h+=`<button class="modal-close" onclick="closeModal()">닫기</button>`;
+  openModalHTML(h);
+}
 function closeModal(){el('modalBg').classList.remove('show');}
 el('modalBg')&&el('modalBg').addEventListener('click',e=>{if(e.target===el('modalBg'))closeModal();});
 function toggleManual(id){const b=el(id);if(b)b.style.display=b.style.display==='none'?'block':'none';}
@@ -920,7 +963,7 @@ function openGuide(){
     <h3>📖 이용 가이드</h3>
     <div class="mdesc">개인택시 준비자금을 구성별로 비교해요</div>
     <div class="guide"><span class="gt">① 구성 선택</span>
-      <b>1번 구성(초록) / 2번 구성(주황)</b> 탭을 고르면, 아래 박스가 그 구성 색으로 감싸집니다. 각 탭의 <b>[직접 입력]</b> 또는 <b>[추천 구성]</b>으로 시작하세요.</div>
+      <b>1번 구성 / 2번 구성</b> 탭을 고르면, 아래 박스가 그 구성 색으로 감싸집니다. 상단 <b>추천 구성</b> 박스의 <b>[1·2번 구성에 적용]</b> 버튼으로 빠르게 채우거나, 직접 항목을 눌러 입력하세요.</div>
     <div class="guide"><span class="gt">② 항목 입력</span>
       <b>차량 → 보험/조합 → 작업비</b> 순으로 카드를 눌러 입력합니다. 각 모달에서 <b>직접 입력</b>으로 금액을 조정할 수도 있어요.</div>
     <div class="guide"><span class="gt">③ 결과 & 비교</span>
@@ -1284,14 +1327,7 @@ function openCompare(){
     <div class="loan-body" id="loanBody" style="display:${loanOpen?'block':'none'};">
       <div class="field" style="margin:10px 0;"><label>현재 보유 금액</label>
         <input class="inp" id="loanCash" type="text" inputmode="numeric" placeholder="예) 50,000,000" value="${loanCash?comma(loanCash):''}" oninput="fmtInput(this);loanCalc()"></div>
-      <div class="loan-tog">
-        <span class="ltt">대출 계산에 차량 금액</span>
-        <div class="tog-row" style="flex:0 0 150px;">
-          <button class="tog-btn${loanInclCar?' on':''}" id="loanIncBtn" onclick="setLoanCar(true)">포함</button>
-          <button class="tog-btn${!loanInclCar?' on':''}" id="loanExcBtn" onclick="setLoanCar(false)">제외</button>
-        </div>
-      </div>
-      <div class="loan-cap">추가 필요 자금 = <b>초기 소요비용</b> − 보유 금액 <span id="loanCapCar"></span></div>
+      <div class="loan-cap">추가 필요 자금 = <b>초기 소요비용</b> − 보유 금액</div>
       <div class="loan-need">
         <div class="lnc"><div class="lnlbl">${CFG_NAMES[0]}</div><b id="loanNeedA">0원</b><div class="lnsub">추가 필요 자금</div></div>
         <div class="lnm">대출</div>
@@ -1333,13 +1369,9 @@ function setLoanCar(v){
 function loanCalc(){
   loanCash=el('loanCash')?N(el('loanCash').value):loanCash;
   const A=computeBreakdown(CONFIGS[0]), B=computeBreakdown(CONFIGS[1]);
-  // 차량 제외 시 초기 소요비용에서 차량 초기 납입액을 뺀 금액을 기준으로 계산
-  const baseA=A.initial-(loanInclCar?0:A.carUpfront);
-  const baseB=B.initial-(loanInclCar?0:B.carUpfront);
-  const na=Math.max(0,baseA-loanCash), nb=Math.max(0,baseB-loanCash);
+  const na=Math.max(0,A.initial-loanCash), nb=Math.max(0,B.initial-loanCash);
   if(el('loanNeedA'))el('loanNeedA').textContent=comma(na)+'원';
   if(el('loanNeedB'))el('loanNeedB').textContent=comma(nb)+'원';
-  if(el('loanCapCar'))el('loanCapCar').textContent=loanInclCar?'':'· 차량 초기납 제외';
 }
 function closeCompare(){el('cmpPage').classList.remove('show');}
 // 비교표에서 항목 직접 수정 → 해당 구성의 입력 모달 오픈
@@ -1431,8 +1463,7 @@ function openSms(){
   lastQuoteImg=quoteImageURL();
   el('smsWrap').innerHTML=`
     <div class="ov-card">
-      <div class="ov-imgwrap">${lastQuoteImg?`<img class="ov-img" src="${lastQuoteImg}" alt="견적 비교 이미지">`:'<div class="ov-sum">이미지 생성에 실패했습니다</div>'}</div>
-      <div class="ov-sum" style="margin-top:12px;">📷 위 <b>비교 견적 이미지</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
+      <div class="ov-sum">📷 <b>구성 비교 견적 이미지</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
       ${smsBankBlock()}
       <div class="field"><label>이름 *</label><input class="inp" id="smsName" placeholder="홍길동"></div>
       <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
