@@ -77,9 +77,9 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .reco-apply button{flex:1;padding:12px 6px;border-radius:11px;border:none;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:transform .12s,filter .1s;position:relative;padding-left:22px;}
 .reco-apply button::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;}
 .reco-apply button:active{transform:scale(.96);filter:brightness(.96);}
-.reco-apply button:nth-child(1){background:linear-gradient(150deg,#24356E,#131F45);color:#fff;box-shadow:0 8px 18px -9px rgba(19,31,69,.7);}
-.reco-apply button:nth-child(1)::before{background:#5D77C4;box-shadow:0 0 0 2px rgba(93,119,196,.4);}
-.reco-apply button:nth-child(2){background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;box-shadow:0 8px 18px -9px rgba(224,168,46,.7);}
+.reco-apply button:nth-child(1){background:linear-gradient(180deg,#3A4E88,#1C2C5B);color:#fff;box-shadow:0 8px 18px -8px rgba(19,31,69,.65),inset 0 1px 0 rgba(255,255,255,.22);}
+.reco-apply button:nth-child(1)::before{background:#8BA0D8;box-shadow:0 0 0 2px rgba(139,160,216,.35);}
+.reco-apply button:nth-child(2){background:linear-gradient(180deg,#FBD35E,#F5C242);color:#16224A;box-shadow:0 8px 18px -8px rgba(224,168,46,.65),inset 0 1px 0 rgba(255,255,255,.5);}
 .reco-apply button:nth-child(2)::before{background:#B8860B;}
 
 /* ===== 구성 선택 탭 + 감싸기 박스 (예시 A+B 혼합) ===== */
@@ -208,7 +208,7 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 
 /* 결과 요약 카드 */
 .summary{margin:14px 16px 0;background:linear-gradient(135deg,#24356E,#131F45);color:#fff;border:1.5px solid rgba(245,194,66,.35);border-radius:16px;padding:16px 20px 18px;transition:background .25s,border-color .25s;}
-.summary.sumA{background:linear-gradient(135deg,#24356E,#131F45);border-color:rgba(120,145,215,.55);}
+.summary.sumA{background:linear-gradient(135deg,#33477F,#1C2C5B);border-color:rgba(120,145,215,.6);}
 /* 2번 구성: 밝은 앰버 카드 (칙칙함 개선) */
 .summary.sumB{background:linear-gradient(140deg,#FEF7E2,#FFFFFF);color:#16224A;border-color:var(--accent);box-shadow:0 8px 22px -12px rgba(224,168,46,.5);}
 .summary.sumB .sr .sl{color:#9A7A28;}
@@ -230,9 +230,11 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .summary .sr-click:active{transform:scale(.99);}
 .summary.sumA .sr-click:hover{background:rgba(255,255,255,.06);}
 .summary.sumB .sr-click:hover{background:rgba(184,134,11,.08);}
-.summary .sr-view{display:inline-flex;align-items:center;font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:5px;vertical-align:middle;}
-.summary.sumA .sr-view{color:#16224A;background:var(--accent);}
+.summary .sr-view{display:inline-flex;align-items:center;font-size:11px;font-weight:800;border-radius:999px;padding:3px 10px;margin-left:7px;vertical-align:middle;white-space:nowrap;box-shadow:0 2px 6px -1px rgba(0,0,0,.25);}
+.summary.sumA .sr-view{color:#16224A;background:linear-gradient(180deg,#FBD35E,#F5C242);}
 .summary.sumB .sr-view{color:#fff;background:#B8860B;}
+.summary .sr.big{flex-wrap:wrap;}
+.summary .sr.big .sl{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px;}
 .summary .sr .sl{font-size:13px;color:#8D9AC4;}
 .summary .sr .sv{font-size:16px;font-weight:700;}
 .summary .sr.big .sv{font-size:23px;font-weight:800;color:var(--accent-light);}
@@ -342,9 +344,7 @@ body.cover-open{overflow:hidden;}
 .c2row .cM{display:flex;align-items:center;justify-content:center;text-align:center;color:var(--accent);font-size:10.5px;font-weight:800;line-height:1.2;padding:0 2px;margin:0 4px;border-radius:10px;background:linear-gradient(150deg,#24356E,#131F45);box-shadow:inset 0 0 0 1px rgba(245,194,66,.3);}
 .c2row .val{font-size:clamp(11.5px,3.4vw,14.5px);font-weight:800;color:var(--primary);white-space:nowrap;letter-spacing:-.3px;}
 .c2row .sub{font-size:clamp(10px,2.8vw,12px);color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.c2row .cheap .val{color:var(--success);}
-.c2row .cheap.cR .val{color:#B8860B;}
-.c2row .cheap .val::after{content:" ▼";font-size:9px;}
+/* 저렴한 쪽 강조(초록/▼) 제거 — 값 색상 통일 */
 .c2row .edit-ic{display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:#3A4A78;background:#fff;border:1px solid #C9D3E8;border-radius:999px;margin-top:7px;padding:3px 8px;font-weight:800;white-space:nowrap;align-self:flex-end;box-shadow:0 1px 2px rgba(22,34,74,.06);}
 .c2row .cR .edit-ic{align-self:flex-start;}
 .c2row.editable .cL:active .edit-ic,.c2row.editable .cR:active .edit-ic{background:#EDF1F9;border-color:var(--primary);}
@@ -472,9 +472,6 @@ body.cover-open{overflow:hidden;}
     <div class="pi-sub">면허·차량·보험·작업비용 등을 자유롭게 조합해 <b>두 가지 구성</b>을 비교하여 확인할 수 있습니다.</div>
   </div>
 
-  <!-- 코치 안내 -->
-  <div class="coach" id="coach" style="display:none;"><span class="ci">👆</span><span id="coachText"></span></div>
-
   <!-- 추천 구성 (상단) -->
   <div class="reco" id="recoBox" style="display:none;">
     <div class="reco-badge">👥 준비 고객이 가장 많이 선택</div>
@@ -487,6 +484,9 @@ body.cover-open{overflow:hidden;}
       <button onclick="cfgApplyReco(1)">2번 구성에 적용</button>
     </div>
   </div>
+
+  <!-- 코치 안내 -->
+  <div class="coach" id="coach" style="display:none;"><span class="ci">👆</span><span id="coachText"></span></div>
 
   <!-- 구성 선택 탭 + 감싸기 박스 -->
   <div class="cfgwrap">
@@ -566,15 +566,6 @@ body.cover-open{overflow:hidden;}
   <div class="cmp-wrap" id="cmpWrap"></div>
 </div>
 
-<!-- 문자 발송 신청 페이지 -->
-<div class="ov-page" id="smsPage">
-  <div class="cmp-hd">
-    <button class="back" onclick="closeSms()">←</button>
-    <div><h2>문자로 견적 받기</h2><div class="hsub">입력하신 번호로 견적을 보내드립니다</div></div>
-  </div>
-  <div class="ov-wrap" id="smsWrap"></div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -588,7 +579,8 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[]};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
-function newCfg(){return{car:null,ins:null,work:null,licOvr:0};}
+function newCfg(){return{car:null,ins:null,work:null,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};}
+const LIC_REGIONS=['서울특별시','경기도','인천광역시','부산광역시','대구광역시','대전광역시','광주광역시','울산광역시','기타 지역'];
 let CONFIGS=[newCfg(),newCfg()];
 let CFG_NAMES=['1번 구성','2번 구성'];
 let CFG_NAMED=[false,false];   // 사용자가 직접 이름을 지정했는지
@@ -685,7 +677,7 @@ function carRateOf(idx){return (DB.carRate&&DB.carRate[idx])?DB.carRate[idx]:0;}
    계산 (상태를 인자로 받는 순수 함수)
    ================================================================== */
 function licenseBase(){return DB.licensePrice+DB.commission;}
-function licenseOf(st){return (st&&st.licOvr>0)?st.licOvr:licenseBase();}
+function licenseOf(st){if(!st)return licenseBase();if(st.licManual)return (st.licPrice||0)+(st.licFee||0);return licenseBase();}
 
 function carFullOf(car){
   if(!car)return 0;
@@ -695,7 +687,7 @@ function carFullOf(car){
     const rate=car.trim==='영업용'?0.024:car.trim==='일반용'?0.07:0;
     return fv+Math.floor(fv*rate);
   }
-  if(car.priceOvr>0)return car.priceOvr;   // 직접 입력
+  if(car.priceManual)return Math.max(0,(car.baseOvr||0)+(car.taxOvr||0)-(car.subOvr||0));   // 직접 입력 (하위 항목 합산)
   const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0, tax=DB.taxFee[i]||0;
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
@@ -710,9 +702,10 @@ function carInstOf(car){
     if(car.payType==='일부선납')return Math.max(0,fv-(car.down||0));
     return 0;
   }
-  if(car.priceOvr>0){
-    if(car.payType==='전액할부')return car.priceOvr;
-    if(car.payType==='일부선납')return Math.max(0,car.priceOvr-(car.down||0));
+  if(car.priceManual){
+    const instBase=Math.max(0,(car.baseOvr||0)-(car.subOvr||0));   // 취등록세 제외, 보조금 차감 후 할부
+    if(car.payType==='전액할부')return instBase;
+    if(car.payType==='일부선납')return Math.max(0,instBase-(car.down||0));
     return 0;
   }
   const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0;
@@ -792,7 +785,9 @@ function isFilled(cfg){return !!(cfg&&cfg.car);}
 function renderAll(){
   const b=computeBreakdown(S);
   el('rv_license').textContent=comma(b.license)+'원';
-  el('ds_license').textContent=(S.licOvr>0?'직접 입력 · ':'')+'면허시세 '+comma(DB.licensePrice)+' + 수수료 '+comma(DB.commission);
+  {const reg=S.licRegion||'서울특별시';
+   if(S.licManual)el('ds_license').textContent=reg+' · 직접 입력 (시세+수수료)';
+   else el('ds_license').textContent='서울 · 면허시세 '+comma(DB.licensePrice)+' + 수수료 '+comma(DB.commission);}
   el('item_license').classList.add('done');
 
   const ci=el('item_car'), cr=el('rv_car'), cd=el('ds_car');
@@ -881,7 +876,7 @@ function cfgDirectInput(i){
 }
 function cfgApplyReco(i){
   if(!RECO){toast('추천 구성을 불러오지 못했습니다');return;}
-  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licOvr=0;
+  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licRegion='서울특별시';CONFIGS[i].licManual=false;CONFIGS[i].licPrice=0;CONFIGS[i].licFee=0;
   if(!CFG_NAMED[i])CFG_NAMES[i]='추천 구성';
   activeCfg=i;S=CONFIGS[i];
   renderAll();
@@ -974,39 +969,53 @@ function openGuide(){
 }
 
 // ── 면허 모달 (기준일 + 직접입력) ──
-let licManual=false;
-function openLicense(){licManual=S.licOvr>0;renderLicModal();}
+function openLicense(){if(!S.licRegion)S.licRegion='서울특별시';renderLicModal();}
+function readLicInputs(){if(el('licPrice'))S.licPrice=N(el('licPrice').value);if(el('licFee'))S.licFee=N(el('licFee').value);}
+function selLicRegion(v){readLicInputs();S.licRegion=v;if(v!=='서울특별시')S.licManual=true;else S.licManual=(S.licPrice>0||S.licFee>0);renderLicModal();}
+function startLicManual(){readLicInputs();S.licManual=true;renderLicModal();}
+function exitLicManual(){S.licManual=false;S.licPrice=0;S.licFee=0;renderLicModal();}
 function renderLicModal(){
-  const ov=S.licOvr>0?comma(S.licOvr):'';
-  let h=`<h3>📄 면허 비용</h3>
-    <div class="mdesc">서울특별시 개인택시 면허 기준</div>
-    <div class="guide">면허 시세와 중개 수수료는 <b>데이터에서 자동 반영</b>됩니다. 다른 금액으로 계산하려면 <b>[입력하기]</b>를 눌러 직접 입력하세요.</div>`;
-  if(!licManual){
-    h+=`<div class="mrow"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
+  const reg=S.licRegion||'서울특별시';
+  const isSeoul=(reg==='서울특별시');
+  let h=`<h3>📄 면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 기준</div>`;
+  h+=`<div class="subtitle">양수 희망 지역</div>
+    <div class="sel-wrap"><select id="licRegion" onchange="selLicRegion(this.value)">`;
+  LIC_REGIONS.forEach(r=>{h+=`<option value="${r}"${reg===r?' selected':''}>${r}</option>`;});
+  h+=`</select><span class="arr">▼</span></div>`;
+  if(isSeoul&&!S.licManual){
+    h+=`<div class="guide" style="margin-top:12px;">서울 면허 시세와 중개 수수료는 <b>데이터에서 자동 반영</b>됩니다. 다른 금액으로 계산하려면 아래 <b>[입력하기]</b>를 누르세요.</div>
+    <div class="mrow"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
     <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
     <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
-    <button class="manual-btn" onclick="licManual=true;renderLicModal()">입력하기</button>`;
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <button class="manual-btn" onclick="startLicManual()">입력하기</button>`;
   }else{
-    h+=`<div class="mrow"><span class="ml">면허 시세</span></div>
-    <div class="mrow"><span class="ml">수수료</span></div>
-    <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
-    <div class="field"><label>금액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
-      <input class="inp" type="text" inputmode="numeric" id="licOvr" placeholder="예) 115,000,000" value="${ov}" oninput="fmtInput(this)"></div>
-    <button class="manual-exit" onclick="licManual=false;renderLicModal()">↩ 자동 계산 사용</button>`;
+    if(!isSeoul)h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 현재는 <b>서울시 면허 시세</b>만 제공되고 있습니다. 타 지역 양수 희망자께서는 <b>면허 비용을 직접 입력</b>해 주세요.</div>`;
+    h+=`<div class="subtitle" style="margin-top:14px;">✏️ 면허 비용 직접 입력하기</div>
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <div class="field"><label>면허 시세 *</label>
+      <input class="inp" type="text" inputmode="numeric" id="licPrice" placeholder="예) 113,500,000" value="${S.licPrice?comma(S.licPrice):''}" oninput="fmtInput(this)"></div>
+    <div class="field"><label>수수료 <span style="font-weight:600;color:var(--muted)">${isSeoul?'':'(지역별 상이)'}</span></label>
+      <input class="inp" type="text" inputmode="numeric" id="licFee" placeholder="${isSeoul?comma(DB.commission):'지역별 상이 · 직접 입력'}" value="${S.licFee?comma(S.licFee):''}" oninput="fmtInput(this)"></div>`;
+    if(isSeoul)h+=`<button class="manual-exit" onclick="exitLicManual()">↩ 서울 자동 계산 사용</button>`;
   }
   h+=`<button class="modal-save" onclick="saveLicense()">저장</button>
     <button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
 }
-function saveLicense(){S.licOvr=(licManual&&el('licOvr'))?N(el('licOvr').value):0;closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');}
+function saveLicense(){
+  readLicInputs();
+  const isSeoul=(S.licRegion||'서울특별시')==='서울특별시';
+  if(!isSeoul){S.licManual=true;if(!(S.licPrice>0)){toast('면허 시세를 입력해 주세요');return;}}
+  closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');
+}
 
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
 function openCar(){
-  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceOvr:S.car.priceOvr||0}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceOvr:0};
-  tmpCar.priceManual=(tmpCar.priceOvr>0);
+  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0};
   renderCarModal();
 }
 function renderCarModal(){
@@ -1054,14 +1063,19 @@ function renderCarModal(){
         h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
         h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
         h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
-          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;renderCarModal()">입력하기</button>`;
+          <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){tmpCar.baseOvr=(DB.carPrice[${i}]||0)+(DB.carOptAmt[${i}]||0);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">입력하기</button>`;
       }else{
-        h+=`<div class="mrow"><span class="ml">차량 기본금액</span></div>
-        <div class="mrow"><span class="ml">취등록세/공채</span></div>
-        <div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
-        <div class="field"><label>차량 총액 입력 <span style="font-weight:600;color:var(--muted)">(취등록세 포함, 비우면 자동 계산)</span></label>
-          <input class="inp" type="text" inputmode="numeric" id="carOvr" placeholder="예) 30,000,000" value="${tmpCar.priceOvr?comma(tmpCar.priceOvr):''}" oninput="fmtInput(this)"></div>
-        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;tmpCar.priceOvr=0;renderCarModal()">↩ 자동 계산 사용</button>`;
+        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
+        <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요. (합계는 자동 계산)</div>
+        <div class="field"><label>차량 기본금액 (옵션 포함) *</label>
+          <input class="inp" type="text" inputmode="numeric" id="carBaseOvr" placeholder="예) 27,000,000" value="${tmpCar.baseOvr?comma(tmpCar.baseOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
+        <div class="field"><label>취등록세 / 공채</label>
+          <input class="inp" type="text" inputmode="numeric" id="carTaxOvr" placeholder="예) 780,000" value="${tmpCar.taxOvr?comma(tmpCar.taxOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
+        <div class="field"><label>보조금 등 차감액 <span style="font-weight:600;color:var(--muted)">(있으면 입력)</span></label>
+          <input class="inp" type="text" inputmode="numeric" id="carSubOvr" placeholder="예) 0" value="${tmpCar.subOvr?comma(tmpCar.subOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
+        <div class="mrow"><span class="ml"><b>차량 금액 합계</b></span><span class="mv" id="carManualSum" style="color:var(--primary);">${won(carManualTotal())}</span></div>
+        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">↩ 자동 계산 사용</button>`;
       }
     }
     h+=`<div class="subtitle">차량 할부 여부 * <span class="qm" onclick="tip('pay')">?</span></div>
@@ -1089,8 +1103,10 @@ function renderCarModal(){
   h+=`<button class="modal-save" onclick="saveCar()">저장</button><button class="modal-close" onclick="closeModal()">취소</button>`;
   openModalHTML(h);
 }
-function readCarInputs(){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);if(el('carOvr'))tmpCar.priceOvr=N(el('carOvr').value);}
-function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceOvr:(el('carOvr')?N(el('carOvr').value):tmpCar.priceOvr)};}
+function readCarInputs(){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);if(el('carBaseOvr'))tmpCar.baseOvr=N(el('carBaseOvr').value);if(el('carTaxOvr'))tmpCar.taxOvr=N(el('carTaxOvr').value);if(el('carSubOvr'))tmpCar.subOvr=N(el('carSubOvr').value);}
+function carManualTotal(){const base=el('carBaseOvr')?N(el('carBaseOvr').value):(tmpCar.baseOvr||0);const tax=el('carTaxOvr')?N(el('carTaxOvr').value):(tmpCar.taxOvr||0);const sub=el('carSubOvr')?N(el('carSubOvr').value):(tmpCar.subOvr||0);return Math.max(0,base+tax-sub);}
+function updateCarManualSum(){const e=el('carManualSum');if(e)e.textContent=won(carManualTotal());}
+function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
 function previewCarSub(){return carFullOf(tmpCarState());}
 function previewMonthly(){return monthlyOf(tmpCarState());}
 function readFPrice(){const e=el('fPrice');return e?N(e.value):tmpCar.foreignPrice;}
@@ -1110,8 +1126,9 @@ function saveCar(){
   }
   if(!tmpCar.payType){toast('할부 여부를 선택해 주세요');return;}
   if(tmpCar.payType==='일부선납'&&!tmpCar.down){toast('선납금액을 입력해 주세요');return;}
-  if(el('carOvr'))tmpCar.priceOvr=N(el('carOvr').value);
-  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceOvr:tmpCar.priceManual?tmpCar.priceOvr:0};
+  readCarInputs();
+  if(tmpCar.priceManual&&!isForeign(tmpCar.idx)&&!(tmpCar.baseOvr>0)){toast('차량 기본금액을 입력해 주세요');return;}
+  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
   autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
@@ -1231,9 +1248,11 @@ function renderWorkModal(){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
     <div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
     <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">입력하기</button>`;
   }else{
     h+=`<div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
     <div class="field"><label>작업비 총액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
     <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">↩ 자동 계산 사용</button>`;
@@ -1310,7 +1329,7 @@ function openCompare(){
   let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
   h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div></div></div>`;
-  h+=c2Item('면허','license',A.license,sA.licOvr>0?'직접입력':'',B.license,sB.licOvr>0?'직접입력':'');
+  h+=c2Item('면허','license',A.license,sA.licManual?(sA.licRegion&&sA.licRegion!=='서울특별시'?sA.licRegion:'직접입력'):'',B.license,sB.licManual?(sB.licRegion&&sB.licRegion!=='서울특별시'?sB.licRegion:'직접입력'):'');
   h+=c2Item('차량','car',A.carFull,carA+' · '+payLabel(sA.car),B.carFull,carB+' · '+payLabel(sB.car));
   h+=c2Item('보험<br>/조합','ins',A.insAnnual+A.combine,insLabel(sA.ins),B.insAnnual+B.combine,insLabel(sB.ins));
   h+=c2Item('작업<br>비용','work',A.work,'',B.work,'');
@@ -1422,11 +1441,10 @@ function drawQuoteImage(){
     g.fillStyle='rgba(28,44,91,.10)';rr(lX,y+4,sideW-4,h-8,10);g.fill();
     g.fillStyle='rgba(224,168,46,.13)';rr(rX+4,y+4,sideW-4,h-8,10);g.fill();
     g.textAlign='center';g.fillStyle='#fff';g.font=F(800,big?12:11);g.fillText(label,cX+centerW/2,y+h/2+4);
-    const aCheap=a<b&&(a>0||b>0),bCheap=b<a&&(a>0||b>0);
-    g.textAlign='right';g.font=F(800,big?16:14);g.fillStyle=aCheap?'#2E9E6E':'#16224A';
+    g.textAlign='right';g.font=F(800,big?16:14);g.fillStyle='#16224A';
     g.fillText(comma(a)+'원',cX-12,y+h/2+(sa?-1:5));
     if(sa){g.fillStyle='#7C86A3';g.font=F(600,9.5);g.fillText(sa,cX-12,y+h/2+13);}
-    g.textAlign='left';g.font=F(800,big?16:14);g.fillStyle=bCheap?'#B8860B':'#16224A';
+    g.textAlign='left';g.font=F(800,big?16:14);g.fillStyle='#16224A';
     g.fillText(comma(b)+'원',rX+12,y+h/2+(sb?-1:5));
     if(sb){g.fillStyle='#7C86A3';g.font=F(600,9.5);g.fillText(sb,rX+12,y+h/2+13);}
     y+=h;
@@ -1461,29 +1479,25 @@ function smsBankBlock(){
 }
 function openSms(){
   lastQuoteImg=quoteImageURL();
-  el('smsWrap').innerHTML=`
-    <div class="ov-card">
-      <div class="ov-sum">📷 <b>구성 비교 견적 이미지</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
-      ${smsBankBlock()}
-      <div class="field"><label>이름 *</label><input class="inp" id="smsName" placeholder="홍길동"></div>
-      <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
-      <label class="agree"><input type="checkbox" id="smsAgree"><span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</span></label>
-      <button class="modal-save" style="margin-top:4px;" onclick="submitSms()">📩 견적 이미지 문자 신청</button>
-      <div class="ov-note">⚠️ 실제 이미지 문자(MMS) 발송은 <b>솔라피(Solapi) API 연동 후</b> 활성화됩니다. 지금은 신청 접수 견본입니다.</div>
-    </div>`;
-  el('smsPage').classList.add('show');el('smsPage').scrollTop=0;
+  openModalHTML(`<h3>📩 문자로 견적 받기</h3><div class="mdesc">입력하신 번호로 구성별 비교 견적표를 보내드립니다</div>
+    <div class="ov-sum">📷 <b>구성별 비교 견적표</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
+    ${smsBankBlock()}
+    <div class="field"><label>이름 *</label><input class="inp" id="smsName" placeholder="홍길동"></div>
+    <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
+    <label class="agree"><input type="checkbox" id="smsAgree"><span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</span></label>
+    <button class="modal-save" style="margin-top:4px;" onclick="submitSms()">📩 견적표 문자 신청</button>
+    <div class="ov-note">⚠️ 실제 문자(MMS) 발송은 <b>솔라피(Solapi) API 연동 후</b> 활성화됩니다. 지금은 신청 접수 견본입니다.</div>`);
 }
-function closeSms(){el('smsPage').classList.remove('show');}
 function submitSms(){
   const nm=el('smsName').value.trim(), ph=el('smsPhone').value.trim(), ag=el('smsAgree').checked;
   if(!nm){toast('이름을 입력해 주세요');return;}
   if(ph.replace(/[^0-9]/g,'').length<10){toast('연락처를 정확히 입력해 주세요');return;}
   if(!ag){toast('개인정보 수집에 동의해 주세요');return;}
   /* TODO: 솔라피(Solapi) 문자 발송 API 연동 — 고객(ph)에게 견적 전송 */
-  el('smsWrap').innerHTML=`<div class="ov-card ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>
+  el('modalContent').innerHTML=`<div class="modal-grip"></div><div class="ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>
     <p><b>${nm}</b>님 (${ph})<br>입력하신 번호로 견적 문자를 보내드릴게요.<br><br>
     <span style="font-size:11px;color:var(--muted)">※ 실제 발송은 솔라피 API 연동 후 자동 전송됩니다.</span></p>
-    <button class="modal-close" onclick="closeSms()">닫기</button></div>`;
+    <button class="modal-close" onclick="closeModal()">닫기</button></div>`;
 }
 
 // ── 의견 보내기 (모달) ──
@@ -1531,7 +1545,7 @@ function buildReco(){
   if(idx<0)return;
   RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS},
     ins:{type:'공제',combine:true,saCustom:0},
-    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licOvr:0};
+    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};
   const rb=computeBreakdown(RECO);
   el('recoBox').style.display='block';
   el('recoBody').innerHTML=
