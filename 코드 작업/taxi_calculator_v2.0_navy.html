@@ -204,7 +204,8 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .modal-save{width:100%;padding:15px;border-radius:12px;border:none;background:var(--goldgrad);color:#16224A;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-top:8px;}
 .modal-close{width:100%;padding:12px;border-radius:12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-top:4px;}
 .divider{height:1px;background:var(--border);margin:16px 0;}
-.subtitle{font-size:13px;font-weight:700;color:var(--primary);margin:14px 0 8px;display:flex;align-items:center;}
+.subtitle{font-size:13px;font-weight:700;color:var(--primary);margin:14px 0 8px;display:flex;align-items:baseline;}
+.subtitle small{align-self:baseline;line-height:1.2;}
 
 /* 토스트 */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(22,29,39,.95);color:#fff;padding:14px 26px;border-radius:14px;font-size:14px;font-weight:700;z-index:2000;display:none;max-width:88%;text-align:center;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,.3);}
@@ -292,6 +293,7 @@ body.cover-open{overflow:hidden;}
 
 /* ===== 다크 푸터 (자격진단 레퍼런스 이식) ===== */
 .foot2{margin-top:28px;background:linear-gradient(168deg,#24356E,#131F45);border-top:2px solid var(--accent);padding:22px 20px 26px;color:#fff;}
+.foot2 .f2-inner{max-width:480px;margin:0 auto;}
 .foot2 .f2-brand{display:flex;align-items:center;gap:9px;}
 .foot2 .f2-logo{height:22px;width:auto;display:block;flex:none;}
 .foot2 .f2-brandname{font-size:15px;font-weight:800;color:#fff;}
@@ -345,6 +347,8 @@ body.cover-open{overflow:hidden;}
 .cmp-hd .hsub{font-size:11px;color:#8D9AC4;margin-top:2px;}
 .cmp-wrap{max-width:480px;margin:0 auto;padding:14px 16px 20px;}
 #cmpFoot{max-width:480px;margin:0 auto;}
+#cmpHeader{max-width:480px;margin:0 auto;}
+#cmpHeader .hd{border-radius:0 0 24px 24px;}
 .home-btn{display:block;width:calc(100% - 32px);margin:12px 16px 4px;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;transition:.15s;}
 .home-btn:active{transform:scale(.98);background:#F5F7FB;}
 .cmp-wrap .home-btn{width:100%;margin:16px 0 0;}
@@ -524,13 +528,13 @@ body.cover-open{overflow:hidden;}
           </div>
           <div class="item empty" id="item_car" onclick="openCar()">
             <div class="item-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l1.7-4.2A2 2 0 0 1 8.6 6.5h6.8a2 2 0 0 1 1.9 1.3L19 12"></path><rect x="3.5" y="12" width="17" height="5" rx="1.5"></rect><circle cx="7.8" cy="17.8" r="1.4"></circle><circle cx="16.2" cy="17.8" r="1.4"></circle></svg></div>
-            <div class="item-mid"><div class="nm">차량 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_car">차량을 선택하세요</div></div>
+            <div class="item-mid"><div class="nm">차량</div><div class="ds" id="ds_car">차량을 선택하세요</div></div>
             <div class="item-right"><div class="rv" id="rv_car">선택</div></div>
             <div class="chev">›</div>
           </div>
           <div class="item empty" id="item_ins" onclick="openIns()">
             <div class="item-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6z"></path></svg></div>
-            <div class="item-mid"><div class="nm">보험/조합 <span class="tag-guide">가이드</span></div><div class="ds" id="ds_ins">보험 유형을 선택하세요</div></div>
+            <div class="item-mid"><div class="nm">보험/조합</div><div class="ds" id="ds_ins">보험 유형을 선택하세요</div></div>
             <div class="item-right"><div class="rv" id="rv_ins">선택</div></div>
             <div class="chev">›</div>
           </div>
@@ -561,7 +565,10 @@ body.cover-open{overflow:hidden;}
 
   <button class="home-btn" onclick="goHome()">처음으로 돌아가기</button>
 
-  <div class="foot2">
+</div>
+
+<div class="foot2" id="mainFoot">
+    <div class="f2-inner">
     <div class="f2-brand"><img class="f2-logo" src="data:image/png;base64,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" alt="KOMOLAB"><span class="f2-brandname">개인택시 양수도센터</span></div>
     <p class="f2-desc"><b>개인택시 양수도센터</b>는 모빌리티 전문 기업 <b>한국모빌리티연구소</b>가 운영하는 대한민국 No.1 면허 중개 센터입니다.</p>
     <div class="f2-links">
@@ -572,7 +579,7 @@ body.cover-open{overflow:hidden;}
     <div class="f2-divider"></div>
     <div class="f2-addr">서울특별시 송파구 올림픽로 319 교통회관 11층 개인택시양수도센터<br>본 계산기는 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.</div>
     <div class="f2-copy">Copyright 2026. KOMOLAB Inc. All rights reserved.</div>
-  </div>
+    </div>
 </div>
 
 <!-- 모달 컨테이너 -->
@@ -582,10 +589,7 @@ body.cover-open{overflow:hidden;}
 
 <!-- 견적 비교 페이지 -->
 <div class="cmp-page" id="cmpPage">
-  <div class="cmp-hd">
-    <button class="back" onclick="closeCompare()">←</button>
-    <div><h2>구성 비교</h2><div class="hsub">두 구성을 항목별로 비교합니다</div></div>
-  </div>
+  <div id="cmpHeader"></div>
   <div class="cmp-wrap" id="cmpWrap"></div>
   <div id="cmpFoot"></div>
 </div>
@@ -627,7 +631,8 @@ function isEV(idx){return DB.carFuels[idx]==='전기';}
 function fmtInput(input){const raw=input.value.replace(/[^0-9]/g,'');input.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
 function refDate(d){return '🗓 '+(d?('기준일 '+d):'기준일 DB 연동 예정');}
 function hasBatchim(s){if(!s)return false;const code=s.charCodeAt(s.length-1);if(code<0xAC00||code>0xD7A3)return false;return (code-0xAC00)%28!==0;}
-function iga(s){return hasBatchim(s)?'이':'가';}   // 받침 있으면 '이', 없으면 '가'
+function iga(s){if(!s)return '가';for(let k=s.length-1;k>=0;k--){const c=s.charCodeAt(k);if(c>=0xAC00&&c<=0xD7A3)return (c-0xAC00)%28!==0?'이':'가';}return '가';}   // 마지막 한글 음절 받침 기준
+function cfgLabel(name,idx1){return name===(idx1+'번 구성')?name:`${name}(${idx1}번 구성)`;}
 
 let toastTimer;
 function toast(msg,cls){const t=el('toast');if(toastTimer)clearTimeout(toastTimer);t.className='toast'+(cls?' '+cls:'');t.innerHTML=msg;t.style.display='block';toastTimer=setTimeout(()=>t.style.display='none',2400);}
@@ -1004,7 +1009,7 @@ function exitLicManual(){S.licManual=false;S.licPrice=0;S.licFee=0;renderLicModa
 function renderLicModal(){
   const reg=S.licRegion||'서울특별시';
   const isSeoul=(reg==='서울특별시');
-  let h=`<h3>📄 면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 기준</div>`;
+  let h=`<h3>📄 면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 시세</div>`;
   h+=`<div class="subtitle">양수 희망 지역</div>
     <div class="sel-wrap"><select id="licRegion" onchange="selLicRegion(this.value)">`;
   LIC_REGIONS.forEach(r=>{h+=`<option value="${r}"${reg===r?' selected':''}>${r}</option>`;});
@@ -1179,7 +1184,7 @@ function renderInsModal(){
   </div>`;
   if(tmpIns.type==='공제'){
     const annual=DB.insurance[i]||0;
-    const v=(isForeign(i)||!annual)?'개별 조회 필요':won(annual);
+    const v=(isForeign(i)||!annual)?'개별 조회 필요':'약 '+won(annual);
     h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">공제보험료 (1년)</label><div class="amt-disp">${v}</div></div>`;
     h+=`<div class="alert info">ℹ️ 전국개인택시공제조합 서울지부 기준 · 대인Ⅰ/Ⅱ·대물5억+긴출확장형.</div>`;
     h+=`<div class="subtitle">자손 / 자차 보장 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(선택)</small></div>
@@ -1215,7 +1220,7 @@ function renderInsModal(){
           <div class="oa">${won(DB.combineFee)}</div>
         </div>
       </div>
-      <div class="refdate">${refDate(DB.dateCombine)}</div>`;
+      <div class="refdate">${refDate(DB.dataDate)}</div>`;
     if(locked)h+=`<div class="alert info">ℹ️ 공제보험 가입 시, 운송사업조합 가입이 필수이므로 가입비가 보험료 총액에 자동 포함됩니다.</div>`;
     else if(tmpIns.combine)h+=`<div class="alert info">ℹ️ 선택하신 <b>조합 가입비 ${comma(DB.combineFee)}원</b>이 총액에 포함되었습니다.</div>`;
     else h+=`<div class="sublabel">조합 가입은 선택사항입니다. (특정 경우 제외)</div>`;
@@ -1350,16 +1355,21 @@ function c2Total(label,valA,valB,subA,subB,sep){
     <div class="cR ${bC}"><div class="val">${comma(valB)}원</div>${subB?`<div class="sub">${subB}</div>`:''}</div>
   </div>`;
 }
-function openCompare(){
+function openCompare(force){
   if(!isFilled(CONFIGS[0])||!isFilled(CONFIGS[1])){toast('두 구성을 모두 채워주세요');return;}
+  if(!force){
+    const missing=[];
+    [0,1].forEach(ci=>{const c=CONFIGS[ci],m=[];if(!c.ins)m.push('보험/조합');if(!c.work)m.push('작업비용');if(m.length)missing.push('<b>'+CFG_NAMES[ci]+'</b>의 '+m.join('·'));});
+    if(missing.length){confirmModal(missing.join('<br>')+' 항목을 완성하지 않으셨습니다.<br>비교 페이지로 넘어가시겠습니까?',()=>openCompare(true));return;}
+  }
   const sA=CONFIGS[0], sB=CONFIGS[1];
   const A=computeBreakdown(sA), B=computeBreakdown(sB);
   const nA=CFG_NAMES[0], nB=CFG_NAMES[1];
   const carA=sA.car?DB.carNames[sA.car.idx]:'—', carB=sB.car?DB.carNames[sB.car.idx]:'—';
   let verdict='';
-  if(A.initial!==B.initial){const c=A.initial<B.initial?nA:nB,d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
-  if(A.monthly!==B.monthly){const c=A.monthly<B.monthly?nA:nB,d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 적습니다.`;}
-  if(A.grand!==B.grand){const c=A.grand<B.grand?nA:nB,d=Math.abs(A.grand-B.grand);verdict+=`<br>총 비용은 <b>${c}</b>${iga(c)} <b>${comma(d)}원</b> 저렴합니다.`;}
+  if(A.initial!==B.initial){const aC=A.initial<B.initial,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
+  if(A.monthly!==B.monthly){const aC=A.monthly<B.monthly,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입금액은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 적습니다.`;}
+  if(A.grand!==B.grand){const aC=A.grand<B.grand,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.grand-B.grand);verdict+=`<br>총 비용은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 저렴합니다.`;}
   let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
   h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div></div></div>`;
@@ -1396,9 +1406,12 @@ function openCompare(){
     <button class="sms-btn" onclick="openSms()">📩 문자로 견적 받기<span class="s">비교 견적을 이미지로 보내드립니다</span></button>
     <button class="fb-btn" onclick="openFeedback()">💬 의견 보내기</button>
   </div>`;
+  h+=`<button class="home-btn" onclick="closeCompare()">← 이전</button>`;
   h+=`<button class="home-btn" onclick="goHome()">처음으로 돌아가기</button>`;
   el('cmpWrap').innerHTML=h;
-  const mainFoot=document.querySelector('#app .foot2');
+  const mainHd=document.querySelector('#app .hd');
+  if(mainHd&&el('cmpHeader'))el('cmpHeader').innerHTML=mainHd.outerHTML;
+  const mainFoot=document.getElementById('mainFoot');
   if(mainFoot&&el('cmpFoot'))el('cmpFoot').innerHTML=mainFoot.outerHTML;
   loanCalc();
   el('cmpPage').classList.add('show');el('cmpPage').scrollTop=0;
@@ -1445,7 +1458,7 @@ function editCmp(cfgIdx,key){
   else if(key==='ins')openIns();
   else if(key==='work')openWork();
 }
-function refreshCmp(){if(el('cmpPage').classList.contains('show'))openCompare();}
+function refreshCmp(){if(el('cmpPage').classList.contains('show'))openCompare(true);}
 
 // ── 비교표를 이미지(PNG)로 변환 ──
 if(typeof CanvasRenderingContext2D!=='undefined' && !CanvasRenderingContext2D.prototype.roundRect){
@@ -1610,7 +1623,7 @@ function startCalc(){
 }
 
 // 커버 화면 하단에도 동일 푸터 삽입
-(function(){const mf=document.querySelector('#app .foot2');const cf=el('coverFoot');if(mf&&cf)cf.innerHTML=mf.outerHTML;})();
+(function(){const mf=document.getElementById('mainFoot');const cf=el('coverFoot');if(mf&&cf)cf.innerHTML=mf.outerHTML;})();
 
 // 시작
 loadData();
