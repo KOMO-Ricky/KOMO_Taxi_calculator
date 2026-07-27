@@ -182,7 +182,7 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .opt-head .oa{font-size:13px;font-weight:700;color:var(--primary);}
 .mrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .mrow:last-child{border-bottom:none;}
-.mrow .ml{color:var(--muted);}
+.mrow .ml{color:var(--text);}
 .mrow .mv{font-weight:700;}
 .mrow .mv.green{color:var(--success);}
 .mrow .mv.accent{color:var(--accent);}
@@ -346,6 +346,7 @@ body.cover-open{overflow:hidden;}
 .cmp-hd h2{font-size:16px;font-weight:800;}
 .cmp-hd .hsub{font-size:11px;color:#8D9AC4;margin-top:2px;}
 .cmp-wrap{max-width:480px;margin:0 auto;padding:14px 16px 20px;}
+.cmp-page-title{font-size:19px;font-weight:800;color:var(--primary);text-align:center;letter-spacing:-.4px;margin:6px 0 14px;}
 #cmpFoot{max-width:480px;margin:0 auto;}
 #cmpHeader{max-width:480px;margin:0 auto;}
 #cmpHeader .hd{border-radius:0 0 24px 24px;}
@@ -357,7 +358,7 @@ body.cover-open{overflow:hidden;}
 /* 비교표 v2 — 좌(초록)/우(주황) + 가운데 세로 기둥 */
 .cmp2{position:relative;padding-top:2px;}
 .cmp2 .pillar{display:none;}
-.c2row{position:relative;display:grid;grid-template-columns:1fr 60px 1fr;align-items:stretch;margin-bottom:7px;z-index:1;}
+.c2row{position:relative;display:grid;grid-template-columns:1fr 82px 1fr;align-items:stretch;margin-bottom:7px;z-index:1;}
 .c2row:last-child{margin-bottom:0;}
 .c2row .cL,.c2row .cR{box-shadow:var(--shadow);padding:12px 9px;display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden;}
 .c2row .cL{border-radius:11px 0 0 11px;text-align:right;border-left:3px solid var(--green);background:#EDF1F9;}
@@ -406,7 +407,7 @@ body.cover-open{overflow:hidden;}
 .loan-h{font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
 .loan-tgl{font-size:12px;font-weight:700;color:var(--info);background:#eef5ff;border-radius:8px;padding:5px 11px;}
 .loan-h:active .loan-tgl{filter:brightness(.94);}
-.loan-need{display:grid;grid-template-columns:1fr 52px 1fr;gap:0;margin:8px 0 14px;align-items:stretch;}
+.loan-need{display:grid;grid-template-columns:1fr 72px 1fr;gap:0;margin:8px 0 14px;align-items:stretch;}
 .loan-need>div{padding:12px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden;}
 .loan-need .lnc{background:#EDF1F9;border-left:3px solid var(--green);border-radius:11px 0 0 11px;box-shadow:var(--shadow);}
 .loan-need .lno{background:#FDF6E0;border-right:3px solid var(--orange);border-radius:0 11px 11px 0;box-shadow:var(--shadow);}
@@ -520,10 +521,10 @@ body.cover-open{overflow:hidden;}
       <div class="cbar" id="cfgBar"><span id="cfgBarName">1번 구성</span><span class="cbamt" id="cfgBarAmt"></span></div>
       <div class="cinner">
         <div class="items">
-          <div class="item" id="item_license" onclick="openLicense()">
+          <div class="item empty" id="item_license" onclick="openLicense()">
             <div class="item-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></div>
-            <div class="item-mid"><div class="nm">면허</div><div class="ds" id="ds_license">면허시세 + 수수료</div></div>
-            <div class="item-right"><div class="rv" id="rv_license">—</div></div>
+            <div class="item-mid"><div class="nm">면허</div><div class="ds" id="ds_license">면허를 양수할 지역을 선택하세요</div></div>
+            <div class="item-right"><div class="rv" id="rv_license">선택</div></div>
             <div class="chev">›</div>
           </div>
           <div class="item empty" id="item_car" onclick="openCar()">
@@ -607,7 +608,8 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[]};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
-function newCfg(){return{car:null,ins:null,work:null,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};}
+function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};}
+function isSeoulCfg(st){return !st||!st.licRegion||st.licRegion==='서울특별시';}
 const LIC_REGIONS=['서울특별시','경기도','인천광역시','부산광역시','대구광역시','대전광역시','광주광역시','울산광역시','기타 지역'];
 let CONFIGS=[newCfg(),newCfg()];
 let CFG_NAMES=['1번 구성','2번 구성'];
@@ -707,7 +709,7 @@ function carRateOf(idx){return (DB.carRate&&DB.carRate[idx])?DB.carRate[idx]:0;}
    계산 (상태를 인자로 받는 순수 함수)
    ================================================================== */
 function licenseBase(){return DB.licensePrice+DB.commission;}
-function licenseOf(st){if(!st)return licenseBase();if(st.licManual)return (st.licPrice||0)+(st.licFee||0);return licenseBase();}
+function licenseOf(st){if(!st||!st.licSet)return 0;if(st.licManual)return (st.licPrice||0)+(st.licFee||0);return licenseBase();}
 
 function carFullOf(car){
   if(!car)return 0;
@@ -800,9 +802,12 @@ function computeBreakdown(st){
   }
   if(st.ins&&st.car){
     b.insType=st.ins.type;
-    b.insAnnual=insAnnualOf(st.ins,st.car);
-    b.combine=combineOf(st.ins);
-    b.insInitial=b.insAnnual;
+    if(isSeoulCfg(st)){
+      b.insAnnual=insAnnualOf(st.ins,st.car);
+      b.combine=combineOf(st.ins);
+      b.insInitial=b.insAnnual;
+    }
+    // 타지역: 공제조합 문의 필요 → 금액 0 처리
   }
   if(st.work)b.work=workSubtotalOf(st.work,st.car);
   b.initial=b.license+b.carUpfront+b.work+b.combine+b.insInitial;
@@ -814,11 +819,9 @@ function isFilled(cfg){return !!(cfg&&cfg.car);}
 /* ===== 렌더링 ===== */
 function renderAll(){
   const b=computeBreakdown(S);
-  el('rv_license').textContent=comma(b.license)+'원';
-  {const reg=S.licRegion||'서울특별시';
-   if(S.licManual)el('ds_license').textContent=reg+' · 직접 입력 (시세+수수료)';
-   else el('ds_license').textContent='서울 · 면허시세 '+comma(DB.licensePrice)+' + 수수료 '+comma(DB.commission);}
-  el('item_license').classList.add('done');
+  {const li=el('item_license'),lr=el('rv_license'),ld=el('ds_license');
+   if(S.licSet){li.classList.remove('empty');li.classList.add('done');lr.textContent=comma(b.license)+'원';ld.textContent=(S.licRegion||'서울특별시')+' 기준';}
+   else{li.classList.add('empty');li.classList.remove('done');lr.textContent='선택';ld.textContent='면허를 양수할 지역을 선택하세요';}}
 
   const ci=el('item_car'), cr=el('rv_car'), cd=el('ds_car');
   if(S.car){
@@ -833,13 +836,16 @@ function renderAll(){
   const ii=el('item_ins'), ir=el('rv_ins'), id_=el('ds_ins');
   if(S.ins){
     ii.classList.remove('empty');ii.classList.add('done');
-    const insV=b.insAnnual+b.combine;
-    ir.textContent=insV?comma(insV)+'원':'개별조회';
-    let d=S.ins.type;
-    if(S.ins.type==='공제')d+=' + 조합';
-    else if(S.ins.combine)d+=' + 조합가입';
-    if(S.ins.type==='사보험'&&S.ins.saCustom>0)d+=' · 직접입력';
-    id_.textContent=d;
+    if(!isSeoulCfg(S)){ir.textContent='문의 필요';id_.textContent='해당 지역 공제조합 문의 필요';}
+    else{
+      const insV=b.insAnnual+b.combine;
+      ir.textContent=insV?comma(insV)+'원':'개별조회';
+      let d=S.ins.type;
+      if(S.ins.type==='공제')d+=' + 조합';
+      else if(S.ins.combine)d+=' + 조합가입';
+      if(S.ins.type==='사보험'&&S.ins.saCustom>0)d+=' · 직접입력';
+      id_.textContent=d;
+    }
   }else{ii.classList.add('empty');ii.classList.remove('done');ir.textContent='선택';id_.textContent='보험 유형을 선택하세요';}
 
   const wi=el('item_work'), wr=el('rv_work'), wd=el('ds_work');
@@ -908,7 +914,7 @@ let recoOpen=false;
 function toggleReco(){recoOpen=!recoOpen;const d=el('recoDetail');if(d)d.style.display=recoOpen?'block':'none';const t=el('recoToggle');if(t)t.textContent=recoOpen?'접기':'보기';}
 function cfgApplyReco(i){
   if(!RECO){toast('추천 구성을 불러오지 못했습니다');return;}
-  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licRegion='서울특별시';CONFIGS[i].licManual=false;CONFIGS[i].licPrice=0;CONFIGS[i].licFee=0;
+  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licSet=true;CONFIGS[i].licRegion='서울특별시';CONFIGS[i].licManual=false;CONFIGS[i].licPrice=0;CONFIGS[i].licFee=0;
   if(!CFG_NAMED[i])CFG_NAMES[i]='추천 구성';
   activeCfg=i;S=CONFIGS[i];
   renderAll();
@@ -932,7 +938,8 @@ function resetAllCfg(){
 
 // ── 코치마크 ──
 function nextStep(){
-  if(!S.car)return{id:'item_car',msg:'<b>차량</b>을 먼저 선택하세요'};
+  if(!S.licSet)return{id:'item_license',msg:'<b>면허</b> 양수 지역을 먼저 선택하세요'};
+  if(!S.car)return{id:'item_car',msg:'<b>차량</b>을 선택하세요'};
   if(!S.ins)return{id:'item_ins',msg:'<b>보험/조합</b> 유형을 선택하세요'};
   if(!S.work)return{id:'item_work',msg:'<b>차량 작업비용</b>을 확인하세요'};
   return null;
@@ -1030,7 +1037,7 @@ function renderLicModal(){
       <input class="inp" type="text" inputmode="numeric" id="licPrice" placeholder="예) 113,500,000" value="${S.licPrice?comma(S.licPrice):''}" oninput="fmtInput(this)"></div>
     <div class="field"><label>수수료 <span style="font-weight:600;color:var(--muted)">${isSeoul?'':'(지역별 상이)'}</span></label>
       <input class="inp" type="text" inputmode="numeric" id="licFee" placeholder="${isSeoul?comma(DB.commission):'직접 입력'}" value="${S.licFee?comma(S.licFee):''}" oninput="fmtInput(this)"></div>`;
-    if(isSeoul)h+=`<button class="manual-exit" onclick="exitLicManual()">기준 금액으로 돌아가기</button>`;
+    if(isSeoul)h+=`<button class="manual-exit" onclick="exitLicManual()">직접 입력 취소</button>`;
   }
   h+=`<button class="modal-save" onclick="saveLicense()">저장</button>
     <button class="modal-close" onclick="closeModal()">닫기</button>`;
@@ -1040,6 +1047,7 @@ function saveLicense(){
   readLicInputs();
   const isSeoul=(S.licRegion||'서울특별시')==='서울특별시';
   if(!isSeoul){S.licManual=true;if(!(S.licPrice>0)){toast('면허 시세를 입력해 주세요');return;}}
+  S.licSet=true;
   closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');
 }
 
@@ -1106,7 +1114,7 @@ function renderCarModal(){
         <div class="field"><label>보조금 등 차감액 <span style="font-weight:600;color:var(--muted)">(있으면 입력)</span></label>
           <input class="inp" type="text" inputmode="numeric" id="carSubOvr" placeholder="예) 0" value="${tmpCar.subOvr?comma(tmpCar.subOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
         <div class="mrow"><span class="ml"><b>차량 금액 합계</b></span><span class="mv" id="carManualSum" style="color:var(--primary);">${won(carManualTotal())}</span></div>
-        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">기준 금액으로 돌아가기</button>`;
+        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">직접 입력 취소</button>`;
       }
     }
     h+=`<div class="subtitle">차량 할부 여부 * <span class="qm" onclick="tip('pay')">?</span></div>
@@ -1129,7 +1137,7 @@ function renderCarModal(){
         <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate?rate+'%':'DB 연동 예정 (0%)'}</span></div>
         <div class="mrow"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(${rate?'원리금균등':'무이자'})</small></span><span class="mv accent">${won(previewMonthly())}</span></div>`;
     }
-    h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(previewCarSub())}</span></div>`;
+    h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
   }
   h+=`<button class="modal-save" onclick="saveCar()">저장</button><button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
@@ -1175,6 +1183,14 @@ function openIns(){
 function renderInsModal(){
   const i=S.car.idx;
   let h=`<h3>🛡 보험 / 조합</h3><div class="mdesc">${DB.carNames[i]} 기준</div>`;
+  if(!isSeoulCfg(S)){
+    const reg=S.licRegion||'';
+    h+=`<div class="alert warn" style="margin-top:6px;">⚠️ <b>${reg}</b>은(는) 현재 공제보험·조합 데이터가 제공되지 않습니다.</div>`;
+    h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">공제보험료 / 조합 가입비</label><div class="amt-disp" style="font-size:16px;">해당 지역 공제조합 문의 필요</div></div>`;
+    h+=`<div class="sublabel">면허 지역을 <b>서울특별시</b>로 변경하시면 자동 계산됩니다.</div>`;
+    h+=`<button class="modal-save" onclick="saveInsRegionNote()">확인</button><button class="modal-close" onclick="closeModal()">닫기</button>`;
+    openModalHTML(h);return;
+  }
   h+=`<div class="guide"><span class="gt">공제보험 vs 사보험</span>
     · <b>공제보험</b> : 전국개인택시공제조합에서 운영. 각 지역 운송사업조합 가입이 필수입니다.<br>
     · <b>사보험</b> : 가입자별 금액 차이가 있으므로 이용자가 금액을 직접 입력하여야 합니다.</div>`;
@@ -1206,7 +1222,7 @@ function renderInsModal(){
     }else{
       h+=`<div class="field"><label>사보험료 (1년) 입력 <span style="font-weight:600;color:var(--muted)">(비우면 예상 중앙값 ${comma(mid)}원)</span></label>
         <input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(mid||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this)"></div>
-        <button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">기준 금액으로 돌아가기</button>`;
+        <button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">직접 입력 취소</button>`;
     }
   }
   if(tmpIns.type){
@@ -1226,11 +1242,12 @@ function renderInsModal(){
     else h+=`<div class="sublabel">조합 가입은 선택사항입니다. (특정 경우 제외)</div>`;
     const annualNow=tmpIns.type==='공제'?((DB.insurance[i]||0)+(tmpIns.selfCover?SELF_COVER_FEE:0)):(tmpIns.saCustom>0?tmpIns.saCustom:((DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0));
     const combNow=(tmpIns.type==='공제'||tmpIns.combine)?(DB.combineFee||0):0;
-    h+=`<div class="mrow" style="margin-top:12px;"><span class="ml"><b>보험 초기비용 총액</b><br><small style="color:var(--muted)">보험료(1년) + 조합가입비</small></span><span class="mv" style="color:var(--primary);font-size:17px;">${won(annualNow+combNow)}</span></div>`;
+    h+=`<div class="mrow" style="margin-top:12px;"><span class="ml"><b>보험 초기비용 총액</b><br><small style="color:var(--muted)">보험료(1년) + 조합가입비</small></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(annualNow+combNow)}</span></div>`;
   }
   h+=`<button class="modal-save" onclick="saveIns()">저장</button><button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
 }
+function saveInsRegionNote(){S.ins={type:'지역문의',combine:false,saCustom:0,selfCover:false};closeModal();renderAll();refreshCmp();toast('해당 지역은 공제조합 문의가 필요합니다',' blue');}
 function syncSa(){if(el('saCustom'))tmpIns.saCustom=N(el('saCustom').value);}
 function selInsType(t){syncSa();tmpIns.type=t;tmpIns.combine=(t==='공제');renderInsModal();}
 function saveIns(){
@@ -1285,7 +1302,7 @@ function renderWorkModal(){
       <label>블루투스(자석) 갓등</label>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></div>`;
   if(!M){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
-    h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:16px;">${won(prev)}</span></div>
+    h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
     <div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
     <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
     <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">입력하기</button>`;
@@ -1294,7 +1311,7 @@ function renderWorkModal(){
     <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
     <div class="field"><label>작업비 총액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
-    <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">기준 금액으로 돌아가기</button>`;
+    <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">직접 입력 취소</button>`;
   }
   h+=`<div class="alert info">ℹ️ 모든 항목은 부가세 포함 금액입니다.</div>
     <div class="sublabel" style="text-align:right;">출처: 개인택시 양수도센터 직영미터점</div>
@@ -1359,7 +1376,7 @@ function openCompare(force){
   if(!isFilled(CONFIGS[0])||!isFilled(CONFIGS[1])){toast('두 구성을 모두 채워주세요');return;}
   if(!force){
     const missing=[];
-    [0,1].forEach(ci=>{const c=CONFIGS[ci],m=[];if(!c.ins)m.push('보험/조합');if(!c.work)m.push('작업비용');if(m.length)missing.push('<b>'+CFG_NAMES[ci]+'</b>의 '+m.join('·'));});
+    [0,1].forEach(ci=>{const c=CONFIGS[ci],m=[];if(!c.licSet)m.push('면허');if(!c.ins)m.push('보험/조합');if(!c.work)m.push('작업비용');if(m.length)missing.push('<b>'+CFG_NAMES[ci]+'</b>의 '+m.join('·'));});
     if(missing.length){confirmModal(missing.join('<br>')+' 항목을 완성하지 않으셨습니다.<br>비교 페이지로 넘어가시겠습니까?',()=>openCompare(true));return;}
   }
   const sA=CONFIGS[0], sB=CONFIGS[1];
@@ -1370,10 +1387,11 @@ function openCompare(force){
   if(A.initial!==B.initial){const aC=A.initial<B.initial,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.initial-B.initial);verdict+=`초기비용은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 저렴합니다.`;}else verdict+='초기비용이 동일합니다.';
   if(A.monthly!==B.monthly){const aC=A.monthly<B.monthly,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입금액은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 적습니다.`;}
   if(A.grand!==B.grand){const aC=A.grand<B.grand,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.grand-B.grand);verdict+=`<br>총 비용은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 저렴합니다.`;}
-  let h=`<div class="cmp-verdict">💡 ${verdict}</div>`;
+  let h=`<div class="cmp-page-title">개인택시 양수 견적 구성 비교</div>`;
+  h+=`<div class="cmp-verdict">💡 ${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
   h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div></div></div>`;
-  h+=c2Item('면허','license',A.license,sA.licManual?(sA.licRegion&&sA.licRegion!=='서울특별시'?sA.licRegion:'직접입력'):'',B.license,sB.licManual?(sB.licRegion&&sB.licRegion!=='서울특별시'?sB.licRegion:'직접입력'):'');
+  h+=c2Item('면허','license',A.license,(sA.licRegion||'서울특별시')+(sA.licManual&&isSeoulCfg(sA)?' · 직접입력':''),B.license,(sB.licRegion||'서울특별시')+(sB.licManual&&isSeoulCfg(sB)?' · 직접입력':''));
   h+=c2Item('차량','car',A.carFull,carA+' · '+payLabel(sA.car),B.carFull,carB+' · '+payLabel(sB.car));
   h+=c2Item('보험<br>/조합','ins',A.insAnnual+A.combine,insLabel(sA.ins),B.insAnnual+B.combine,insLabel(sB.ins));
   h+=c2Item('작업<br>비용','work',A.work,'',B.work,'');
@@ -1383,7 +1401,7 @@ function openCompare(force){
   h+=c2Total('초기<br>소요비용',A.initial,B.initial);
   h+=c2Total('월<br>납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불');
   h+=`</div>`;
-  h+=`<div class="cmp-hint">💡 각 항목 박스를 누르면 <b>🔍 상세보기/수정</b> 창이 열려 값을 바로 바꿀 수 있어요</div>`;
+  h+=`<div class="cmp-hint">💡 <b>🔍 상세보기/수정</b> 버튼을 누르면 자세한 내용을 직접 수정하실 수 있어요.</div>`;
   // 대출 계산기 (접기/펼치기)
   h+=`<div class="loan-card">
     <div class="loan-h" onclick="toggleLoan()">💳 대출 계산기<span class="loan-tgl" id="loanTgl">${loanOpen?'▲ 접기':'▼ 펼치기'}</span></div>
@@ -1543,17 +1561,34 @@ function openSms(){
     <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
     <label class="agree"><input type="checkbox" id="smsAgree"><span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</span></label>
     <button class="modal-save" style="margin-top:4px;" onclick="submitSms()">📩 견적표 문자 신청</button>
-    <div class="ov-note">⚠️ 실제 문자(MMS) 발송은 <b>솔라피(Solapi) API 연동 후</b> 활성화됩니다. 지금은 신청 접수 견본입니다.</div>`);
+    <div class="ov-note">ℹ️ 신청하시면 입력하신 번호로 견적표가 <b>문자(MMS)</b>로 발송됩니다. (영업일 기준 순차 발송)</div>`);
+}
+// ── Apps Script 전송 (자격진단 레퍼런스와 동일 방식: no-cors POST, 서버가 솔라피 발송·시트 기록) ──
+function nowKST(){try{return new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});}catch(e){return new Date().toString();}}
+function postGAS(payload){try{fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(function(e){console.error('[GAS] 전송 실패',e);});}catch(e){console.error(e);}}
+function buildQuoteSmsText(nm){
+  const A=computeBreakdown(CONFIGS[0]),B=computeBreakdown(CONFIGS[1]);
+  const w=v=>comma(v)+'원';
+  let t='[개인택시 준비자금 견적]\n'+nm+'님께서 요청하신 견적입니다.\n\n';
+  t+='■ '+CFG_NAMES[0]+'\n  초기 '+w(A.initial)+' / 월 '+w(A.monthly)+'\n';
+  t+='■ '+CFG_NAMES[1]+'\n  초기 '+w(B.initial)+' / 월 '+w(B.monthly)+'\n';
+  if(loanCash>0){
+    t+='\n[대출 참고 · 기준일 '+(DB.dateLoan||'-')+']\n';
+    loanBankList().forEach(function(bk){t+='  '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rate?'연 '+bk.rate+'%':'-')+'\n';});
+  }
+  t+='\n※ 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.\nKOMOLAB 개인택시 양수도센터 1566-7114';
+  return t;
 }
 function submitSms(){
   const nm=el('smsName').value.trim(), ph=el('smsPhone').value.trim(), ag=el('smsAgree').checked;
   if(!nm){toast('이름을 입력해 주세요');return;}
   if(ph.replace(/[^0-9]/g,'').length<10){toast('연락처를 정확히 입력해 주세요');return;}
   if(!ag){toast('개인정보 수집에 동의해 주세요');return;}
-  /* TODO: 솔라피(Solapi) 문자 발송 API 연동 — 고객(ph)에게 견적 전송 */
+  const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,smsText:buildQuoteSmsText(nm),source:location.href};
+  if(lastQuoteImg&&lastQuoteImg.indexOf(',')>0){payload.image=lastQuoteImg.split(',')[1];payload.imageName='개인택시_견적비교.png';}
+  postGAS(payload);
   el('modalContent').innerHTML=`<div class="modal-grip"></div><div class="ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>
-    <p><b>${nm}</b>님 (${ph})<br>입력하신 번호로 견적 문자를 보내드릴게요.<br><br>
-    <span style="font-size:11px;color:var(--muted)">※ 실제 발송은 솔라피 API 연동 후 자동 전송됩니다.</span></p>
+    <p><b>${nm}</b>님 (${ph})<br>입력하신 번호로 견적표를 문자로 보내드립니다.</p>
     <button class="modal-close" onclick="closeModal()">닫기</button></div>`;
 }
 
@@ -1586,7 +1621,7 @@ function submitFeedback(){
   if(!nm){toast('성명을 입력해 주세요');return;}
   const ph=el('fbPhone')?el('fbPhone').value.trim():'';
   if(ph.replace(/[^0-9]/g,'').length<10){toast('전화번호를 정확히 입력해 주세요');return;}
-  /* TODO: 의견 저장 API 연동 — {rating:fbRating,text:txt,name:nm,phone:ph} */
+  postGAS({requestType:'calc_feedback',sheet:'자금계산기 의견 응답',createdAt:nowKST(),rating:fbRating,ratingLabel:FB_LBL[fbRating],comment:txt,name:nm,phone:ph,privacyAgreed:true,source:location.href});
   closeModal();toast('소중한 의견 감사합니다! 🙏<br>추첨 대상에 포함되었습니다.',' green');
 }
 
@@ -1602,7 +1637,7 @@ function buildReco(){
   if(idx<0)return;
   RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS},
     ins:{type:'공제',combine:true,saCustom:0},
-    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};
+    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licSet:true,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};
   const rb=computeBreakdown(RECO);
   el('recoBox').style.display='block';
   el('recoBody').innerHTML=

@@ -61,3 +61,46 @@ function doGet(e) {
 
 - `carRate` (차량별 할부율 배열, 연% — 월 납입 원리금균등 계산에 사용)
 - `dateLicense` / `dateCar` / `dateCombine` (면허·차량·조합 항목별 기준일)
+
+## 6. 문자 발송(솔라피) · 의견 접수 — `doPost` 추가
+
+프런트는 자격진단 사이트와 **동일한 방식**(same GAS URL로 `no-cors` POST)으로 아래 두 종류의 데이터를 보냅니다.
+같은 Apps Script 프로젝트에 `doPost`를 추가하면 됩니다.
+
+- **문자 견적**: `{ requestType:'taxi_quote_sms', name, phone, smsText, image(base64, prefix 제외), imageName, createdAt, source }`
+- **의견 접수**: `{ requestType:'calc_feedback', sheet:'자금계산기 의견 응답', rating, ratingLabel, comment, name, phone, createdAt, source }`
+
+```javascript
+function doPost(e){
+  try{
+    const d = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.openById('16tTQilanjKsumRLmSHrbeBghgdMNF2p9FjemZq-9Qco');
+
+    if (d.requestType === 'calc_feedback'){
+      // 의견 → '자금계산기 의견 응답' 탭에 기록
+      const sh = ss.getSheetByName(d.sheet || '자금계산기 의견 응답')
+                 || ss.insertSheet('자금계산기 의견 응답');
+      if (sh.getLastRow() === 0) sh.appendRow(['접수시각','별점','평가','의견','성명','전화번호','유입경로']);
+      sh.appendRow([d.createdAt||new Date(), d.rating||'', d.ratingLabel||'', d.comment||'', d.name||'', d.phone||'', d.source||'']);
+      return ContentService.createTextOutput('ok');
+    }
+
+    if (d.requestType === 'taxi_quote_sms'){
+      // 접수 로그 (원하면 별도 탭에 기록)
+      const sh = ss.getSheetByName('자금계산기 문자신청') || ss.insertSheet('자금계산기 문자신청');
+      if (sh.getLastRow() === 0) sh.appendRow(['접수시각','성명','전화번호','유입경로']);
+      sh.appendRow([d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'']);
+      // 솔라피 MMS 발송 — 자격진단 사이트에서 쓰던 sendSolapi(...) 함수를 그대로 재사용
+      // sendSolapiMMS(d.phone, d.smsText, d.image, d.imageName);
+      return ContentService.createTextOutput('ok');
+    }
+    return ContentService.createTextOutput('unknown');
+  }catch(err){
+    return ContentService.createTextOutput('error: '+err);
+  }
+}
+```
+
+- 솔라피 발송은 자격진단 사이트에서 이미 사용 중인 발송 함수(API 키/발신번호 포함)를 그대로 붙여 `sendSolapiMMS(...)` 부분만 연결하면 됩니다.
+- `image`는 데이터URL 접두어(`data:image/png;base64,`)를 뗀 순수 base64 문자열로 전달됩니다.
+- 수정 후 **배포 → 배포 관리 → 새 버전으로 배포** 해야 반영됩니다.
