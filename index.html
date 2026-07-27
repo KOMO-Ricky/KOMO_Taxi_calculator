@@ -985,7 +985,7 @@ function flashBtn(b){b.classList.remove('cf-flash');void b.offsetWidth;b.classLi
 const TIPS={};
 TIPS.pay='<b>일시불</b> 전액 현금 납부<br><b>전액할부</b> 차량값 전부 할부<br><b>일부선납</b> 일부 현금 + 나머지 할부';
 TIPS.months='할부 원금을 몇 개월로 나눠 낼지 선택합니다.';
-TIPS.rate='할부 이자율(연). DB 연동 후 자동 반영되며, 월 납입금은 원리금균등상환으로 계산됩니다. (지금은 0% 무이자)';
+TIPS.rate='할부 이자율(연). 화면 값은 <b>참고용 예상치</b>이며, 실제 이율은 개인 신용·선납금·개월수·캐피탈 심사와 월별 프로모션에 따라 달라집니다. 무이자·저금리 행사가 있을 수 있으니 정확한 금액은 상담으로 확인하세요.';
 TIPS.trim='<b>영업용(2.4%)</b> 개인택시 등록 · <b>일반용(7%)</b> 일반 승용 등록. 수입차 취등록세율 차이입니다.';
 TIPS.gongje='<b>공제보험</b> 전국개인택시공제조합. 1년치 보험료를 <b>초기비용</b>으로 계산하며 조합 가입이 필수입니다.';
 TIPS.sabom='<b>사보험</b> 일반 손해보험사 상품. 가입자마다 상이하므로 <b>금액을 직접 입력</b>할 수 있습니다.';
@@ -1135,7 +1135,8 @@ function renderCarModal(){
       MONTH_OPTIONS.forEach(m=>{h+=`<button class="tog-btn${tmpCar.months===m?' on':''}" onclick="selMonths(${m})">${m}개월</button>`;});
       h+=`</div>
         <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate?rate+'%':'DB 연동 예정 (0%)'}</span></div>
-        <div class="mrow"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(${rate?'원리금균등':'무이자'})</small></span><span class="mv accent">${won(previewMonthly())}</span></div>`;
+        <div class="mrow"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(${rate?'원리금균등':'무이자'})</small></span><span class="mv accent">${won(previewMonthly())}</span></div>
+        <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라지며, <b>영업용(개인택시)</b>은 조건이 다를 수 있습니다. 정확한 금액은 상담 시 안내드립니다.</div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
   }
