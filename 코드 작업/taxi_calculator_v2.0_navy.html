@@ -160,8 +160,8 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .modal h3{font-size:17px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
 .modal .mdesc{font-size:12px;color:var(--muted);margin-bottom:18px;}
 .field{margin-bottom:14px;}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;}
-.field label.fl-strong{font-size:13px;font-weight:700;color:var(--primary);}
+.field label{display:block;font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.field label.fl-strong{font-size:14px;font-weight:700;color:var(--primary);}
 .inp{width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:15px;color:var(--text);background:#F5F7FB;}
 .inp:focus{outline:none;border-color:var(--accent);background:var(--card);}
 .sel-wrap{position:relative;}
@@ -178,11 +178,11 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 .opt-block{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
 .opt-head{display:flex;align-items:center;gap:10px;}
 .opt-head input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex-shrink:0;}
-.opt-head label{flex:1;font-size:13px;font-weight:600;cursor:pointer;}
-.opt-head .oa{font-size:13px;font-weight:700;color:var(--primary);}
+.opt-head label{flex:1;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;}
+.opt-head .oa{font-size:14px;font-weight:700;color:var(--primary);}
 .mrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .mrow:last-child{border-bottom:none;}
-.mrow .ml{color:var(--text);}
+.mrow .ml{color:var(--text);font-weight:600;}
 .mrow .mv{font-weight:700;}
 .mrow .mv.green{color:var(--success);}
 .mrow .mv.accent{color:var(--accent);}
@@ -704,6 +704,9 @@ function getFuels(){return[...new Set(DB.carFuels.filter(f=>f))];}
 function getMakers(fuel){const s=new Set();DB.carFuels.forEach((f,i)=>{if(f===fuel&&DB.carMakers[i])s.add(DB.carMakers[i]);});return[...s];}
 function getCars(fuel,maker){const r=[];DB.carNames.forEach((n,i)=>{if(DB.carFuels[i]===fuel&&DB.carMakers[i]===maker)r.push({n,i});});return r;}
 function carRateOf(idx){return (DB.carRate&&DB.carRate[idx])?DB.carRate[idx]:0;}
+// 개월수별 고정 할부이율(연%) — 차량과 무관하게 일괄 적용 (쏘나타 기준, 선납 0%)
+const MONTHS_RATE={12:4.2,24:4.4,36:4.6,48:4.8,60:5.0};
+function rateByMonths(m){return (MONTHS_RATE[m]!=null)?MONTHS_RATE[m]:MONTHS_RATE[DEFAULT_MONTHS];}
 
 /* ==================================================================
    계산 (상태를 인자로 받는 순수 함수)
@@ -753,7 +756,7 @@ function monthlyOf(car){
   const P=carInstOf(car);
   if(P<=0)return 0;
   const n=(car&&car.months)?car.months:DEFAULT_MONTHS;
-  const r=carRateOf(car.idx)/100/12;
+  const r=rateByMonths(n)/100/12;
   if(r>0)return Math.round(P*r/(1-Math.pow(1+r,-n)));
   return Math.round(P/n);
 }
@@ -797,7 +800,7 @@ function computeBreakdown(st){
     b.carInst=carInstOf(st.car);
     b.carUpfront=b.carFull-b.carInst;
     b.months=(st.car.months)?st.car.months:DEFAULT_MONTHS;
-    b.rate=carRateOf(st.car.idx);
+    b.rate=(st.car.payType&&st.car.payType!=='일시불')?rateByMonths(st.car.months||DEFAULT_MONTHS):0;
     b.monthly=monthlyOf(st.car);
   }
   if(st.ins&&st.car){
@@ -1129,13 +1132,14 @@ function renderCarModal(){
         <input class="inp" type="text" inputmode="numeric" id="downAmt" placeholder="예) 5,000,000" value="${tmpCar.down?comma(tmpCar.down):''}" oninput="fmtInput(this)"></div>`;
     }
     if(tmpCar.payType==='전액할부'||tmpCar.payType==='일부선납'){
-      const rate=carRateOf(i);
+      const rate=rateByMonths(tmpCar.months);
       h+=`<div class="subtitle">할부 개월수 <span class="qm" onclick="tip('months')">?</span></div>
         <div class="tog-row" style="flex-wrap:wrap;">`;
       MONTH_OPTIONS.forEach(m=>{h+=`<button class="tog-btn${tmpCar.months===m?' on':''}" onclick="selMonths(${m})">${m}개월</button>`;});
       h+=`</div>
-        <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate?rate+'%':'DB 연동 예정 (0%)'}</span></div>
-        <div class="mrow"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(${rate?'원리금균등':'무이자'})</small></span><span class="mv accent">${won(previewMonthly())}</span></div>
+        <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate}%</span></div>
+        <div class="sublabel" style="margin-top:2px;">※ 현재 이율은 <b>차량에 관계없이 개월수 기준</b>으로 일괄 적용됩니다.</div>
+        <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent">${won(previewMonthly())}</span></div>
         <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라지며, <b>영업용(개인택시)</b>은 조건이 다를 수 있습니다. 정확한 금액은 상담 시 안내드립니다.</div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
@@ -1531,7 +1535,7 @@ function drawQuoteImage(){
   g.fillText('개인택시 양수도센터 1566-7114 · 실제와 차이가 있을 수 있습니다',W/2,H-24);
   return cv;
 }
-function quoteImageURL(){try{return drawQuoteImage().toDataURL('image/png');}catch(e){console.error(e);return '';}}
+function quoteImageURL(){try{return drawQuoteImage().toDataURL('image/jpeg',0.85);}catch(e){console.error(e);return '';}}   // 솔라피 MMS는 JPG 권장
 
 // ── 문자 발송 신청 (이미지 MMS · 솔라피 연동 예정) ──
 let lastQuoteImg='';
@@ -1586,7 +1590,7 @@ function submitSms(){
   if(ph.replace(/[^0-9]/g,'').length<10){toast('연락처를 정확히 입력해 주세요');return;}
   if(!ag){toast('개인정보 수집에 동의해 주세요');return;}
   const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,smsText:buildQuoteSmsText(nm),source:location.href};
-  if(lastQuoteImg&&lastQuoteImg.indexOf(',')>0){payload.image=lastQuoteImg.split(',')[1];payload.imageName='개인택시_견적비교.png';}
+  if(lastQuoteImg&&lastQuoteImg.indexOf(',')>0){payload.image=lastQuoteImg.split(',')[1];payload.imageName='개인택시_견적비교.jpg';}
   postGAS(payload);
   el('modalContent').innerHTML=`<div class="modal-grip"></div><div class="ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>
     <p><b>${nm}</b>님 (${ph})<br>입력하신 번호로 견적표를 문자로 보내드립니다.</p>
