@@ -564,7 +564,7 @@ body.cover-open{overflow:hidden;}
 
   <div class="status" id="status"><span class="dot"></span><span id="statusText">데이터 연동 중...</span></div>
 
-  <button class="compare-btn" id="compareBtn" onclick="openCompare()" disabled>📊 구성 비교하기<span class="cbsub" id="compareSub">두 구성을 모두 채우면 비교할 수 있어요</span></button>
+  <button class="compare-btn" id="compareBtn" onclick="openCompare()">📊 구성 비교하기<span class="cbsub" id="compareSub">두 구성을 항목별로 비교합니다</span></button>
 
   <button class="home-btn" onclick="goHome()">처음으로 돌아가기</button>
 
@@ -908,9 +908,7 @@ function renderConfigs(){
   el('cfgBarName').textContent=CFG_NAMES[activeCfg];
   const cb=computeBreakdown(CONFIGS[activeCfg]);
   el('cfgBarAmt').textContent=isFilled(CONFIGS[activeCfg])?('초기 '+comma(cb.initial)+'원'):'입력 전';
-  const both=isFilled(CONFIGS[0])&&isFilled(CONFIGS[1]);
-  el('compareBtn').disabled=!both;
-  el('compareSub').textContent=both?'두 구성을 항목별로 비교합니다':'두 구성을 모두 채우면 비교할 수 있어요';
+  el('compareSub').textContent='두 구성을 항목별로 비교합니다';   // 버튼은 상시 활성 (미입력 시 확인 후 진행)
 }
 
 function selectCfg(i){
@@ -1451,11 +1449,16 @@ function c2Total(label,valA,valB,subA,subB,sep){
   </div>`;
 }
 function openCompare(force){
-  if(!isFilled(CONFIGS[0])||!isFilled(CONFIGS[1])){toast('두 구성을 모두 채워주세요');return;}
   if(!force){
+    // 미입력 항목만 심플하게 안내 후 진행 여부 확인 (버튼은 상시 활성)
     const missing=[];
-    [0,1].forEach(ci=>{const c=CONFIGS[ci],m=[];if(!c.licSet)m.push('면허');if(!c.ins)m.push('보험/조합');if(!c.work)m.push('작업비용');if(m.length)missing.push('<b>'+CFG_NAMES[ci]+'</b>의 '+m.join('·'));});
-    if(missing.length){confirmModal(missing.join('<br>')+' 항목을 완성하지 않으셨습니다.<br>비교 페이지로 넘어가시겠습니까?',()=>openCompare(true));return;}
+    [0,1].forEach(ci=>{const c=CONFIGS[ci],m=[];
+      if(!c.licSet)m.push('면허');
+      if(!c.car)m.push('차량');
+      if(!c.ins)m.push('보험/조합');
+      if(!c.work)m.push('작업비용');
+      if(m.length)missing.push('<b>'+CFG_NAMES[ci]+'</b>: '+m.join('·'));});
+    if(missing.length){confirmModal(missing.join('<br>')+'<br>항목이 입력되지 않았습니다.<br>이대로 비교하시겠습니까?',()=>openCompare(true));return;}
   }
   const sA=CONFIGS[0], sB=CONFIGS[1];
   const A=computeBreakdown(sA), B=computeBreakdown(sB);
