@@ -1586,19 +1586,23 @@ function drawQuoteImage(){
   g.fillStyle='#FFFFFF';rr(mx,12,cardW,H-24,18);g.fill();
   g.textAlign='center';g.fillStyle='#16224A';g.font=F(800,18);g.fillText('개인택시 준비자금 견적 비교',W/2,44);
   g.fillStyle='#7C86A3';g.font=F(600,11);g.fillText('개인택시 양수도센터',W/2,62);
-  const pillarBot=bodyTop+headH+items.length*rowH+tots.length*totH;
-  g.fillStyle='#1C2C5B';rr(cX,bodyTop,centerW,pillarBot-bodyTop,14);g.fill();
   g.fillStyle='#1C2C5B';rr(lX,bodyTop+6,sideW-4,headH-12,10);g.fill();
   g.fillStyle='#E0A82E';rr(rX+4,bodyTop+6,sideW-4,headH-12,10);g.fill();
   g.fillStyle='#fff';g.font=F(800,13);
   g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+31);
   g.fillText(CFG_NAMES[1],rX+4+(sideW-4)/2,bodyTop+31);
-  g.font=F(800,11);g.fillText('항목',cX+centerW/2,bodyTop+31);
+  g.fillStyle='#7C86A3';g.font=F(800,11);g.fillText('항목',cX+centerW/2,bodyTop+31);   // 헤더 '항목'은 웹과 동일하게 무채색 텍스트
   let y=bodyTop+headH;
   function row(label,a,b,sa,sb,h,big){
     g.fillStyle='rgba(28,44,91,.10)';rr(lX,y+4,sideW-4,h-8,10);g.fill();
     g.fillStyle='rgba(224,168,46,.13)';rr(rX+4,y+4,sideW-4,h-8,10);g.fill();
-    g.textAlign='center';g.fillStyle='#fff';g.font=F(800,big?12:11);
+    // 중앙 항목 기둥 — 웹 비교표와 동일: 네이비 그라데이션 박스 + 앰버 테두리 + 앰버 텍스트 (행별 개별 박스)
+    const bx=cX+3, bw=centerW-6, by=y+4, bh=h-8;
+    const grad=g.createLinearGradient(bx,by,bx+bw,by+bh);
+    grad.addColorStop(0,'#24356E');grad.addColorStop(1,'#131F45');
+    rr(bx,by,bw,bh,10);g.fillStyle=grad;g.fill();
+    rr(bx,by,bw,bh,10);g.strokeStyle='rgba(245,194,66,.45)';g.lineWidth=1.3;g.stroke();
+    g.textAlign='center';g.fillStyle='#F5C242';g.font=F(800,big?12:11);
     if(String(label).indexOf('\n')>=0){const ls=label.split('\n');g.fillText(ls[0],cX+centerW/2,y+h/2-3);g.fillText(ls[1],cX+centerW/2,y+h/2+11);}
     else g.fillText(label,cX+centerW/2,y+h/2+4);
     g.textAlign='right';g.font=F(800,big?16:14);g.fillStyle='#16224A';
@@ -1656,14 +1660,27 @@ function postGAS(payload){try{fetch(API,{method:'POST',mode:'no-cors',headers:{'
 function buildQuoteSmsText(nm){
   const A=computeBreakdown(CONFIGS[0]),B=computeBreakdown(CONFIGS[1]);
   const w=v=>comma(v)+'원';
-  let t='[개인택시 준비자금 견적]\n'+nm+'님께서 요청하신 견적입니다.\n\n';
-  t+='■ '+CFG_NAMES[0]+'\n  초기 '+w(A.initial)+' / 월 '+w(A.monthly)+'\n';
-  t+='■ '+CFG_NAMES[1]+'\n  초기 '+w(B.initial)+' / 월 '+w(B.monthly)+'\n';
+  const mLine=bd=>bd.monthly>0?(w(bd.monthly)+' ('+bd.months+'개월)'):'해당 없음 (일시불)';
+  let t='[개인택시 준비자금 견적서]\n\n';
+  t+='안녕하세요, '+nm+'님.\n개인택시 양수도센터입니다.\n요청하신 준비자금 견적을 안내드립니다.\n\n';
+  t+='▶ '+CFG_NAMES[0]+'\n';
+  t+=' · 초기 소요비용 : '+w(A.initial)+'\n';
+  t+=' · 월 납입금액 : '+mLine(A)+'\n';
+  t+=' · 총 비용 : '+w(A.grand)+'\n\n';
+  t+='▶ '+CFG_NAMES[1]+'\n';
+  t+=' · 초기 소요비용 : '+w(B.initial)+'\n';
+  t+=' · 월 납입금액 : '+mLine(B)+'\n';
+  t+=' · 총 비용 : '+w(B.grand)+'\n';
   if(loanCash>0){
     t+='\n[대출 참고 · 기준일 '+(DB.dateLoan||'-')+']\n';
-    loanBankList().forEach(function(bk){t+='  '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rate?'연 '+bk.rate+'%':'-')+'\n';});
+    loanBankList().forEach(function(bk){t+=' · '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rate?'연 '+bk.rate+'%':'-')+'\n';});
   }
-  t+='\n※ 시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.\n개인택시 양수도센터 1566-7114';
+  t+='\n첨부된 이미지에서 항목별 상세 비교를 확인하실 수 있습니다.\n\n';
+  t+='※ 본 견적은 예상 금액이며, 시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.\n\n';
+  t+='─────────────\n';
+  t+='개인택시 양수도센터\n(한국모빌리티연구소 운영)\n';
+  t+='상담문의 ☎ 1566-7114\n';
+  t+='서울 송파구 올림픽로 319 교통회관 11층';
   return t;
 }
 // 두 구성의 응답 데이터를 3단(구성→파트→소항목) 헤더 + 값으로 직렬화 ('자금계산기 응답DB' 기록용)
