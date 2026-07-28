@@ -1055,20 +1055,20 @@ function renderLicModal(){
   if(isSeoul&&!S.licManual){
     h+=`<div class="mrow" style="margin-top:12px;"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
-    <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary)">${won(licenseBase())}</span></div>
+    <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
     <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
-    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
     <button class="manual-btn" onclick="startLicManual()">입력하기</button>`;
   }else{
     if(!isSeoul)h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 현재는 <b>서울시 면허 시세</b>만 제공되고 있습니다. 타 지역 양수 희망자께서는 <b>면허 비용을 직접 입력</b>해 주세요.</div>`;
     h+=`<div class="subtitle" style="margin-top:14px;">✏️ 면허 비용 직접 입력하기</div>
-    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <div class="sublabel">금액을 입력하시면 소계에 자동 반영됩니다.</div>
     <div class="field"><label>면허 시세 *</label>
       <input class="inp" type="text" inputmode="numeric" id="licPrice" placeholder="예) 113,500,000" value="${S.licPrice?comma(S.licPrice):''}" oninput="fmtInput(this);updateLicSum()"></div>
     <div class="field"><label>수수료 <span style="font-weight:600;color:var(--muted)">${isSeoul?'':'(지역별 상이)'}</span></label>
       <input class="inp" type="text" inputmode="numeric" id="licFee" placeholder="${isSeoul?comma(DB.commission):'직접 입력'}" value="${S.licFee?comma(S.licFee):''}" oninput="fmtInput(this);updateLicSum()"></div>
-    <div class="mrow" style="margin-top:8px;"><span class="ml"><b>면허 소계</b><br><small style="color:var(--muted)">면허 시세 + 수수료</small></span><span class="mv" id="licSumDisp" style="color:var(--primary);font-size:18px;">${won((S.licPrice||0)+(S.licFee||0))}</span></div>`;
+    <div class="mrow" style="margin-top:8px;"><span class="ml"><b>면허 소계</b><br><small style="color:var(--muted)">면허 시세 + 수수료</small></span><span class="mv" id="licSumDisp" style="color:var(--primary);font-size:19px;">${won((S.licPrice||0)+(S.licFee||0))}</span></div>`;
     if(isSeoul)h+=`<button class="manual-exit" onclick="exitLicManual()">직접 입력 취소</button>`;
   }
   h+=`<button class="modal-save" onclick="saveLicense()">저장</button>
@@ -1139,20 +1139,15 @@ function renderCarModal(){
         if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
         h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
         h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
-        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
-          <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
-          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){tmpCar.baseOvr=(DB.carPrice[${i}]||0)+(DB.carOptAmt[${i}]||0);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">입력하기</button>`;
       }else{
-        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
-        <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요. (합계는 자동 계산)</div>
+        h+=`<div class="subtitle" style="margin-top:6px;">✏️ 차량 금액 직접 입력</div>
+        <div class="sublabel">금액을 입력하시면 아래 차량 소계에 자동 반영됩니다.</div>
         <div class="field"><label>차량 기본금액 (옵션 포함) *</label>
           <input class="inp" type="text" inputmode="numeric" id="carBaseOvr" placeholder="예) 27,000,000" value="${tmpCar.baseOvr?comma(tmpCar.baseOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
         <div class="field"><label>취등록세 / 공채</label>
           <input class="inp" type="text" inputmode="numeric" id="carTaxOvr" placeholder="예) 780,000" value="${tmpCar.taxOvr?comma(tmpCar.taxOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
         <div class="field"><label>보조금 등 차감액 <span style="font-weight:600;color:var(--muted)">(있으면 입력)</span></label>
-          <input class="inp" type="text" inputmode="numeric" id="carSubOvr" placeholder="예) 0" value="${tmpCar.subOvr?comma(tmpCar.subOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
-        <div class="mrow"><span class="ml"><b>차량 금액 합계</b></span><span class="mv" id="carManualSum" style="color:var(--primary);">${won(carManualTotal())}</span></div>
-        <button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">직접 입력 취소</button>`;
+          <input class="inp" type="text" inputmode="numeric" id="carSubOvr" placeholder="예) 0" value="${tmpCar.subOvr?comma(tmpCar.subOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>`;
       }
     }
     h+=`<div class="subtitle">차량 할부 여부 * <span class="qm" onclick="tip('pay')">?</span></div>
@@ -1179,6 +1174,15 @@ function renderCarModal(){
         <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.</div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" id="carSubDisp" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
+    if(!isForeign(i)){
+      if(!tmpCar.priceManual){
+        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
+          <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
+          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){tmpCar.baseOvr=(DB.carPrice[${i}]||0)+(DB.carOptAmt[${i}]||0);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">입력하기</button>`;
+      }else{
+        h+=`<button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">직접 입력 취소</button>`;
+      }
+    }
   }
   h+=`<button class="modal-save" onclick="saveCar()">저장</button><button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
@@ -1249,16 +1253,8 @@ function renderInsModal(){
       h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">공제보험료 (1년)</label><div class="amt-disp">${v}</div></div>`;
       h+=`<div class="alert info">ℹ️ 전국개인택시공제조합 서울지부 기준 · 대인Ⅰ/Ⅱ·대물5억+긴출확장형.</div>`;
     }else{
-      h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">공제보험료 (1년)</label><div class="amt-disp">해당 지역 공제조합 문의 필요</div></div>`;
-      h+=`<div class="alert info">ℹ️ <b>${reg}</b> 공제보험료는 해당 지역 공제조합 문의가 필요합니다. 안내받은 금액을 아래에 직접 입력해 주세요.</div>`;
-      h+=`<div class="subtitle" style="margin-top:14px;">✏️ 공제보험료 직접 입력하기</div><div class="sublabel">조합에서 안내받은 1년 보험료를 입력해 주세요.</div>`;
-      if(!tmpIns.gjManual){
-        h+=`<button class="manual-btn" onclick="syncSa();tmpIns.gjManual=true;renderInsModal()">입력하기</button>`;
-      }else{
-        h+=`<div class="field"><label>공제보험료 (1년) 입력</label>
-          <input class="inp" type="text" inputmode="numeric" id="gjCustom" placeholder="예) 2,900,000" value="${tmpIns.gjCustom?comma(tmpIns.gjCustom):''}" oninput="fmtInput(this);updateInsSum()"></div>
-          <button class="manual-exit" onclick="syncSa();tmpIns.gjManual=false;tmpIns.gjCustom=0;renderInsModal()">직접 입력 취소</button>`;
-      }
+      h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">공제보험료 (1년)</label><div class="amt-disp">${tmpIns.gjCustom>0?('약 '+won(tmpIns.gjCustom)):'해당 지역 공제조합 문의 필요'}</div></div>`;
+      h+=`<div class="alert info">ℹ️ <b>${reg}</b> 공제보험료는 해당 지역 공제조합 문의가 필요합니다. 아래 <b>직접 입력하기</b>에서 안내받은 금액을 입력해 주세요.</div>`;
     }
     h+=`<div class="subtitle">자손 / 자차 보장 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(선택)</small></div>
       <div class="opt-block"><div class="opt-head">
@@ -1269,18 +1265,8 @@ function renderInsModal(){
       <div class="sublabel">보상운영회 보장 · 1년 보험료 약 50~60만원</div>`;
   }else if(tmpIns.type==='사보험'){
     const rng=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
-    const mid=(DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
     h+=`<div class="field" style="margin-top:14px;"><label class="fl-strong">사보험 예상 범위 (1년)</label><div class="amt-disp">${rng}</div></div>
-      <div class="alert warn">⚠️ 사보험은 <b>가입자마다 상이</b>합니다. 실제 견적 금액이 있으면 직접 입력하세요.</div>
-      <div class="subtitle" style="margin-top:14px;">✏️ 사보험료 직접 입력하기</div>
-      <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>`;
-    if(!tmpIns.saManual){
-      h+=`<button class="manual-btn" onclick="syncSa();tmpIns.saManual=true;renderInsModal()">입력하기</button>`;
-    }else{
-      h+=`<div class="field"><label>사보험료 (1년) 입력 <span style="font-weight:600;color:var(--muted)">(비우면 예상 중앙값 ${comma(mid)}원)</span></label>
-        <input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(mid||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this);updateInsSum()"></div>
-        <button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">직접 입력 취소</button>`;
-    }
+      <div class="alert warn">⚠️ 사보험은 <b>가입자마다 상이</b>합니다. 아래 <b>직접 입력하기</b>에서 실제 견적 금액을 입력하세요.</div>`;
   }
   if(tmpIns.type){
     if(isSeoul){
@@ -1305,6 +1291,17 @@ function renderInsModal(){
           <input class="inp" type="text" inputmode="numeric" id="combineCustom" placeholder="예) 직접 입력" value="${tmpIns.combineCustom?comma(tmpIns.combineCustom):''}" oninput="fmtInput(this);updateInsSum()"></div>`;
     }
     h+=`<div class="mrow" style="margin-top:12px;"><span class="ml"><b>보험 초기비용 총액</b><br><small style="color:var(--muted)">보험료(1년) + 조합가입비</small></span><span class="mv" id="insSumDisp" style="color:var(--primary);font-size:19px;">${won(insSumNow())}</span></div>`;
+    // ── 직접 입력 블록 (총액과 저장 사이) ──
+    const midSa=(DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
+    if(tmpIns.type==='사보험'){
+      h+=`<div class="subtitle" style="margin-top:14px;">✏️ 사보험료 직접 입력하기</div>`;
+      if(!tmpIns.saManual)h+=`<div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div><button class="manual-btn" onclick="syncSa();tmpIns.saManual=true;renderInsModal()">입력하기</button>`;
+      else h+=`<div class="sublabel">금액을 입력하시면 위 총액에 자동 반영됩니다. (비우면 예상 중앙값 ${comma(midSa)}원)</div><div class="field"><input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(midSa||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this);updateInsSum()"></div><button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">직접 입력 취소</button>`;
+    }else if(tmpIns.type==='공제'&&!isSeoul){
+      h+=`<div class="subtitle" style="margin-top:14px;">✏️ 공제보험료 직접 입력하기</div>`;
+      if(!tmpIns.gjManual)h+=`<div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div><button class="manual-btn" onclick="syncSa();tmpIns.gjManual=true;renderInsModal()">입력하기</button>`;
+      else h+=`<div class="sublabel">조합에서 안내받은 1년 보험료를 입력하시면 위 총액에 자동 반영됩니다.</div><div class="field"><input class="inp" type="text" inputmode="numeric" id="gjCustom" placeholder="예) 2,900,000" value="${tmpIns.gjCustom?comma(tmpIns.gjCustom):''}" oninput="fmtInput(this);updateInsSum()"></div><button class="manual-exit" onclick="syncSa();tmpIns.gjManual=false;tmpIns.gjCustom=0;renderInsModal()">직접 입력 취소</button>`;
+    }
   }
   h+=`<button class="modal-save" onclick="saveIns()">저장</button><button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
@@ -1389,11 +1386,11 @@ function renderWorkModal(){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
     <div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
-    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
     <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">입력하기</button>`;
   }else{
     h+=`<div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
-    <div class="sublabel">거래하실 비용 혹은 희망하시는 비용을 입력해 주세요.</div>
+    <div class="sublabel">금액을 입력하시면 소계 대신 반영됩니다.</div>
     <div class="field"><label>작업비 총액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
     <button class="manual-exit" onclick="tmpWork.manual=false;tmpWork.ovr=0;renderWorkModal()">직접 입력 취소</button>`;
