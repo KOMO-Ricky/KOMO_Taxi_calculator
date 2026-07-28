@@ -1675,6 +1675,13 @@ function openSms(){
 // ── Apps Script 전송 (자격진단 레퍼런스와 동일 방식: no-cors POST, 서버가 솔라피 발송·시트 기록) ──
 function nowKST(){try{return new Date().toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});}catch(e){return new Date().toString();}}
 function postGAS(payload){try{fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(function(e){console.error('[GAS] 전송 실패',e);});}catch(e){console.error(e);}}
+// ── GA4/유입 정보 캡처 (응답DB에 함께 기록) ──
+(function captureUTM(){try{const q=new URLSearchParams(location.search);['utm_source','utm_medium','utm_campaign'].forEach(k=>{const v=q.get(k);if(v)sessionStorage.setItem('t_'+k,v);});}catch(e){}})();
+function gaTrackingData(){
+  const g=k=>{try{const q=new URLSearchParams(location.search);return q.get(k)||sessionStorage.getItem('t_'+k)||'';}catch(e){return '';}};
+  let cid='';try{const m=document.cookie.match(/_ga=GA\d+\.\d+\.([\d.]+)/);if(m)cid=m[1];}catch(e){}   // GA 클라이언트ID
+  return {utmSource:g('utm_source')||'(direct)',utmMedium:g('utm_medium')||'',utmCampaign:g('utm_campaign')||'',gaClientId:cid,referrer:(document.referrer||'')};
+}
 function buildQuoteSmsText(nm){
   const A=computeBreakdown(CONFIGS[0]),B=computeBreakdown(CONFIGS[1]);
   const w=v=>comma(v)+'원';
@@ -1743,8 +1750,9 @@ function submitSms(){
   if(!nm){toast('이름을 입력해 주세요');return;}
   if(ph.replace(/[^0-9]/g,'').length<10){toast('연락처를 정확히 입력해 주세요');return;}
   if(!ag){toast('개인정보 수집에 동의해 주세요');return;}
-  const ans=smsAnswerData();
-  const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,privacyLabel:'동의',columns:ans.columns,values:ans.values,h1:ans.h1,h2:ans.h2,h3:ans.h3,smsText:buildQuoteSmsText(nm),source:location.href};
+  const ans=smsAnswerData(); const ga=gaTrackingData();
+  const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,privacyLabel:'동의',columns:ans.columns,values:ans.values,h1:ans.h1,h2:ans.h2,h3:ans.h3,smsText:buildQuoteSmsText(nm),source:location.href,
+    utmSource:ga.utmSource,utmMedium:ga.utmMedium,utmCampaign:ga.utmCampaign,gaClientId:ga.gaClientId,gaReferrer:ga.referrer};
   if(lastQuoteImg&&lastQuoteImg.indexOf(',')>0){payload.image=lastQuoteImg.split(',')[1];payload.imageName='개인택시_견적비교.jpg';}
   postGAS(payload);
   el('modalContent').innerHTML=`<div class="modal-grip"></div><div class="ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>

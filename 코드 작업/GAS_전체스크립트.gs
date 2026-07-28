@@ -138,7 +138,7 @@ function doPost(e){
       var h1 = d.h1 || [], h2 = d.h2 || [], h3 = d.h3 || [];   // 3단 헤더(구성/파트/소항목)
       var cols = d.columns || [];
 
-      var FIXED_L = ['접수일시','이름','연락처','유입경로'];
+      var FIXED_L = ['접수일시','이름','연락처','유입경로','유입 소스(GA)','유입 매체(GA)','캠페인(GA)','GA 클라이언트ID','referrer'];
       var FIXED_R = ['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)','메시지ID'];
 
       // 헤더(단일/멀티) 자동 생성·치유
@@ -156,7 +156,8 @@ function doPost(e){
         detail = String(sendErr);
       }
 
-      var row = [d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'']
+      var row = [d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'',
+                 d.utmSource||'', d.utmMedium||'', d.utmCampaign||'', d.gaClientId||'', d.gaReferrer||'']
                   .concat(vals)
                   .concat([ d.privacyLabel || (d.privacyAgreed ? '동의' : '미동의'), result, detail, messageId ]);
       sh.appendRow(row);
