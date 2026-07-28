@@ -616,7 +616,8 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],combineFee:0,
   carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
-  dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[]};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
+  dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],
+  reco:null};   // reco=추천 구성(AC4:AI4), carRate=할부율(연%), date*=기준일
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
 function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};}
@@ -676,6 +677,7 @@ async function loadData(){
     DB.loanBanks=(d.loanBanks||[]).map(v=>String(v).trim()).filter(Boolean);
     DB.loanLimits=(d.loanLimits||[]).map(N);
     DB.loanRates=(d.loanRates||[]).map(v=>{let x=parseFloat(v)||0;return (x>0&&x<1)?Math.round(x*1000)/10:x;});   // 0.052 → 5.2
+    DB.reco=d.reco||null;   // 추천 구성 (스프레드시트 AC4:AI4)
     el('hdDate').textContent='🗓 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
@@ -707,7 +709,8 @@ function fallback(){
     combineFee:1500000,
     carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부율 DB 연동 예정 (지금은 0% = 무이자)
     dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
-    dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9]};
+    dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9],
+    reco:{car:'쏘나타',option:'현대 스마트센스 / 1열 통풍시트',pay:'60개월',ins:'공제보험',bb:'5채널',hipass:'O',pedal:'X'}};
 }
 
 // ── 차량 헬퍼 ──
@@ -1786,22 +1789,46 @@ function submitFeedback(){
 // 추천 구성
 // ══════════════════════════════════════════
 let RECO=null;
+// 스프레드시트 AC4:AI4(추천 구성) → RECO 구성. (X/빈칸은 제외)
 function buildReco(){
-  const prefer=['쏘나타','K5','그랜저','아이오닉5','K8'];
+  const R=DB.reco||{};
+  const isOn=v=>{const s=String(v==null?'':v).trim().toUpperCase();return !!s&&s!=='X'&&s!=='-'&&s!=='없음'&&s!=='0'&&s!=='N'&&s!=='FALSE';};
+  // ── 차량 (AC): 이름으로 매칭, 없으면 선호 목록 폴백 ──
   let idx=-1;
-  for(const name of prefer){const f=DB.carNames.findIndex(n=>n===name);if(f>=0){idx=f;break;}}
+  if(R.car)idx=DB.carNames.findIndex(n=>String(n).trim()===String(R.car).trim());
+  if(idx<0){const prefer=['쏘나타','K5','그랜저','아이오닉5','K8'];for(const name of prefer){const f=DB.carNames.findIndex(n=>n===name);if(f>=0){idx=f;break;}}}
   if(idx<0)idx=DB.carNames.findIndex((n,i)=>!isForeign(i));
   if(idx<0)return;
-  RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,optOn:false},
-    ins:{type:'공제',combine:true,saCustom:0},
-    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};
+  // ── 할부여부 (AE): 'N개월'→전액할부, '일시불'→일시불 ──
+  let payType='일시불',months=DEFAULT_MONTHS;
+  const payStr=String(R.pay||'').trim();const mm=payStr.match(/(\d+)\s*개월/);
+  if(mm){payType='전액할부';months=parseInt(mm[1],10)||DEFAULT_MONTHS;}
+  else if(/선납/.test(payStr))payType='일부선납';
+  else if(/일시불|현금/.test(payStr))payType='일시불';
+  else if(payStr)payType='전액할부';
+  // ── 옵션(AD)/보험(AF)/작업(AG·AH·AI) ──
+  const optOn=(R.option!==undefined)?isOn(R.option):false;
+  const insType=/사보험/.test(R.ins||'')?'사보험':'공제';
+  const bbOn=(R.bb!==undefined)?isOn(R.bb):true;
+  const bbCh=/5\s*채널/.test(R.bb||'')?'5채널':'3채널';
+  const hiOn=(R.hipass!==undefined)?isOn(R.hipass):true;
+  const pedalOn=(R.pedal!==undefined)?isOn(R.pedal):false;
+
+  RECO={car:{idx,payType,down:0,foreignPrice:0,trim:'',months,optOn},
+    ins:{type:insType,combine:true,saCustom:0},
+    work:{bb:bbOn,bbCh:bbOn?bbCh:'',hi:hiOn,pedal:pedalOn,btGat:false,ovr:0},
+    licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};
   const rb=computeBreakdown(RECO);
   const baseCost=rb.carFull+rb.work;   // 지역 무관 항목(차량+작업)만 — 면허·보험은 지역 선택 후 반영
+  const carLbl=DB.carNames[idx]+' · '+(payType==='일시불'?'일시불':(payType+' '+months+'개월'));
+  const insLbl=(insType==='공제'?'공제보험':'사보험')+' + 조합가입';
+  const wk=[];if(bbOn)wk.push('블랙박스 '+bbCh);if(hiOn)wk.push('하이패스');if(pedalOn)wk.push('페달');
   el('recoBox').style.display='block';
   el('recoBody').innerHTML=
-    '<div class="reco-item"><span class="rk">차량</span><span class="rv">'+DB.carNames[idx]+' · 일시불</span></div>'+
-    '<div class="reco-item"><span class="rk">보험/조합</span><span class="rv">공제보험 + 조합가입</span></div>'+
-    '<div class="reco-item"><span class="rk">작업</span><span class="rv">블랙박스 3채널 · 하이패스</span></div>'+
+    '<div class="reco-item"><span class="rk">차량</span><span class="rv">'+carLbl+'</span></div>'+
+    (optOn?'<div class="reco-item"><span class="rk">옵션</span><span class="rv">'+(R.option?String(R.option):'포함')+'</span></div>':'')+
+    '<div class="reco-item"><span class="rk">보험/조합</span><span class="rv">'+insLbl+'</span></div>'+
+    '<div class="reco-item"><span class="rk">작업</span><span class="rv">'+(wk.length?wk.join(' · '):'기본 작업')+'</span></div>'+
     '<div class="reco-item total"><span class="rk">차량+작업 예상비용</span><span class="rv">약 '+comma(baseCost)+'원</span></div>'+
     '<div class="reco-note" style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:8px;">※ <b>면허 시세·보험/조합비</b>는 지역별로 달라, 구성 적용 후 <b>지역을 선택</b>하시면 자동 반영됩니다.</div>';
 }

@@ -82,7 +82,21 @@ function doGet(e) {
     })(),
     loanBanks:  loanBanks,
     loanLimits: loanLimits,
-    loanRates:  loanRates
+    loanRates:  loanRates,
+    // ── 추천 구성 (AC4:AI4) ──
+    reco: (function(){
+      var r = s.getRange('AC4:AI4').getValues()[0];   // AC~AI = 29~35열
+      var t = function(v){ return String(v==null?'':v).trim(); };
+      return {
+        car:    t(r[0]),   // AC 차량 종류
+        option: t(r[1]),   // AD 옵션
+        pay:    t(r[2]),   // AE 할부여부
+        ins:    t(r[3]),   // AF 보험/조합
+        bb:     t(r[4]),   // AG 블랙박스
+        hipass: t(r[5]),   // AH 미터기 연동형 하이패스
+        pedal:  t(r[6])    // AI 블랙박스 페달 추가
+      };
+    })()
   };
 
   return ContentService
