@@ -102,10 +102,17 @@ function doPost(e){
     if (d.requestType === 'calc_feedback'){
       var fName = d.sheet || '자금계산기 의견수집';
       var shF = ss.getSheetByName(fName) || ss.insertSheet(fName);
-      if (shF.getLastRow() === 0)
-        shF.appendRow(['접수시각','별점','평가','의견','성명','전화번호','유입경로']);
-      shF.appendRow([d.createdAt||new Date(), d.rating||'', d.ratingLabel||'',
-                     d.comment||'', d.name||'', d.phone||'', d.source||'']);
+      var fHeader = ['접수시각','평가(별점)','의견','성명','전화번호','유입경로'];
+      if (shF.getLastRow() === 0){
+        shF.appendRow(fHeader);
+      } else {
+        var fhr = shF.getRange(1,1,1,shF.getLastColumn()).getValues()[0];
+        if (fhr.indexOf('평가(별점)') === -1){        // 옛 헤더(별점·평가 분리) → 새 헤더로 치유
+          shF.getRange(1,1,1,shF.getLastColumn()).clearContent();
+          shF.getRange(1,1,1,fHeader.length).setValues([fHeader]);
+        }
+      }
+      shF.appendRow([d.createdAt||new Date(), d.rating||'', d.comment||'', d.name||'', d.phone||'', d.source||'']);
       return ContentService.createTextOutput('ok');
     }
 
