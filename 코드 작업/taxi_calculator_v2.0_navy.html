@@ -704,7 +704,7 @@ function fallback(){
     insurance:[2900000,2900000,3480000,2900000,2900000,2900000,2900000,2900000,2900000,2900000,3430000,0],
     saInsMin:[2500000,2500000,3500000,2500000,2500000,2500000,3500000,3500000,3500000,3500000,3500000,0],
     saInsMax:[4000000,4000000,5000000,4000000,4000000,4000000,4500000,4500000,4500000,4500000,4500000,0],
-    selItems:[300000,600000,90000,100000,500000],
+    selItems:[200000,350000,550000,650000,100000,100000,500000],   // 2/3/4/5채널·하이패스·페달·블루투스갓등
     reqItems:[60000,20000,30000,100000],
     combineFee:1500000,
     carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부율 DB 연동 예정 (지금은 0% = 무이자)
@@ -790,6 +790,9 @@ function combineOf(ins){
   if(ins.type==='공제'||ins.combine)return DB.combineFee||0;
   return 0;
 }
+// 블랙박스 채널 선택항목 (selItems[0~3] = 2/3/4/5채널, [4]=하이패스, [5]=페달, [6]=블루투스갓등)
+const BB_CH=['2채널','3채널','4채널','5채널'];
+function bbPrice(ch){const i=BB_CH.indexOf(ch);return i>=0?(DB.selItems[i]||0):0;}
 function workSubtotalOf(work,car){
   if(!work)return 0;
   if(work.ovr>0)return work.ovr;               // 직접 입력 우선
@@ -797,10 +800,10 @@ function workSubtotalOf(work,car){
   const i=car?car.idx:-1;
   if(i>=0&&!isForeign(i))t+=DB.meterWork[i]||0;
   t+=(DB.reqItems[0]||0)+(DB.reqItems[1]||0)+(DB.reqItems[2]||0)+(DB.reqItems[3]||0);
-  if(work.bb&&work.bbCh)t+=work.bbCh==='3채널'?(DB.selItems[0]||0):(DB.selItems[1]||0);
-  if(work.hi)t+=DB.selItems[2]||0;
-  if(work.pedal)t+=DB.selItems[3]||0;
-  if(work.btGat)t+=DB.selItems[4]||0;
+  if(work.bb&&work.bbCh)t+=bbPrice(work.bbCh);
+  if(work.hi)t+=DB.selItems[4]||0;
+  if(work.pedal)t+=DB.selItems[5]||0;
+  if(work.btGat)t+=DB.selItems[6]||0;
   return t;
 }
 
@@ -1367,24 +1370,23 @@ function renderWorkModal(){
     <div class="opt-block">
       <div class="opt-head">
         <input type="checkbox" id="w_bb" ${tmpWork.bb?'checked':''} onchange="tmpWork.bb=this.checked;if(!this.checked)tmpWork.bbCh='';renderWorkModal();">
-        <label>블랙박스</label>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(tmpWork.bbCh==='3채널'?DB.selItems[0]:DB.selItems[1]):'—'}</div>`}
+        <label>블랙박스</label>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(bbPrice(tmpWork.bbCh)):'—'}</div>`}
       </div>`;
   if(tmpWork.bb){
-    h+=`<div class="tog-row" style="margin-top:10px;">
-      <button class="tog-btn${tmpWork.bbCh==='3채널'?' on':''}" onclick="tmpWork.bbCh='3채널';renderWorkModal();">3채널${M?'':' ('+comma(DB.selItems[0])+')'}</button>
-      <button class="tog-btn${tmpWork.bbCh==='5채널'?' on':''}" onclick="tmpWork.bbCh='5채널';renderWorkModal();">5채널${M?'':' ('+comma(DB.selItems[1])+')'}</button>
-    </div>`;
+    h+=`<div class="tog-row" style="margin-top:10px;flex-wrap:wrap;">`;
+    BB_CH.forEach((ch,ci)=>{h+=`<button class="tog-btn${tmpWork.bbCh===ch?' on':''}" onclick="tmpWork.bbCh='${ch}';renderWorkModal();">${ch}${M?'':' ('+comma(DB.selItems[ci])+')'}</button>`;});
+    h+=`</div>`;
   }
   h+=`</div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_hi" ${tmpWork.hi?'checked':''} onchange="tmpWork.hi=this.checked;renderWorkModal();">
-      <label>미터기 연동형 하이패스</label>${M?'':`<div class="oa">${won(DB.selItems[2])}</div>`}</div></div>
+      <label>미터기 연동형 하이패스</label>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_pedal" ${tmpWork.pedal?'checked':''} onchange="tmpWork.pedal=this.checked;renderWorkModal();">
-      <label>블랙박스 페달 추가</label>${M?'':`<div class="oa">${won(DB.selItems[3])}</div>`}</div></div>
+      <label>블랙박스 페달 추가</label>${M?'':`<div class="oa">${won(DB.selItems[5])}</div>`}</div></div>
     <div class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_bt" ${tmpWork.btGat?'checked':''} onchange="tmpWork.btGat=this.checked;renderWorkModal();">
-      <label>블루투스(자석) 갓등</label>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></div>`;
+      <label>블루투스(자석) 갓등</label>${M?'':`<div class="oa">${won(DB.selItems[6])}</div>`}</div></div>`;
   if(!M){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
@@ -1818,7 +1820,7 @@ function buildReco(){
   const optOn=(R.option!==undefined)?isOn(R.option):false;
   const insType=/사보험/.test(R.ins||'')?'사보험':'공제';
   const bbOn=(R.bb!==undefined)?isOn(R.bb):true;
-  const bbCh=/5\s*채널/.test(R.bb||'')?'5채널':'3채널';
+  const bbCh=((String(R.bb||'').match(/([2345])\s*채널/)||[])[1]||'3')+'채널';
   const hiOn=(R.hipass!==undefined)?isOn(R.hipass):true;
   const pedalOn=(R.pedal!==undefined)?isOn(R.pedal):false;
 

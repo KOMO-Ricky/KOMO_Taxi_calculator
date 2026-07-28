@@ -72,7 +72,7 @@ function doGet(e) {
     saInsMax:   saInsMax,
     selItems: (function(){
       var result=[];
-      for(var r3=3;r3<=7;r3++){ result.push(s.getRange(r3,23).getValue()); }
+      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,23).getValue()); }   // W3:W9 = 2/3/4/5채널·하이패스·페달·블루투스갓등
       return result;
     })(),
     reqItems: (function(){
