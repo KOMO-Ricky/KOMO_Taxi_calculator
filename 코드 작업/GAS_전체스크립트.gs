@@ -110,16 +110,34 @@ function doPost(e){
     }
 
     if (d.requestType === 'taxi_quote_sms'){
-      var sh = ss.getSheetByName('자금계산기 응답') || ss.insertSheet('자금계산기 응답');
-      if (sh.getLastRow() === 0)
-        sh.appendRow(['접수시각','성명','전화번호','유입경로','발송결과']);
-      var sendResult = '';
+      var TAB = '자금계산기 응답DB';
+      var sh  = ss.getSheetByName(TAB) || ss.insertSheet(TAB);
+
+      // 프런트가 보내온 항목별 컬럼/값 (1구성·2구성 대항목/소항목 전체)
+      var cols = d.columns || [];
+      var vals = d.values  || [];
+
+      // 고정 앞/뒤 컬럼 + 답변 항목들로 헤더 구성
+      var header = ['접수일시','이름','연락처','유입경로']
+                     .concat(cols)
+                     .concat(['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)']);
+      if (sh.getLastRow() === 0) sh.appendRow(header);
+
+      // 솔라피 발송 + 결과 해석(성공 / 실패(사유))
+      var result = '실패 (전송 오류)', detail = '';
       try {
-        sendResult = sendSolapi(d.phone, d.smsText || '개인택시 준비자금 견적입니다.', d.image, d.imageName);
+        var r  = sendSolapi(d.phone, d.smsText || '개인택시 준비자금 견적입니다.', d.image, d.imageName);
+        result = r.result;   // '성공' 또는 '실패 (사유)'
+        detail = r.detail;   // HTTP/코드/원문 등 상세
       } catch (sendErr) {
-        sendResult = 'ERR: ' + sendErr;
+        result = '실패 (전송 오류)';
+        detail = String(sendErr);
       }
-      sh.appendRow([d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'', sendResult]);
+
+      var row = [d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'']
+                  .concat(vals)
+                  .concat([ d.privacyLabel || (d.privacyAgreed ? '동의' : '미동의'), result, detail ]);
+      sh.appendRow(row);
       return ContentService.createTextOutput('ok');
     }
 
@@ -171,5 +189,46 @@ function sendSolapi(to, text, imageBase64, imageName){
     payload: JSON.stringify({ message: message }),
     muteHttpExceptions: true
   });
-  return res.getResponseCode() + ' ' + res.getContentText().slice(0, 300);
+  return classifySolapi_(res.getResponseCode(), res.getContentText());
+}
+
+// ==========================================================================
+//  솔라피 응답 → '성공 / 실패(사유)' 로 해석
+//  · 접수 성공(statusCode 2000)은 '성공'(이통사로 접수, 리포트 대기 중)으로 기록
+//  · 결번/미가입자 등 '최종 전달 실패'는 발송 직후가 아니라 이통사 리포트에
+//    반영되므로, 그 사유는 리포트 조회/웹훅으로 갱신해야 정확합니다.
+// ==========================================================================
+function classifySolapi_(httpCode, body){
+  var code='', msg='', j=null;
+  try { j = JSON.parse(body); } catch(e){}
+  if (j){
+    code = String(j.statusCode || j.errorCode || (j.groupInfo && j.groupInfo.statusMessage) || '');
+    msg  = String(j.statusMessage || j.errorMessage || '');
+  }
+  var raw    = 'HTTP ' + httpCode + ' · code:' + code + ' · ' + (msg || String(body).slice(0,200));
+  var reason = solapiReason_(code, msg);
+  if (reason) return { result: '실패 (' + reason + ')', detail: raw };
+
+  var accepted = (httpCode >= 200 && httpCode < 300) &&
+                 (code === '2000' || code.charAt(0) === '2' || (j && !j.errorCode));
+  if (accepted) return { result: '성공', detail: '이통사로 접수(리포트를 기다리는 중) · ' + raw };
+  return { result: '실패 (사유 미상)', detail: raw };
+}
+
+// 상태 메시지/코드 → 실패 사유 분류 (해당 없으면 '' = 성공/접수)
+function solapiReason_(code, msg){
+  var m = String(msg || '');
+  var table = [
+    [/결번|없는\s*번호|잘못된\s*(수신)?\s*번호|유효하지\s*않은\s*번호|수신번호\s*오류/, '없는 번호 / 결번'],
+    [/미가입|가입되지\s*않|해지|없는\s*가입자|서비스\s*미가입/,                   '미가입자'],
+    [/전송\s*경로|라우팅|경로가?\s*없/,                                          '전송경로 없음'],
+    [/발신번호|미승인|미등록/,                                                   '발신번호 미승인/미등록'],
+    [/잔액|캐시|충전|포인트\s*부족|balance/i,                                     '캐시(잔액) 부족'],
+    [/스팸|수신\s*거부|차단/,                                                     '수신거부/차단'],
+    [/한도|초과|limit/i,                                                          '발송 한도 초과'],
+    [/용량|사이즈|크기|size|too\s*large/i,                                        '이미지 용량 초과'],
+    [/타임아웃|timeout/i,                                                         '통신 지연/타임아웃']
+  ];
+  for (var i=0;i<table.length;i++){ if (table[i][0].test(m)) return table[i][1]; }
+  return '';   // 정상 접수/대기 → 성공 처리
 }

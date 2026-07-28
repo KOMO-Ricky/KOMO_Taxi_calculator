@@ -1155,7 +1155,7 @@ function renderCarModal(){
         <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate}%</span></div>
         <div class="sublabel" style="margin-top:2px;">※ 현재 이율은 <b>차량에 관계없이 개월수 기준</b>으로 임의설정값이 일괄 적용됩니다.</div>
         <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent">${won(previewMonthly())}</span></div>
-        <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라지며, <b>영업용(개인택시)</b>은 조건이 다를 수 있습니다. 정확한 금액은 상담 시 안내드립니다.</div>`;
+        <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.</div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
   }
@@ -1604,12 +1604,43 @@ function buildQuoteSmsText(nm){
   t+='\n※ 시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.\n개인택시 양수도센터 1566-7114';
   return t;
 }
+// 두 구성의 응답 데이터를 항목별 컬럼/값으로 직렬화 (스프레드시트 '자금계산기 응답DB' 기록용)
+function smsAnswerData(){
+  const cols=[], vals=[];
+  for(let c=0;c<2;c++){
+    const st=CONFIGS[c], b=computeBreakdown(st), P=(c+1)+'구성_';
+    const car=st.car, ins=st.ins, wk=st.work;
+    const push=(k,v)=>{cols.push(P+k);vals.push(v);};
+    push('구성명', CFG_NAMES[c]);
+    push('면허 지역', st.licSet?(st.licRegion||'-'):'(미선택)');
+    push('면허 시세', st.licSet?(st.licManual?(st.licPrice||0):DB.licensePrice):'');
+    push('면허 수수료', st.licSet?(st.licManual?(st.licFee||0):DB.commission):'');
+    push('차량명', car?(DB.carNames[car.idx]||''):'(미선택)');
+    push('연료', car?(DB.carFuels[car.idx]||''):'');
+    push('제조사', car?(DB.carMakers[car.idx]||''):'');
+    push('옵션 포함', car?(car.optOn!==false?'포함':'제외'):'');
+    push('할부 방식', car?payLabel(car):'');
+    push('선납금', (car&&car.payType==='일부선납')?(car.down||0):'');
+    push('차량 소계', b.carFull);
+    push('보험 유형', ins?insLabel(ins):'(미선택)');
+    push('자손/자차', ins?(ins.selfCover?'포함':'미포함'):'');
+    push('보험료(연)', b.insAnnual);
+    push('조합 가입비', b.combine);
+    push('작업 블랙박스', wk?(wk.bb?(wk.bbCh||'적용'):'없음'):'');
+    push('작업 하이패스', wk?(wk.hi?'적용':'없음'):'');
+    push('작업비 소계', b.work);
+    push('초기 소요비용', b.initial);
+    push('월 납입금액', b.monthly);
+  }
+  return {columns:cols, values:vals};
+}
 function submitSms(){
   const nm=el('smsName').value.trim(), ph=el('smsPhone').value.trim(), ag=el('smsAgree').checked;
   if(!nm){toast('이름을 입력해 주세요');return;}
   if(ph.replace(/[^0-9]/g,'').length<10){toast('연락처를 정확히 입력해 주세요');return;}
   if(!ag){toast('개인정보 수집에 동의해 주세요');return;}
-  const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,smsText:buildQuoteSmsText(nm),source:location.href};
+  const ans=smsAnswerData();
+  const payload={requestType:'taxi_quote_sms',createdAt:nowKST(),name:nm,phone:ph,privacyAgreed:true,privacyLabel:'동의',columns:ans.columns,values:ans.values,smsText:buildQuoteSmsText(nm),source:location.href};
   if(lastQuoteImg&&lastQuoteImg.indexOf(',')>0){payload.image=lastQuoteImg.split(',')[1];payload.imageName='개인택시_견적비교.jpg';}
   postGAS(payload);
   el('modalContent').innerHTML=`<div class="modal-grip"></div><div class="ov-ok"><div class="ok-ic">✅</div><h3>신청이 접수되었습니다</h3>

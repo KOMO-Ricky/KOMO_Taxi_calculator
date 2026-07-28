@@ -85,19 +85,27 @@ function doPost(e){
       return ContentService.createTextOutput('ok');
     }
 
-    // ── 문자 견적 신청 → '자금계산기 응답' 탭 기록 + 솔라피 발송 ──
+    // ── 문자 견적 신청 → '자금계산기 응답DB' 탭 기록 + 솔라피 발송 ──
+    // 프런트가 columns/values 로 1·2구성 항목별 답변을 함께 보냅니다.
     if (d.requestType === 'taxi_quote_sms'){
-      var sh = ss.getSheetByName('자금계산기 응답') || ss.insertSheet('자금계산기 응답');
-      if (sh.getLastRow() === 0)
-        sh.appendRow(['접수시각','성명','전화번호','유입경로','발송결과']);
+      var sh = ss.getSheetByName('자금계산기 응답DB') || ss.insertSheet('자금계산기 응답DB');
+      var cols = d.columns || [], vals = d.values || [];
+      var header = ['접수일시','이름','연락처','유입경로']
+                     .concat(cols)
+                     .concat(['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)']);
+      if (sh.getLastRow() === 0) sh.appendRow(header);
 
-      var sendResult = '';
+      var result = '실패 (전송 오류)', detail = '';
       try {
-        sendResult = sendSolapi(d.phone, d.smsText || '개인택시 준비자금 견적입니다.', d.image, d.imageName);
+        var r  = sendSolapi(d.phone, d.smsText || '개인택시 준비자금 견적입니다.', d.image, d.imageName);
+        result = r.result; detail = r.detail;
       } catch (sendErr) {
-        sendResult = 'ERR: ' + sendErr;
+        result = '실패 (전송 오류)'; detail = String(sendErr);
       }
-      sh.appendRow([d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'', sendResult]);
+      var row = [d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'']
+                  .concat(vals)
+                  .concat([ d.privacyLabel || (d.privacyAgreed ? '동의' : '미동의'), result, detail ]);
+      sh.appendRow(row);
       return ContentService.createTextOutput('ok');
     }
 
@@ -150,7 +158,40 @@ function sendSolapi(to, text, imageBase64, imageName){
     payload: JSON.stringify({ message: message }),
     muteHttpExceptions: true
   });
-  return res.getResponseCode() + ' ' + res.getContentText().slice(0, 300);
+  return classifySolapi_(res.getResponseCode(), res.getContentText());
+}
+
+// 솔라피 응답 → '성공 / 실패(사유)' 해석
+function classifySolapi_(httpCode, body){
+  var code='', msg='', j=null;
+  try { j = JSON.parse(body); } catch(e){}
+  if (j){
+    code = String(j.statusCode || j.errorCode || (j.groupInfo && j.groupInfo.statusMessage) || '');
+    msg  = String(j.statusMessage || j.errorMessage || '');
+  }
+  var raw    = 'HTTP ' + httpCode + ' · code:' + code + ' · ' + (msg || String(body).slice(0,200));
+  var reason = solapiReason_(code, msg);
+  if (reason) return { result: '실패 (' + reason + ')', detail: raw };
+  var accepted = (httpCode >= 200 && httpCode < 300) &&
+                 (code === '2000' || code.charAt(0) === '2' || (j && !j.errorCode));
+  if (accepted) return { result: '성공', detail: '이통사로 접수(리포트를 기다리는 중) · ' + raw };
+  return { result: '실패 (사유 미상)', detail: raw };
+}
+function solapiReason_(code, msg){
+  var m = String(msg || '');
+  var table = [
+    [/결번|없는\s*번호|잘못된\s*(수신)?\s*번호|유효하지\s*않은\s*번호|수신번호\s*오류/, '없는 번호 / 결번'],
+    [/미가입|가입되지\s*않|해지|없는\s*가입자|서비스\s*미가입/,                   '미가입자'],
+    [/전송\s*경로|라우팅|경로가?\s*없/,                                          '전송경로 없음'],
+    [/발신번호|미승인|미등록/,                                                   '발신번호 미승인/미등록'],
+    [/잔액|캐시|충전|포인트\s*부족|balance/i,                                     '캐시(잔액) 부족'],
+    [/스팸|수신\s*거부|차단/,                                                     '수신거부/차단'],
+    [/한도|초과|limit/i,                                                          '발송 한도 초과'],
+    [/용량|사이즈|크기|size|too\s*large/i,                                        '이미지 용량 초과'],
+    [/타임아웃|timeout/i,                                                         '통신 지연/타임아웃']
+  ];
+  for (var i=0;i<table.length;i++){ if (table[i][0].test(m)) return table[i][1]; }
+  return '';
 }
 ```
 
@@ -166,9 +207,13 @@ function sendSolapi(to, text, imageBase64, imageName){
 ## 5. 테스트
 
 1. 계산기에서 두 구성 채우고 → **문자로 견적 받기 → 이름·번호 입력 → 신청**.
-2. 스프레드시트 **'자금계산기 응답'** 탭에 행이 추가되는지 확인.
-3. **발송결과** 열이 `200 {...}` 이면 성공, `ERR:` / `4xx` 면 사유 확인 (발신번호 미승인, 캐시 부족, 이미지 용량 등).
+2. 스프레드시트 **'자금계산기 응답DB'** 탭에 행이 추가되는지 확인.
+   - 컬럼: `접수일시 / 이름 / 연락처 / 유입경로 / (1·2구성 항목별 답변…) / 개인정보 동의 / 문자 발송 결과 / 문자 발송 결과(상세)`
+   - 답변 항목은 프런트가 `columns/values`로 함께 전송하므로, 헤더는 **첫 접수 시 자동 생성**됩니다. (항목 구성을 바꾼 뒤에는 기존 헤더 행을 지우면 새 헤더로 다시 생성됩니다.)
+3. **문자 발송 결과** 열: 접수 성공이면 `성공`, 실패면 `실패 (사유)` 형태. 상세 원문은 **문자 발송 결과(상세)** 열에 기록.
 4. 입력한 번호로 **실제 MMS 수신** 확인.
+
+> ⚠️ **최종 전달 실패 사유(없는 번호·미가입자 등)는 발송 직후 응답이 아니라 이통사 리포트에 나중에 반영**됩니다. 발송 직후 값은 대부분 `성공`(이통사로 접수, 리포트 대기 중)으로 기록되며, 검증 단계에서 걸러지는 오류(발신번호 미승인/캐시 부족/이미지 용량 등)만 즉시 `실패 (사유)`로 잡힙니다. 결번·미가입자까지 시트에 자동 반영하려면 **솔라피 리포트 웹훅 또는 메시지 상태 조회**를 추가해야 합니다(원하시면 코드 제공).
 
 ## 6. 유의사항
 
