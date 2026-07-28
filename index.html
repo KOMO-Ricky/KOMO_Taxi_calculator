@@ -1587,11 +1587,10 @@ function drawQuoteImage(){
   g.fillStyle='#FFFFFF';rr(mx,12,cardW,H-24,18);g.fill();
   g.textAlign='center';g.fillStyle='#16224A';g.font=F(800,18);g.fillText('개인택시 준비자금 견적 비교',W/2,44);
   g.fillStyle='#7C86A3';g.font=F(600,11);g.fillText('개인택시 양수도센터',W/2,62);
-  g.fillStyle='#1C2C5B';rr(lX,bodyTop+6,sideW-4,headH-12,10);g.fill();
-  g.fillStyle='#E0A82E';rr(rX+4,bodyTop+6,sideW-4,headH-12,10);g.fill();
-  g.fillStyle='#fff';g.font=F(800,13);
-  g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+31);
-  g.fillText(CFG_NAMES[1],rX+4+(sideW-4)/2,bodyTop+31);
+  // 구성명은 박스 없이 글자 색으로 (웹 비교표 헤더와 동일: 1번=네이비, 2번=골드)
+  g.textAlign='center';g.font=F(800,14);
+  g.fillStyle='#1C2C5B';g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+31);
+  g.fillStyle='#B8860B';g.fillText(CFG_NAMES[1],rX+4+(sideW-4)/2,bodyTop+31);
   g.fillStyle='#7C86A3';g.font=F(800,11);g.fillText('항목',cX+centerW/2,bodyTop+31);   // 헤더 '항목'은 웹과 동일하게 무채색 텍스트
   let y=bodyTop+headH;
   function row(label,a,b,sa,sb,h,big){
