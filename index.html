@@ -1577,7 +1577,7 @@ function drawQuoteImage(){
     ['총 비용',A.grand,B.grand,'초기+할부원금','초기+할부원금']];
   const W=392,SC=2,mx=14,cardW=W-mx*2,ipad=14,cx0=mx+ipad,cw=cardW-ipad*2;
   const centerW=76,sideW=(cw-centerW)/2,lX=cx0,cX=cx0+sideW,rX=cX+centerW;
-  const titleH=82,headH=56,rowH=54,totH=62,footH=72,sectH=32,bodyTop=12+titleH;
+  const titleH=88,headH=56,rowH=54,totH=62,footH=98,sectH=32,bodyTop=12+titleH;
   const H=12+titleH+headH+items.length*rowH+sectH+tots.length*totH+footH+14;
   const cv=document.createElement('canvas');cv.width=W*SC;cv.height=H*SC;
   const g=cv.getContext('2d');g.scale(SC,SC);
@@ -1586,8 +1586,8 @@ function drawQuoteImage(){
   g.fillStyle='#E9EAEE';g.fillRect(0,0,W,H);
   g.fillStyle='#FFFFFF';rr(mx,12,cardW,H-24,18);g.fill();
   g.textAlign='center';g.fillStyle='#16224A';g.font=F(800,18);g.fillText('개인택시 준비자금 견적 비교',W/2,44);
-  g.fillStyle='#24356E';g.font=F(800,13.5);g.fillText('개인택시 양수도센터',W/2,64);
-  g.fillStyle='#B8860B';g.font=F(700,11.5);g.fillText('대표번호 1566-7114',W/2,81);
+  g.fillStyle='#C8912A';g.font=F(800,13.5);g.fillText('개인택시 양수도센터',W/2,72);   // 타이틀(네이비)과 구분되게 골드
+  g.fillStyle='#4A5B86';g.font=F(700,11);g.fillText('대표번호 1566-7114',W/2,90);
   // 구성명은 박스 없이 글자 색으로 (웹 비교표 헤더와 동일: 1번=네이비, 2번=골드)
   g.textAlign='center';g.font=F(800,14);
   g.fillStyle='#1C2C5B';g.fillText(CFG_NAMES[0],lX+(sideW-4)/2,bodyTop+31);
@@ -1623,10 +1623,12 @@ function drawQuoteImage(){
    g.textAlign='center';g.fillStyle='#8891A8';g.font=F(800,11.5);g.fillText('결과 요약',W/2,midY+4);
    y+=sectH;}
   tots.forEach(r=>row(r[0],r[1],r[2],r[3],r[4],totH,true));
-  g.textAlign='center';g.fillStyle='#7C86A3';g.font=F(700,10.5);
-  g.fillText('개인택시 양수도센터 1566-7114',W/2,H-50);
+  g.textAlign='center';g.fillStyle='#1C2C5B';g.font=F(800,14.5);
+  g.fillText('개인택시 양수도센터',W/2,H-66);
+  g.fillStyle='#C8912A';g.font=F(800,16.5);
+  g.fillText('1566-7114',W/2,H-44);
   g.fillStyle='#9AA3B8';g.font=F(600,9);
-  g.fillText('시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.',W/2,H-28);
+  g.fillText('시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.',W/2,H-20);
   return cv;
 }
 function quoteImageURL(){try{return drawQuoteImage().toDataURL('image/jpeg',0.85);}catch(e){console.error(e);return '';}}   // 솔라피 MMS는 JPG 권장
