@@ -120,24 +120,15 @@ function doPost(e){
       var TAB = '자금계산기 응답DB';
       var sh  = ss.getSheetByName(TAB) || ss.insertSheet(TAB);
 
-      // 프런트가 보내온 항목별 컬럼/값 (1구성·2구성 대항목/소항목 전체)
+      var vals = d.values || [];
+      var h1 = d.h1 || [], h2 = d.h2 || [], h3 = d.h3 || [];   // 3단 헤더(구성/파트/소항목)
       var cols = d.columns || [];
-      var vals = d.values  || [];
 
-      // 고정 앞/뒤 컬럼 + 답변 항목들로 헤더 구성 (메시지ID는 발송결과 자동 갱신용)
-      var header = ['접수일시','이름','연락처','유입경로']
-                     .concat(cols)
-                     .concat(['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)','메시지ID']);
+      var FIXED_L = ['접수일시','이름','연락처','유입경로'];
+      var FIXED_R = ['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)','메시지ID'];
 
-      // 헤더 자동 생성/치유: 비어있거나 옛 헤더(항목 컬럼 없음)면 새 헤더로 교체
-      if (sh.getLastRow() === 0){
-        sh.appendRow(header);
-      } else {
-        var hr = sh.getRange(1,1,1,Math.max(header.length, sh.getLastColumn())).getValues()[0];
-        if (hr.indexOf('개인정보 동의') === -1){          // 옛 5칸 헤더 → 새 헤더로 갱신
-          sh.getRange(1,1,1,header.length).setValues([header]);
-        }
-      }
+      // 헤더(단일/멀티) 자동 생성·치유
+      ensureResponseHeader_(sh, vals.length, h1, h2, h3, cols, FIXED_L, FIXED_R);
 
       // 솔라피 발송 + 결과 해석(성공 / 실패(사유))
       var result = '실패 (전송 오류)', detail = '', messageId = '';
@@ -161,6 +152,77 @@ function doPost(e){
     return ContentService.createTextOutput('unknown requestType');
   } catch(err){
     return ContentService.createTextOutput('error: ' + err);
+  }
+}
+
+
+// ==========================================================================
+//  응답DB 헤더 — 3단(구성 → 파트 → 소항목) 멀티행 헤더 생성/치유
+//  · 빈 시트(또는 헤더만) → 깔끔한 3행 헤더 + 병합/고정/서식
+//  · 데이터가 있고 아직 단일 헤더면 → 위에 2행 추가해 3행으로 승격
+//  · 이미 멀티 헤더면 그대로 둠
+// ==========================================================================
+function ensureResponseHeader_(sh, nA, h1, h2, h3, cols, L, R){
+  var multi = (h1.length === nA && h2.length === nA && h3.length === nA && nA > 0);
+  var lastRow = sh.getLastRow();
+  var top = lastRow > 0 ? sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0] : [];
+  var hasHeader = top.indexOf('접수일시') !== -1;
+  var hasMulti  = (top.indexOf('1번 구성') !== -1 || top.indexOf('2번 구성') !== -1);
+
+  if (multi && hasMulti) return;                 // 이미 멀티 헤더 → 유지
+  if (!multi && hasHeader) return;               // 멀티 데이터 아님 + 헤더 있음 → 유지
+
+  if (multi){
+    if (lastRow <= 1){                           // 비었거나 헤더 한 줄뿐 → 깔끔히 재작성
+      if (lastRow === 1) sh.getRange(1,1,1,sh.getMaxColumns()).clearContent();
+      writeMultiHeader_(sh, h1, h2, h3, L, R);
+    } else if (!hasMulti){                        // 데이터 존재 + 옛 단일헤더 → 위에 2행 추가해 승격
+      sh.insertRowsBefore(1, 2);
+      writeMultiHeader_(sh, h1, h2, h3, L, R);
+    }
+  } else {                                       // 프런트가 3단 정보를 안 보낸 예외적 경우 → 단일 헤더
+    var header = L.concat(cols).concat(R);
+    if (lastRow === 0){ sh.appendRow(header); }
+    else { sh.insertRowsBefore(1,1); sh.getRange(1,1,1,header.length).setValues([header]); }
+    sh.setFrozenRows(1);
+    sh.getRange(1,1,1,header.length).setFontWeight('bold').setHorizontalAlignment('center')
+      .setBackground('#1C2C5B').setFontColor('#FFFFFF');
+  }
+}
+
+function blanks_(n){ var a=[]; for (var i=0;i<n;i++) a.push(''); return a; }
+
+function writeMultiHeader_(sh, h1, h2, h3, L, R){
+  var nL = L.length, nR = R.length, nA = h1.length, total = nL + nA + nR;
+  var r1 = L.concat(h1).concat(R);
+  var r2 = blanks_(nL).concat(h2).concat(blanks_(nR));
+  var r3 = blanks_(nL).concat(h3).concat(blanks_(nR));
+  sh.getRange(1,1,3,total).setValues([r1, r2, r3]);
+
+  // 병합: 고정 좌/우 컬럼은 세로 3행 병합
+  for (var c = 1; c <= nL; c++) sh.getRange(1, c, 3, 1).merge();
+  for (var c2 = 0; c2 < nR; c2++) sh.getRange(1, nL + nA + 1 + c2, 3, 1).merge();
+  // 1행(구성) 가로 병합, 2행(파트) 같은 구성 안에서 가로 병합
+  mergeRun_(sh, 1, nL + 1, h1, null);
+  mergeRun_(sh, 2, nL + 1, h2, h1);
+
+  // 서식
+  sh.getRange(1,1,3,total).setFontWeight('bold').setHorizontalAlignment('center')
+    .setVerticalAlignment('middle').setWrap(true);
+  sh.getRange(1,1,1,total).setBackground('#1C2C5B').setFontColor('#FFFFFF');   // 구성행 + 고정칸(병합) = 네이비
+  sh.getRange(2, nL + 1, 1, nA).setBackground('#E8ECF5').setFontColor('#1C2C5B'); // 파트행
+  sh.getRange(3, nL + 1, 1, nA).setBackground('#F3F5FA').setFontColor('#334155'); // 소항목행
+  sh.setFrozenRows(3);
+}
+
+// row행에서 arr의 연속 동일값을 가로 병합 (guard가 있으면 guard도 같아야 병합)
+function mergeRun_(sh, row, startCol, arr, guard){
+  var i = 0;
+  while (i < arr.length){
+    var j = i + 1;
+    while (j < arr.length && arr[j] === arr[i] && (!guard || guard[j] === guard[i])) j++;
+    if (j - i > 1) sh.getRange(row, startCol + i, 1, j - i).merge();
+    i = j;
   }
 }
 
