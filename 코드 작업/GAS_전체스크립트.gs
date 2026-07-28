@@ -117,18 +117,28 @@ function doPost(e){
       var cols = d.columns || [];
       var vals = d.values  || [];
 
-      // 고정 앞/뒤 컬럼 + 답변 항목들로 헤더 구성
+      // 고정 앞/뒤 컬럼 + 답변 항목들로 헤더 구성 (메시지ID는 발송결과 자동 갱신용)
       var header = ['접수일시','이름','연락처','유입경로']
                      .concat(cols)
-                     .concat(['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)']);
-      if (sh.getLastRow() === 0) sh.appendRow(header);
+                     .concat(['개인정보 동의','문자 발송 결과','문자 발송 결과(상세)','메시지ID']);
+
+      // 헤더 자동 생성/치유: 비어있거나 옛 헤더(항목 컬럼 없음)면 새 헤더로 교체
+      if (sh.getLastRow() === 0){
+        sh.appendRow(header);
+      } else {
+        var hr = sh.getRange(1,1,1,Math.max(header.length, sh.getLastColumn())).getValues()[0];
+        if (hr.indexOf('개인정보 동의') === -1){          // 옛 5칸 헤더 → 새 헤더로 갱신
+          sh.getRange(1,1,1,header.length).setValues([header]);
+        }
+      }
 
       // 솔라피 발송 + 결과 해석(성공 / 실패(사유))
-      var result = '실패 (전송 오류)', detail = '';
+      var result = '실패 (전송 오류)', detail = '', messageId = '';
       try {
         var r  = sendSolapi(d.phone, d.smsText || '개인택시 준비자금 견적입니다.', d.image, d.imageName);
-        result = r.result;   // '성공' 또는 '실패 (사유)'
-        detail = r.detail;   // HTTP/코드/원문 등 상세
+        result    = r.result;      // '성공' 또는 '실패 (사유)'
+        detail    = r.detail;      // HTTP/코드/원문 등 상세
+        messageId = r.messageId || '';
       } catch (sendErr) {
         result = '실패 (전송 오류)';
         detail = String(sendErr);
@@ -136,7 +146,7 @@ function doPost(e){
 
       var row = [d.createdAt||new Date(), d.name||'', d.phone||'', d.source||'']
                   .concat(vals)
-                  .concat([ d.privacyLabel || (d.privacyAgreed ? '동의' : '미동의'), result, detail ]);
+                  .concat([ d.privacyLabel || (d.privacyAgreed ? '동의' : '미동의'), result, detail, messageId ]);
       sh.appendRow(row);
       return ContentService.createTextOutput('ok');
     }
@@ -199,20 +209,79 @@ function sendSolapi(to, text, imageBase64, imageName){
 //    반영되므로, 그 사유는 리포트 조회/웹훅으로 갱신해야 정확합니다.
 // ==========================================================================
 function classifySolapi_(httpCode, body){
-  var code='', msg='', j=null;
+  var code='', msg='', mid='', j=null;
   try { j = JSON.parse(body); } catch(e){}
   if (j){
     code = String(j.statusCode || j.errorCode || (j.groupInfo && j.groupInfo.statusMessage) || '');
     msg  = String(j.statusMessage || j.errorMessage || '');
+    mid  = String(j.messageId || (j.groupInfo && j.groupInfo.groupId) || '');
   }
   var raw    = 'HTTP ' + httpCode + ' · code:' + code + ' · ' + (msg || String(body).slice(0,200));
   var reason = solapiReason_(code, msg);
-  if (reason) return { result: '실패 (' + reason + ')', detail: raw };
+  if (reason) return { result: '실패 (' + reason + ')', detail: raw, messageId: mid };
 
   var accepted = (httpCode >= 200 && httpCode < 300) &&
                  (code === '2000' || code.charAt(0) === '2' || (j && !j.errorCode));
-  if (accepted) return { result: '성공', detail: '이통사로 접수(리포트를 기다리는 중) · ' + raw };
-  return { result: '실패 (사유 미상)', detail: raw };
+  if (accepted) return { result: '성공 (이통사로 접수, 리포트 대기 중)', detail: raw, messageId: mid };
+  return { result: '실패 (사유 미상)', detail: raw, messageId: mid };
+}
+
+
+// ==========================================================================
+//  발송결과 자동 갱신 — 솔라피 리포트 조회 (결번/미가입자 등 최종 전달 결과)
+//  · Apps Script → 트리거 → updateSmsReports 를 '시간 기반 · 5~10분마다'로 등록하세요.
+//  · '메시지ID'가 있고 아직 확정(전달완료/실패)되지 않은 행만 갱신합니다.
+// ==========================================================================
+function updateSmsReports(){
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sh = ss.getSheetByName('자금계산기 응답DB');
+  if (!sh || sh.getLastRow() < 2) return;
+
+  var header  = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  var cResult = header.indexOf('문자 발송 결과') + 1;
+  var cDetail = header.indexOf('문자 발송 결과(상세)') + 1;
+  var cMid    = header.indexOf('메시지ID') + 1;
+  if (!cResult || !cMid) return;
+
+  var last = sh.getLastRow();
+  for (var r = 2; r <= last; r++){
+    var mid = String(sh.getRange(r, cMid).getValue()).trim();
+    if (!mid) continue;
+    var cur = String(sh.getRange(r, cResult).getValue());
+    if (cur.indexOf('전달완료') >= 0 || cur.indexOf('실패 (') === 0) continue;  // 이미 확정된 행은 건너뜀
+
+    var st = solapiMessageStatus_(mid);
+    if (st){
+      sh.getRange(r, cResult).setValue(st.result);
+      if (cDetail) sh.getRange(r, cDetail).setValue(st.detail);
+    }
+  }
+}
+
+// 메시지ID 하나의 최종 상태 조회
+function solapiMessageStatus_(messageId){
+  var res = UrlFetchApp.fetch('https://api.solapi.com/messages/v4/list?messageId=' + encodeURIComponent(messageId), {
+    method:'get', headers:{ Authorization: solapiAuthHeader_() }, muteHttpExceptions: true
+  });
+  try {
+    var j = JSON.parse(res.getContentText());
+    var list = j.messageList || {};
+    var keys = Object.keys(list);
+    if (!keys.length) return null;
+    var m      = list[keys[0]];
+    var status = String(m.status || '');            // PENDING / SENDING / COMPLETE / FAILED
+    var code   = String(m.statusCode || '');
+    var msg    = String(m.statusMessage || '');
+    var raw    = 'status:' + status + ' · code:' + code + ' · ' + msg;
+
+    var reason = solapiReason_(code, msg);
+    if (reason)                          return { result: '실패 (' + reason + ')', detail: raw };
+    if (status === 'COMPLETE')           return { result: '성공 (전달완료)',        detail: raw };
+    if (status === 'FAILED')             return { result: '실패 (' + (msg || '전달 실패') + ')', detail: raw };
+    if (status === 'PENDING' || status === 'SENDING')
+                                         return { result: '성공 (이통사로 접수, 리포트 대기 중)', detail: raw };
+    return null;
+  } catch(e){ return null; }
 }
 
 // 상태 메시지/코드 → 실패 사유 분류 (해당 없으면 '' = 성공/접수)
