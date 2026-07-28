@@ -41,6 +41,31 @@ var SOLAPI_API_SECRET = '여기에_새_API_SECRET';
 var SOLAPI_SENDER     = '025551234';   // 솔라피에 등록·승인된 발신번호 (숫자만)
 ```
 
+## 2-1. 어디에 넣나 — 기존 doGet 코드와 같은 파일
+
+지금 GAS에 있는 `function doGet(e) {...}` 는 **그대로 두시고**, **같은 `코드.gs` 파일 안**에 아래를 추가하면 됩니다.
+(한 프로젝트에 doGet · doPost · 기타 함수가 함께 있어도 됩니다.)
+
+```
+[코드.gs 파일 구성 — 위에서 아래로]
+
+  var SS_ID = '16tTQila...';                 ← ① 맨 위에 설정값 4줄 추가
+  var SOLAPI_API_KEY    = '...';                (API 키는 바로 여기!)
+  var SOLAPI_API_SECRET = '...';
+  var SOLAPI_SENDER     = '025551234';
+
+  function doGet(e) { ... }                   ← ② 지금 있는 코드 그대로 (수정 X)
+
+  function doPost(e) { ... }                  ← ③ 아래 3번 코드 전체를 doGet 뒤에 붙여넣기
+  function sendSolapi(...) { ... }
+  function solapiAuthHeader_() { ... }
+  function solapiUploadImage_(base64) { ... }
+```
+
+즉 **솔라피 API 키는 파일 맨 위 `SOLAPI_API_KEY` / `SOLAPI_API_SECRET` 두 변수**에 넣습니다.
+`SOLAPI_SENDER` 에는 솔라피에 등록·승인된 발신번호(숫자만)를 넣습니다.
+(현재 doGet이 스프레드시트 ID를 코드 안에 직접 쓰고 있는데, `SS_ID` 상수를 새로 두는 것이라 서로 충돌하지 않습니다.)
+
 ## 3. 붙여넣을 코드 (doPost + 솔라피 발송)
 
 ```javascript
@@ -49,9 +74,10 @@ function doPost(e){
     var d  = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.openById(SS_ID);
 
-    // ── 의견 보내기 → '자금계산기 의견 응답' 탭 ──
+    // ── 의견 보내기 → '자금계산기 의견수집' 탭 ──
     if (d.requestType === 'calc_feedback'){
-      var shF = ss.getSheetByName('자금계산기 의견 응답') || ss.insertSheet('자금계산기 의견 응답');
+      var fName = d.sheet || '자금계산기 의견수집';
+      var shF = ss.getSheetByName(fName) || ss.insertSheet(fName);
       if (shF.getLastRow() === 0)
         shF.appendRow(['접수시각','별점','평가','의견','성명','전화번호','유입경로']);
       shF.appendRow([d.createdAt||new Date(), d.rating||'', d.ratingLabel||'',
