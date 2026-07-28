@@ -450,9 +450,11 @@ body.cover-open{overflow:hidden;}
 .sms-bank .smsb-row .bl{text-align:right;font-weight:700;}
 .sms-bank .smsb-empty{font-size:11px;color:var(--muted);text-align:center;padding:8px;}
 .sms-bank .smsb-date{font-size:10px;color:var(--muted);margin-top:6px;text-align:right;}
+.opt-tog{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:2px 9px;font-size:11px;font-weight:800;border-radius:20px;border:1.5px solid var(--border);background:var(--card-bg,#fff);color:var(--muted);cursor:pointer;vertical-align:middle;transition:.15s;}
+.opt-tog.on{border-color:var(--primary);background:var(--primary);color:#fff;}
 .ov-ok{text-align:center;padding:26px 10px;}
 .ov-ok .ok-ic{font-size:46px;}
-.ov-ok h3{font-size:19px;font-weight:800;margin:12px 0 6px;}
+.ov-ok h3{font-size:19px;font-weight:800;margin:12px 0 6px;display:block;text-align:center;}
 .ov-ok p{font-size:13px;color:var(--muted);line-height:1.8;}
 </style>
 </head>
@@ -608,7 +610,7 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[]};   // carRate=할부율(연%), date*=기준일 (DB 연동 예정)
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
-function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};}
+function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};}
 function isSeoulCfg(st){return !st||!st.licRegion||st.licRegion==='서울특별시';}
 const LIC_REGIONS=['서울특별시','경기도','인천광역시','부산광역시','대구광역시','대전광역시','광주광역시','울산광역시','기타 지역'];
 let CONFIGS=[newCfg(),newCfg()];
@@ -723,7 +725,7 @@ function carFullOf(car){
     return fv+Math.floor(fv*rate);
   }
   if(car.priceManual)return Math.max(0,(car.baseOvr||0)+(car.taxOvr||0)-(car.subOvr||0));   // 직접 입력 (하위 항목 합산)
-  const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0, tax=DB.taxFee[i]||0;
+  const base=DB.carPrice[i]||0, opt=(car.optOn===false?0:(DB.carOptAmt[i]||0)), tax=DB.taxFee[i]||0;
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
   return base+opt+tax-sub-exc;
@@ -743,7 +745,7 @@ function carInstOf(car){
     if(car.payType==='일부선납')return Math.max(0,instBase-(car.down||0));
     return 0;
   }
-  const base=DB.carPrice[i]||0, opt=DB.carOptAmt[i]||0;
+  const base=DB.carPrice[i]||0, opt=(car.optOn===false?0:(DB.carOptAmt[i]||0));
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
   const instBase=Math.max(0,base+opt-sub-exc);
@@ -917,12 +919,12 @@ let recoOpen=false;
 function toggleReco(){recoOpen=!recoOpen;const d=el('recoDetail');if(d)d.style.display=recoOpen?'block':'none';const t=el('recoToggle');if(t)t.textContent=recoOpen?'접기':'보기';}
 function cfgApplyReco(i){
   if(!RECO){toast('추천 구성을 불러오지 못했습니다');return;}
-  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));CONFIGS[i].licSet=true;CONFIGS[i].licRegion='서울특별시';CONFIGS[i].licManual=false;CONFIGS[i].licPrice=0;CONFIGS[i].licFee=0;
+  CONFIGS[i]=JSON.parse(JSON.stringify(RECO));   // 면허 미선택 상태 유지 → 지역 선택 시 시세 반영
   if(!CFG_NAMED[i])CFG_NAMES[i]='추천 구성';
   activeCfg=i;S=CONFIGS[i];
   renderAll();
   el('cfgBox').scrollIntoView({behavior:'smooth',block:'center'});
-  toast(CFG_NAMES[i]+'에 추천 구성을 적용했습니다',' green');
+  toast(CFG_NAMES[i]+'에 추천 구성 적용 · <b>면허 지역</b>을 선택하세요',' green');
 }
 function renameConfig(i){
   if(i===undefined)i=activeCfg;
@@ -1011,19 +1013,26 @@ function openGuide(){
 }
 
 // ── 면허 모달 (기준일 + 직접입력) ──
-function openLicense(){if(!S.licRegion)S.licRegion='서울특별시';renderLicModal();}
+function openLicense(){renderLicModal();}
 function readLicInputs(){if(el('licPrice'))S.licPrice=N(el('licPrice').value);if(el('licFee'))S.licFee=N(el('licFee').value);}
-function selLicRegion(v){readLicInputs();S.licRegion=v;if(v!=='서울특별시')S.licManual=true;else S.licManual=(S.licPrice>0||S.licFee>0);renderLicModal();}
+function selLicRegion(v){readLicInputs();S.licRegion=v;if(v&&v!=='서울특별시')S.licManual=true;else S.licManual=(S.licPrice>0||S.licFee>0);renderLicModal();}
 function startLicManual(){readLicInputs();S.licManual=true;renderLicModal();}
 function exitLicManual(){S.licManual=false;S.licPrice=0;S.licFee=0;renderLicModal();}
 function renderLicModal(){
-  const reg=S.licRegion||'서울특별시';
+  const reg=S.licRegion||'';
+  const noReg=!reg;
   const isSeoul=(reg==='서울특별시');
   let h=`<h3>📄 면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 시세</div>`;
   h+=`<div class="subtitle">양수 희망 지역</div>
     <div class="sel-wrap"><select id="licRegion" onchange="selLicRegion(this.value)">`;
+  h+=`<option value=""${noReg?' selected':''} disabled hidden>지역을 선택하세요</option>`;
   LIC_REGIONS.forEach(r=>{h+=`<option value="${r}"${reg===r?' selected':''}>${r}</option>`;});
   h+=`</select><span class="arr">▼</span></div>`;
+  if(noReg){
+    h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 면허를 양수할 <b>지역을 먼저 선택</b>해 주세요.</div>`;
+    h+=`<button class="modal-close" onclick="closeModal()">닫기</button>`;
+    openModalHTML(h);return;
+  }
   if(isSeoul&&!S.licManual){
     h+=`<div class="mrow" style="margin-top:12px;"><span class="ml">면허 시세</span><span class="mv">${won(DB.licensePrice)}</span></div>
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
@@ -1048,7 +1057,8 @@ function renderLicModal(){
 }
 function saveLicense(){
   readLicInputs();
-  const isSeoul=(S.licRegion||'서울특별시')==='서울특별시';
+  if(!S.licRegion){toast('양수 희망 지역을 선택해 주세요');return;}
+  const isSeoul=(S.licRegion==='서울특별시');
   if(!isSeoul){S.licManual=true;if(!(S.licPrice>0)){toast('면허 시세를 입력해 주세요');return;}}
   S.licSet=true;
   closeModal();renderAll();refreshCmp();toast('면허 정보가 저장되었습니다',' green');
@@ -1057,7 +1067,7 @@ function saveLicense(){
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
 function openCar(){
-  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0};
+  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0,optOn:S.car.optOn!==false}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0,optOn:true};
   renderCarModal();
 }
 function renderCarModal(){
@@ -1094,11 +1104,16 @@ function renderCarModal(){
       h+=`<div class="divider"></div>`;
       if(!tmpCar.priceManual){
         const base=DB.carPrice[i], opt=DB.carOptAmt[i], tax=DB.taxFee[i], sub=DB.evSubsidy[i]||0;
-        const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
+        const optEff=tmpCar.optOn?opt:0;
+        const exc=isEV(i)?Math.min(Math.floor((base+optEff)*0.05),3000000):0;
         h+=`<div class="guide" style="margin-bottom:10px;">아래 금액은 <b>선택한 차량에 맞춰 자동 계산</b>된 값입니다. 보조금·개별소비세 감면이 있으면 자동 차감됩니다.</div>
-        <div class="mrow"><span class="ml">차량 기본금액</span><span class="mv">${base?comma(base)+' 원':'—'}</span></div>
-        <div class="mrow"><span class="ml">옵션 금액</span><span class="mv">${opt?'약 '+comma(opt)+' 원':'0 원'}</span></div>`;
-        if(DB.carOptDesc[i])h+=`<div class="sublabel">${DB.carOptDesc[i]}</div>`;
+        <div class="mrow"><span class="ml">차량 기본금액</span><span class="mv">${base?comma(base)+' 원':'—'}</span></div>`;
+        if(opt){
+          h+=`<div class="mrow"><span class="ml">옵션 금액 <button class="opt-tog${tmpCar.optOn?' on':''}" onclick="toggleOpt()">${tmpCar.optOn?'✓ 포함':'제외'}</button></span><span class="mv"${tmpCar.optOn?'':' style="color:var(--muted);text-decoration:line-through;"'}>약 ${comma(opt)} 원</span></div>`;
+          if(DB.carOptDesc[i])h+=`<div class="sublabel">${DB.carOptDesc[i]}${tmpCar.optOn?'':' · <b>제외됨</b> (기본금액만 반영)'}</div>`;
+        }else{
+          h+=`<div class="mrow"><span class="ml">옵션 금액</span><span class="mv">0 원</span></div>`;
+        }
         if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;
           if(isEV(i))h+=`<div class="sublabel">🗓 ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
         if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
@@ -1150,7 +1165,8 @@ function renderCarModal(){
 function readCarInputs(){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);if(el('downAmt'))tmpCar.down=N(el('downAmt').value);if(el('carBaseOvr'))tmpCar.baseOvr=N(el('carBaseOvr').value);if(el('carTaxOvr'))tmpCar.taxOvr=N(el('carTaxOvr').value);if(el('carSubOvr'))tmpCar.subOvr=N(el('carSubOvr').value);}
 function carManualTotal(){const base=el('carBaseOvr')?N(el('carBaseOvr').value):(tmpCar.baseOvr||0);const tax=el('carTaxOvr')?N(el('carTaxOvr').value):(tmpCar.taxOvr||0);const sub=el('carSubOvr')?N(el('carSubOvr').value):(tmpCar.subOvr||0);return Math.max(0,base+tax-sub);}
 function updateCarManualSum(){const e=el('carManualSum');if(e)e.textContent=won(carManualTotal());}
-function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
+function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn!==false,baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
+function toggleOpt(){readCarInputs();tmpCar.optOn=!tmpCar.optOn;renderCarModal();}
 function previewCarSub(){return carFullOf(tmpCarState());}
 function previewMonthly(){return monthlyOf(tmpCarState());}
 function readFPrice(){const e=el('fPrice');return e?N(e.value):tmpCar.foreignPrice;}
@@ -1172,7 +1188,7 @@ function saveCar(){
   if(tmpCar.payType==='일부선납'&&!tmpCar.down){toast('선납금액을 입력해 주세요');return;}
   readCarInputs();
   if(tmpCar.priceManual&&!isForeign(tmpCar.idx)&&!(tmpCar.baseOvr>0)){toast('차량 기본금액을 입력해 주세요');return;}
-  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
+  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn!==false,baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
   autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
@@ -1494,7 +1510,7 @@ function drawQuoteImage(){
     ['차량',A.carFull,B.carFull,carA+' · '+payLabel(sA.car),carB+' · '+payLabel(sB.car)],
     ['보험/조합',A.insAnnual+A.combine,B.insAnnual+B.combine,insLabel(sA.ins),insLabel(sB.ins)],
     ['작업비용',A.work,B.work,'','']];
-  const tots=[['초기 소요비용',A.initial,B.initial,'',''],
+  const tots=[['초기\n소요비용',A.initial,B.initial,'',''],
     ['월 납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불']];
   const W=392,SC=2,mx=14,cardW=W-mx*2,ipad=14,cx0=mx+ipad,cw=cardW-ipad*2;
   const centerW=76,sideW=(cw-centerW)/2,lX=cx0,cX=cx0+sideW,rX=cX+centerW;
@@ -1507,7 +1523,7 @@ function drawQuoteImage(){
   g.fillStyle='#E9EAEE';g.fillRect(0,0,W,H);
   g.fillStyle='#FFFFFF';rr(mx,12,cardW,H-24,18);g.fill();
   g.textAlign='center';g.fillStyle='#16224A';g.font=F(800,18);g.fillText('개인택시 준비자금 견적 비교',W/2,44);
-  g.fillStyle='#7C86A3';g.font=F(600,11);g.fillText('KOMOLAB 개인택시 양수도센터 · 서울 기준 예상',W/2,62);
+  g.fillStyle='#7C86A3';g.font=F(600,11);g.fillText('개인택시 양수도센터',W/2,62);
   const pillarBot=bodyTop+headH+items.length*rowH+tots.length*totH;
   g.fillStyle='#1C2C5B';rr(cX,bodyTop,centerW,pillarBot-bodyTop,14);g.fill();
   g.fillStyle='#1C2C5B';rr(lX,bodyTop+6,sideW-4,headH-12,10);g.fill();
@@ -1520,7 +1536,9 @@ function drawQuoteImage(){
   function row(label,a,b,sa,sb,h,big){
     g.fillStyle='rgba(28,44,91,.10)';rr(lX,y+4,sideW-4,h-8,10);g.fill();
     g.fillStyle='rgba(224,168,46,.13)';rr(rX+4,y+4,sideW-4,h-8,10);g.fill();
-    g.textAlign='center';g.fillStyle='#fff';g.font=F(800,big?12:11);g.fillText(label,cX+centerW/2,y+h/2+4);
+    g.textAlign='center';g.fillStyle='#fff';g.font=F(800,big?12:11);
+    if(String(label).indexOf('\n')>=0){const ls=label.split('\n');g.fillText(ls[0],cX+centerW/2,y+h/2-3);g.fillText(ls[1],cX+centerW/2,y+h/2+11);}
+    else g.fillText(label,cX+centerW/2,y+h/2+4);
     g.textAlign='right';g.font=F(800,big?16:14);g.fillStyle='#16224A';
     g.fillText(comma(a)+'원',cX-12,y+h/2+(sa?-1:5));
     if(sa){g.fillStyle='#7C86A3';g.font=F(600,9.5);g.fillText(sa,cX-12,y+h/2+13);}
@@ -1531,8 +1549,10 @@ function drawQuoteImage(){
   }
   items.forEach(r=>row(r[0],r[1],r[2],r[3],r[4],rowH,false));
   tots.forEach(r=>row(r[0],r[1],r[2],r[3],r[4],totH,true));
-  g.textAlign='center';g.fillStyle='#7C86A3';g.font=F(600,10);
-  g.fillText('개인택시 양수도센터 1566-7114 · 실제와 차이가 있을 수 있습니다',W/2,H-24);
+  g.textAlign='center';g.fillStyle='#7C86A3';g.font=F(700,10.5);
+  g.fillText('개인택시 양수도센터 1566-7114',W/2,H-30);
+  g.fillStyle='#9AA3B8';g.font=F(600,9);
+  g.fillText('시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.',W/2,H-15);
   return cv;
 }
 function quoteImageURL(){try{return drawQuoteImage().toDataURL('image/jpeg',0.85);}catch(e){console.error(e);return '';}}   // 솔라피 MMS는 JPG 권장
@@ -1581,7 +1601,7 @@ function buildQuoteSmsText(nm){
     t+='\n[대출 참고 · 기준일 '+(DB.dateLoan||'-')+']\n';
     loanBankList().forEach(function(bk){t+='  '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rate?'연 '+bk.rate+'%':'-')+'\n';});
   }
-  t+='\n※ 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.\nKOMOLAB 개인택시 양수도센터 1566-7114';
+  t+='\n※ 시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.\n개인택시 양수도센터 1566-7114';
   return t;
 }
 function submitSms(){
@@ -1640,16 +1660,18 @@ function buildReco(){
   for(const name of prefer){const f=DB.carNames.findIndex(n=>n===name);if(f>=0){idx=f;break;}}
   if(idx<0)idx=DB.carNames.findIndex((n,i)=>!isForeign(i));
   if(idx<0)return;
-  RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS},
+  RECO={car:{idx,payType:'일시불',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,optOn:true},
     ins:{type:'공제',combine:true,saCustom:0},
-    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licSet:true,licRegion:'서울특별시',licManual:false,licPrice:0,licFee:0};
+    work:{bb:true,bbCh:'3채널',hi:true,pedal:false,btGat:false,ovr:0},licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};
   const rb=computeBreakdown(RECO);
+  const baseCost=rb.carFull+rb.work;   // 지역 무관 항목(차량+작업)만 — 면허·보험은 지역 선택 후 반영
   el('recoBox').style.display='block';
   el('recoBody').innerHTML=
     '<div class="reco-item"><span class="rk">차량</span><span class="rv">'+DB.carNames[idx]+' · 일시불</span></div>'+
     '<div class="reco-item"><span class="rk">보험/조합</span><span class="rv">공제보험 + 조합가입</span></div>'+
     '<div class="reco-item"><span class="rk">작업</span><span class="rv">블랙박스 3채널 · 하이패스</span></div>'+
-    '<div class="reco-item total"><span class="rk">예상 초기비용</span><span class="rv">약 '+comma(rb.initial)+'원</span></div>';
+    '<div class="reco-item total"><span class="rk">차량+작업 예상비용</span><span class="rv">약 '+comma(baseCost)+'원</span></div>'+
+    '<div class="reco-note" style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:8px;">※ <b>면허 시세·보험/조합비</b>는 지역별로 달라, 구성 적용 후 <b>지역을 선택</b>하시면 자동 반영됩니다.</div>';
 }
 
 // 커버 → 계산기 진입 전환
