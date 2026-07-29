@@ -426,12 +426,12 @@ body.cover-open{overflow:hidden;}
 .cmp-cta{margin-top:20px;}
 .sms-btn{display:block;width:100%;padding:16px;border-radius:12px;border:none;background:var(--goldgrad);color:#16224A;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(224,168,46,.3);}
 .sms-btn .s{display:block;font-size:11px;font-weight:700;color:#5a4a24;margin-top:3px;}
-.fb-btn{display:block;width:100%;margin-top:10px;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.fb-btn{display:block;width:100%;margin-top:10px;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--primary);font-family:inherit;font-size:14.5px;font-weight:800;cursor:pointer;}
 .fb-btn .s{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:3px;}
 /* 흑백 아이콘(모달 제목/직접입력 마커) */
 .mi{fill:none;stroke:currentColor;}
-.modal h3 .mi{width:20px;height:20px;flex:0 0 auto;}
-.subtitle .mi{width:14px;height:14px;margin-right:6px;flex:0 0 auto;align-self:center;}
+.modal h3 .mi{width:20px;height:20px;flex:0 0 auto;transform:translateY(-1px);}   /* 시각적 보정(박스 정렬은 이미 정중앙) */
+.subtitle .mi{width:14px;height:14px;margin-right:6px;flex:0 0 auto;align-self:center;transform:translateY(-0.5px);}
 /* 대출 계산기 */
 .loan-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:18px;}
 .loan-h{font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
@@ -514,7 +514,7 @@ body.cover-open{overflow:hidden;}
     <div class="hd-title-row"><div class="hd-rule"></div><div>
       <h1>개인택시 준비자금 계산기</h1>
       <div class="sub">서울특별시 기준</div>
-      <div class="sub hd-date" id="hdDate" style="margin-top:5px;">🗓 데이터 기준일 확인 중…</div>
+      <div class="sub hd-date" id="hdDate" style="margin-top:5px;">• 데이터 기준일 확인 중…</div>
     </div></div>
   </div>
 
@@ -671,7 +671,7 @@ function comma(v){return Number(v||0).toLocaleString('ko-KR');}
 function isForeign(idx){return DB.carMakers[idx]==='수입차';}
 function isEV(idx){return DB.carFuels[idx]==='전기';}
 function fmtInput(input){const raw=input.value.replace(/[^0-9]/g,'');input.value=raw?Number(raw).toLocaleString('ko-KR'):'';}
-function refDate(d){return '🗓 '+(d?('기준일 '+d):'기준일 DB 연동 예정');}
+function refDate(d){return '• '+(d?('기준일 '+d):'기준일 DB 연동 예정');}
 function hasBatchim(s){if(!s)return false;const code=s.charCodeAt(s.length-1);if(code<0xAC00||code>0xD7A3)return false;return (code-0xAC00)%28!==0;}
 function iga(s){if(!s)return '가';for(let k=s.length-1;k>=0;k--){const c=s.charCodeAt(k);if(c>=0xAC00&&c<=0xD7A3)return (c-0xAC00)%28!==0?'이':'가';}return '가';}   // 마지막 한글 음절 받침 기준
 function cfgLabel(name,idx1){return name===(idx1+'번 구성')?name:`${name}(${idx1}번 구성)`;}
@@ -706,12 +706,12 @@ async function loadData(){
     DB.loanLimits=(d.loanLimits||[]).map(N);
     DB.loanRates=(d.loanRates||[]).map(v=>{let x=parseFloat(v)||0;return (x>0&&x<1)?Math.round(x*1000)/10:x;});   // 0.052 → 5.2
     DB.reco=d.reco||null;   // 추천 구성 (스프레드시트 AC4:AI4)
-    el('hdDate').textContent='🗓 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
+    el('hdDate').textContent='• 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
     console.error(e);fallback();
     setStatus('err','샘플 데이터 표시 중');
-    el('hdDate').textContent='🗓 샘플 데이터 기준 (실데이터 연동 대기)';
+    el('hdDate').textContent='• 샘플 데이터 기준 (실데이터 연동 대기)';
   }
   renderAll();
   renderConfigs();
@@ -1171,7 +1171,7 @@ function renderCarModal(){
           h+=`<div class="mrow"><span class="ml">옵션 금액</span><span class="mv">0 원</span></div>`;
         }
         if(sub){const lbl=isEV(i)?'전기차 보조금':'하이브리드 차량 보조금';h+=`<div class="mrow"><span class="ml">${lbl}</span><span class="mv green">- 약 ${comma(sub)} 원</span></div>`;
-          if(isEV(i))h+=`<div class="sublabel">🗓 ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
+          if(isEV(i))h+=`<div class="sublabel">• ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
         if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
         h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
         h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
