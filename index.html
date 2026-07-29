@@ -44,7 +44,9 @@
   --shadow:0 4px 18px rgba(22,29,39,.08);--radius:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{overflow-x:hidden;overscroll-behavior:none;}
 body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body.modal-open{overflow:hidden;}
 #app{max-width:480px;margin:0 auto;position:relative;padding-bottom:0;}
 #app,.cmp-page,.modal{word-break:keep-all;overflow-wrap:break-word;}
 
@@ -176,7 +178,7 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 /* 모달 */
 .modal-bg{position:fixed;inset:0;background:rgba(10,14,20,.55);display:none;align-items:flex-end;justify-content:center;z-index:1700;backdrop-filter:blur(2px);}
 .modal-bg.show{display:flex;}
-.modal{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 20px 30px;max-height:90vh;overflow-y:auto;animation:slideUp .25s ease;}
+.modal{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 20px 30px;max-height:90vh;overflow-y:auto;overscroll-behavior:contain;animation:slideUp .25s ease;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .modal-grip{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
 .modal h3{font-size:17px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
@@ -284,7 +286,7 @@ body{font-family:'NanumSquare','Noto Sans KR',-apple-system,sans-serif;backgroun
 @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
 /* ===== 진입 커버 (Qualifycheck_license 이식) ===== */
 body.cover-open{overflow:hidden;}
-.cover{position:fixed;inset:0;z-index:2000;background:radial-gradient(115% 70% at 82% 8%,#24356E 0%,#131F45 48%,#131F45 100%);color:#fff;overflow-y:auto;display:flex;flex-direction:column;transition:opacity .55s ease,visibility .55s;}
+.cover{position:fixed;inset:0;z-index:2000;background:radial-gradient(115% 70% at 82% 8%,#24356E 0%,#131F45 48%,#131F45 100%);color:#fff;overflow-y:auto;overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y;display:flex;flex-direction:column;transition:opacity .55s ease,visibility .55s;}
 .cover.hide{opacity:0;visibility:hidden;pointer-events:none;}
 .cover-ring1{position:absolute;top:-120px;right:-100px;width:420px;height:420px;border-radius:50%;border:1px solid rgba(245,194,66,.18);}
 .cover-glow{position:absolute;top:-40px;right:30px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(245,194,66,.22),transparent 68%);animation:glowFloat 8s ease-in-out infinite;pointer-events:none;}
@@ -424,7 +426,12 @@ body.cover-open{overflow:hidden;}
 .cmp-cta{margin-top:20px;}
 .sms-btn{display:block;width:100%;padding:16px;border-radius:12px;border:none;background:var(--goldgrad);color:#16224A;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(224,168,46,.3);}
 .sms-btn .s{display:block;font-size:11px;font-weight:700;color:#5a4a24;margin-top:3px;}
-.fb-btn{display:block;width:100%;margin-top:10px;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.fb-btn{display:block;width:100%;margin-top:10px;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.fb-btn .s{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:3px;}
+/* 흑백 아이콘(모달 제목/직접입력 마커) */
+.mi{fill:none;stroke:currentColor;}
+.modal h3 .mi{width:20px;height:20px;flex:0 0 auto;}
+.subtitle .mi{width:14px;height:14px;margin-right:6px;flex:0 0 auto;align-self:center;}
 /* 대출 계산기 */
 .loan-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:18px;}
 .loan-h{font-size:14px;font-weight:800;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
@@ -537,7 +544,7 @@ body.cover-open{overflow:hidden;}
   </div>
 
   <!-- 코치 안내 -->
-  <div class="coach" id="coach" style="display:none;"><span class="ci">👆</span><span id="coachText"></span></div>
+  <div class="coach" id="coach" style="display:none;"><span id="coachText"></span></div>
 
   <!-- 구성 선택 탭 + 감싸기 박스 -->
   <div class="cfgwrap">
@@ -587,7 +594,7 @@ body.cover-open{overflow:hidden;}
 
   <div class="status" id="status"><span class="dot"></span><span id="statusText">데이터 연동 중...</span></div>
 
-  <button class="compare-btn" id="compareBtn" onclick="openCompare()">📊 구성 비교하기<span class="cbsub" id="compareSub">두 구성을 항목별로 비교합니다</span></button>
+  <button class="compare-btn" id="compareBtn" onclick="openCompare()">구성 비교하기<span class="cbsub" id="compareSub">두 구성을 항목별로 비교합니다</span></button>
 
   <button class="home-btn" onclick="goHome()">처음으로 돌아가기</button>
 
@@ -632,6 +639,13 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],
   reco:null};   // reco=추천 구성(AC4:AI4), carRate=할부율(연%), date*=기준일
+
+// ── 흑백(라인) 아이콘 — 구성 페이지 항목 아이콘과 동일 계열 ──
+const SVG_LIC='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>';
+const SVG_CAR='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l1.7-4.2A2 2 0 0 1 8.6 6.5h6.8a2 2 0 0 1 1.9 1.3L19 12"></path><rect x="3.5" y="12" width="17" height="5" rx="1.5"></rect><circle cx="7.8" cy="17.8" r="1.4"></circle><circle cx="16.2" cy="17.8" r="1.4"></circle></svg>';
+const SVG_INS='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6z"></path></svg>';
+const SVG_WORK='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>';
+const SVG_EDIT='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
 
 // ── 구성(Config) 상태: 2개 고정, 각각 직접 편집 ──
 function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};}
@@ -928,7 +942,7 @@ function renderConfigs(){
     btn.onclick=()=>selectCfg(i);
     btn.innerHTML='<span class="cn">'+(i===activeCfg?'✓ ':'')+CFG_NAMES[i]+'</span><span class="cv">'+amt+'</span>'+
       '<div class="cf-acts">'+
-      '<button onclick="event.stopPropagation();flashBtn(this);renameConfig('+i+')">✏️ 이름 변경</button>'+
+      '<button onclick="event.stopPropagation();flashBtn(this);renameConfig('+i+')">이름 변경</button>'+
       '<button onclick="event.stopPropagation();flashBtn(this);clearConfig('+i+')">↺ 초기화</button>'+
       '</div>';
     row.appendChild(btn);
@@ -993,7 +1007,7 @@ function renderCoach(){
   if(n){
     el(n.id).classList.add('next');
     c.className='coach';c.style.display='';
-    c.innerHTML='<span class="ci">👆</span><span>'+CFG_NAMES[activeCfg]+' · '+n.msg+'</span>';
+    c.innerHTML='<span>'+CFG_NAMES[activeCfg]+' · '+n.msg+'</span>';
   }else{
     c.className='coach done';c.style.display='';
     c.innerHTML='<span class="ci">✅</span><span>'+CFG_NAMES[activeCfg]+' 입력 완료! 다른 구성도 채우면 <b>구성 비교</b>를 할 수 있어요</span>';
@@ -1001,7 +1015,9 @@ function renderCoach(){
 }
 
 /* ===== 모달 공통 ===== */
-function openModalHTML(html){el('modalContent').innerHTML='<div class="modal-grip"></div>'+html;el('modalBg').classList.add('show');}
+function openModalHTML(html){el('modalContent').innerHTML='<div class="modal-grip"></div>'+html;el('modalBg').classList.add('show');document.body.classList.add('modal-open');}
+// 배경(백드롭) 터치 스크롤 차단 — 모달 내부 스크롤만 허용
+(function(){const bg=el('modalBg');if(bg)bg.addEventListener('touchmove',function(e){if(!e.target.closest('#modalContent'))e.preventDefault();},{passive:false});})();
 // 초기 소요비용 상세보기 (열람 전용)
 function openInitialDetail(){
   const b=computeBreakdown(S);
@@ -1020,7 +1036,7 @@ function openInitialDetail(){
   h+=`<button class="modal-close" onclick="closeModal()">닫기</button>`;
   openModalHTML(h);
 }
-function closeModal(){el('modalBg').classList.remove('show');}
+function closeModal(){el('modalBg').classList.remove('show');document.body.classList.remove('modal-open');}
 el('modalBg')&&el('modalBg').addEventListener('click',e=>{if(e.target===el('modalBg'))closeModal();});
 function toggleManual(id){const b=el(id);if(b)b.style.display=b.style.display==='none'?'block':'none';}
 function flashBtn(b){b.classList.remove('cf-flash');void b.offsetWidth;b.classList.add('cf-flash');setTimeout(()=>b.classList.remove('cf-flash'),450);}
@@ -1061,7 +1077,7 @@ function renderLicModal(){
   const reg=S.licRegion||'';
   const noReg=!reg;
   const isSeoul=(reg==='서울특별시');
-  let h=`<h3>📄 면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 시세</div>`;
+  let h=`<h3>${SVG_LIC}면허 비용</h3><div class="mdesc">양수 희망 지역의 개인택시 면허 시세</div>`;
   h+=`<div class="subtitle">양수 희망 지역</div>
     <div class="sel-wrap"><select id="licRegion" onchange="selLicRegion(this.value)">`;
   h+=`<option value=""${noReg?' selected':''} disabled hidden>지역을 선택하세요</option>`;
@@ -1077,12 +1093,12 @@ function renderLicModal(){
     <div class="mrow"><span class="ml">수수료</span><span class="mv">${won(DB.commission)}</span></div>
     <div class="mrow"><span class="ml"><b>소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(licenseBase())}</span></div>
     <div class="refdate">${refDate(DB.dateLicense)}</div>
-    <div class="subtitle" style="margin-top:16px;">✏️ 면허 비용 직접 입력하기</div>
+    <div class="subtitle" style="margin-top:16px;">${SVG_EDIT}면허 비용 직접 입력하기</div>
     <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
     <button class="manual-btn" onclick="startLicManual()">직접 입력</button>`;
   }else{
     if(!isSeoul)h+=`<div class="alert info" style="margin-top:12px;">ℹ️ 현재는 <b>서울시 면허 시세</b>만 제공되고 있습니다. 타 지역 양수 희망자께서는 <b>면허 비용을 직접 입력</b>해 주세요.</div>`;
-    h+=`<div class="subtitle" style="margin-top:14px;">✏️ 면허 비용 직접 입력하기</div>
+    h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}면허 비용 직접 입력하기</div>
     <div class="sublabel">금액을 입력하시면 소계에 자동 반영됩니다.</div>
     <div class="field"><label>면허 시세 *</label>
       <input class="inp" type="text" inputmode="numeric" id="licPrice" placeholder="예) 113,500,000" value="${S.licPrice?comma(S.licPrice):''}" oninput="fmtInput(this);updateLicSum()"></div>
@@ -1112,7 +1128,7 @@ function openCar(){
 }
 function renderCarModal(){
   const fuels=getFuels();
-  let h=`<h3>🚗 차량 선택</h3>`;
+  let h=`<h3>${SVG_CAR}차량 선택</h3>`;
   h+=`<div class="guide"><span class="gt">이렇게 선택하세요</span><b>①연료 → ②제조사 → ③차량</b>을 차례대로 입력하면, 각 차량 종류에 맞는 비용들이 자동으로 채워집니다.<br>차량 할부 설정에 따라 초도비용이 다르게 산정됩니다.</div>`;
   h+=`<div class="subtitle">① 연료 타입</div><div class="tog-row" style="flex-wrap:wrap;">`;
   fuels.forEach(f=>{h+=`<button class="tog-btn${tmpCar.fuel===f?' on':''}" onclick="selFuel('${f}')">${f}</button>`;});
@@ -1160,7 +1176,7 @@ function renderCarModal(){
         h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
         h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
       }else{
-        h+=`<div class="subtitle" style="margin-top:6px;">✏️ 차량 금액 직접 입력</div>
+        h+=`<div class="subtitle" style="margin-top:6px;">${SVG_EDIT}차량 금액 직접 입력</div>
         <div class="sublabel">금액을 입력하시면 아래 차량 소계에 자동 반영됩니다.</div>
         <div class="field"><label>차량 기본금액 (옵션 포함) *</label>
           <input class="inp" type="text" inputmode="numeric" id="carBaseOvr" placeholder="예) 27,000,000" value="${tmpCar.baseOvr?comma(tmpCar.baseOvr):''}" oninput="fmtInput(this);updateCarManualSum()"></div>
@@ -1196,7 +1212,7 @@ function renderCarModal(){
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" id="carSubDisp" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
     if(!isForeign(i)){
       if(!tmpCar.priceManual){
-        h+=`<div class="subtitle" style="margin-top:14px;">✏️ 차량 금액 직접 입력하기</div>
+        h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}차량 금액 직접 입력하기</div>
           <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
           <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){tmpCar.baseOvr=(DB.carPrice[${i}]||0)+(DB.carOptAmt[${i}]||0);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">직접 입력</button>`;
       }else{
@@ -1257,7 +1273,7 @@ function renderInsModal(){
   const i=S.car.idx;
   const isSeoul=isSeoulCfg(S);
   const reg=S.licRegion||'';
-  let h=`<h3>🛡 보험 / 조합</h3><div class="mdesc">${DB.carNames[i]} 기준</div>`;
+  let h=`<h3>${SVG_INS}보험 / 조합</h3><div class="mdesc">${DB.carNames[i]} 기준</div>`;
   if(!isSeoul)h+=`<div class="alert warn" style="margin-top:6px;">⚠️ <b>${reg}</b>은(는) 공제보험·조합 데이터가 제공되지 않아, <b>공제보험 선택 시 금액을 직접 입력</b>하셔야 합니다. (사보험은 서울과 동일하게 이용 가능)</div>`;
   h+=`<div class="guide"><span class="gt">공제보험 vs 사보험</span>
     · <b>공제보험</b> : 전국개인택시공제조합에서 운영. 각 지역 운송사업조합 가입이 필수입니다.<br>
@@ -1314,11 +1330,11 @@ function renderInsModal(){
     // ── 직접 입력 블록 (총액과 저장 사이) ──
     const midSa=(DB.saInsMin[i]&&DB.saInsMax[i])?Math.round((DB.saInsMin[i]+DB.saInsMax[i])/2):0;
     if(tmpIns.type==='사보험'){
-      h+=`<div class="subtitle" style="margin-top:14px;">✏️ 사보험료 직접 입력하기</div>`;
+      h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}사보험료 직접 입력하기</div>`;
       if(!tmpIns.saManual)h+=`<div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div><button class="manual-btn" onclick="syncSa();tmpIns.saManual=true;renderInsModal()">직접 입력</button>`;
       else h+=`<div class="sublabel">금액을 입력하시면 위 총액에 자동 반영됩니다. (비우면 예상 중앙값 ${comma(midSa)}원)</div><div class="field"><input class="inp" type="text" inputmode="numeric" id="saCustom" placeholder="예) ${comma(midSa||3000000)}" value="${tmpIns.saCustom?comma(tmpIns.saCustom):''}" oninput="fmtInput(this);updateInsSum()"></div><button class="manual-exit" onclick="syncSa();tmpIns.saManual=false;tmpIns.saCustom=0;renderInsModal()">직접 입력 취소</button>`;
     }else if(tmpIns.type==='공제'&&!isSeoul){
-      h+=`<div class="subtitle" style="margin-top:14px;">✏️ 공제보험료 직접 입력하기</div>`;
+      h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}공제보험료 직접 입력하기</div>`;
       if(!tmpIns.gjManual)h+=`<div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div><button class="manual-btn" onclick="syncSa();tmpIns.gjManual=true;renderInsModal()">직접 입력</button>`;
       else h+=`<div class="sublabel">조합에서 안내받은 1년 보험료를 입력하시면 위 총액에 자동 반영됩니다.</div><div class="field"><input class="inp" type="text" inputmode="numeric" id="gjCustom" placeholder="예) 2,900,000" value="${tmpIns.gjCustom?comma(tmpIns.gjCustom):''}" oninput="fmtInput(this);updateInsSum()"></div><button class="manual-exit" onclick="syncSa();tmpIns.gjManual=false;tmpIns.gjCustom=0;renderInsModal()">직접 입력 취소</button>`;
     }
@@ -1371,7 +1387,7 @@ function renderWorkModal(){
   const meter=(i>=0&&!isForeign(i))?DB.meterWork[i]:0;
   const M=!!tmpWork.manual;   // 직접 입력 모드: 금액 숨기고 항목명·체크박스만
   const amt=v=>M?'':`<span class="mv">${v}</span>`;
-  let h=`<h3>🔧 차량 작업비용</h3><div class="mdesc">미터점 작업 항목 (부가세 포함)</div>`;
+  let h=`<h3>${SVG_WORK}차량 작업비용</h3><div class="mdesc">미터점 작업 항목 (부가세 포함)</div>`;
   h+=`<div class="guide"><span class="gt">필수와 선택</span>
     <b>① 필수 항목</b>은 자동 합산, <b>② 선택 항목</b>은 체크 시 추가됩니다. 총액을 직접 넣으려면 <b>[입력하기]</b>를 누르세요.</div>`;
   h+=`<div class="subtitle">① 필수 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(자동 포함)</small></div>`;
@@ -1404,11 +1420,11 @@ function renderWorkModal(){
   if(!M){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
-    <div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    <div class="subtitle" style="margin-top:14px;">${SVG_EDIT}작업비 직접 입력하기</div>
     <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
     <button class="manual-btn" onclick="tmpWork.manual=true;renderWorkModal()">직접 입력</button>`;
   }else{
-    h+=`<div class="subtitle" style="margin-top:14px;">✏️ 작업비 직접 입력하기</div>
+    h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}작업비 직접 입력하기</div>
     <div class="sublabel">금액을 입력하시면 소계 대신 반영됩니다.</div>
     <div class="field"><label>작업비 총액 입력 <span style="font-weight:600;color:var(--muted)">(비우면 자동 소계 사용)</span></label>
       <input class="inp" type="text" inputmode="numeric" id="workOvr" placeholder="예) 1,200,000" value="${tmpWork.ovr?comma(tmpWork.ovr):''}" oninput="fmtInput(this)"></div>
@@ -1436,7 +1452,7 @@ function confirmModal(msg,onYes){
 let __confirmCb=null;
 function __confirmYes(){const cb=__confirmCb;__confirmCb=null;closeModal();if(cb)cb();}
 function promptModal(title,cur,onOk){
-  const h=`<h3>✏️ ${title}</h3>
+  const h=`<h3>${title}</h3>
     <div class="field" style="margin-top:6px;"><label>이름 (최대 12자)</label>
       <input class="inp" type="text" id="promptInput" maxlength="12" value="${(cur||'').replace(/"/g,'&quot;')}" placeholder="예) 쏘나타 일시불"></div>
     <button class="modal-save" onclick="__promptOk()">저장</button>
@@ -1460,9 +1476,9 @@ function insLabel(ins){if(!ins)return '—';return ins.type+((ins.type==='공제
 function c2Item(label,key,valA,subA,valB,subB){
   const aC=(valA<valB)?'cheap':'', bC=(valB<valA)?'cheap':'';
   return `<div class="c2row editable">
-    <div class="cL ${aC}" onclick="editCmp(0,'${key}')"><div class="val">${comma(valA)}원</div>${subA?`<div class="sub">${subA}</div>`:''}<div class="edit-ic">🔍 상세보기/수정</div></div>
+    <div class="cL ${aC}" onclick="editCmp(0,'${key}')"><div class="val">${comma(valA)}원</div>${subA?`<div class="sub">${subA}</div>`:''}<div class="edit-ic">상세보기/수정</div></div>
     <div class="cM">${label}</div>
-    <div class="cR ${bC}" onclick="editCmp(1,'${key}')"><div class="val">${comma(valB)}원</div>${subB?`<div class="sub">${subB}</div>`:''}<div class="edit-ic">🔍 상세보기/수정</div></div>
+    <div class="cR ${bC}" onclick="editCmp(1,'${key}')"><div class="val">${comma(valB)}원</div>${subB?`<div class="sub">${subB}</div>`:''}<div class="edit-ic">상세보기/수정</div></div>
   </div>`;
 }
 function c2Total(label,valA,valB,subA,subB,sep){
@@ -1494,7 +1510,7 @@ function openCompare(force){
   if(A.monthly!==B.monthly){const aC=A.monthly<B.monthly,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.monthly-B.monthly);verdict+=`<br>월 납입금액은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 적습니다.`;}
   if(A.grand!==B.grand){const aC=A.grand<B.grand,c=aC?nA:nB,li=aC?1:2,lab=cfgLabel(c,li),d=Math.abs(A.grand-B.grand);verdict+=`<br>총 비용은 <b>${lab}</b>${iga(lab)} <b>${comma(d)}원</b> 저렴합니다.`;}
   let h=`<div class="cmp-page-title">개인택시 양수 견적 구성 비교</div>`;
-  h+=`<div class="cmp-verdict">💡 ${verdict}</div>`;
+  h+=`<div class="cmp-verdict">${verdict}</div>`;
   h+=`<div class="cmp2"><div class="pillar"></div>`;
   h+=`<div class="c2row head"><div class="cL"><div class="cn">${nA}</div></div><div class="cM">항목</div><div class="cR"><div class="cn">${nB}</div></div></div>`;
   h+=c2Item('면허','license',A.license,(sA.licRegion||'서울특별시')+(sA.licManual&&isSeoulCfg(sA)?' · 직접입력':''),B.license,(sB.licRegion||'서울특별시')+(sB.licManual&&isSeoulCfg(sB)?' · 직접입력':''));
@@ -1508,10 +1524,10 @@ function openCompare(force){
   h+=c2Total('월<br>납입금액',A.monthly,B.monthly,A.monthly?A.months+'개월':'일시불',B.monthly?B.months+'개월':'일시불');
   h+=c2Total('총<br>비용',A.grand,B.grand,'초기+할부원금','초기+할부원금',true);
   h+=`</div>`;
-  h+=`<div class="cmp-hint">💡 <b>🔍 상세보기/수정</b> 버튼을 누르면 자세한 내용을 직접 수정하실 수 있어요.</div>`;
+  h+=`<div class="cmp-hint"><b>상세보기/수정</b> 버튼을 누르면 자세한 내용을 직접 수정하실 수 있어요.</div>`;
   // 대출 계산기 (접기/펼치기)
   h+=`<div class="loan-card">
-    <div class="loan-h" onclick="toggleLoan()">💳 대출 계산기<span class="loan-tgl" id="loanTgl">${loanOpen?'▲ 접기':'▼ 펼치기'}</span></div>
+    <div class="loan-h" onclick="toggleLoan()">대출 계산기<span class="loan-tgl" id="loanTgl">${loanOpen?'▲ 접기':'▼ 펼치기'}</span></div>
     <div class="loan-body" id="loanBody" style="display:${loanOpen?'block':'none'};">
       <div class="field" style="margin:10px 0;"><label>현재 보유 금액</label>
         <input class="inp" id="loanCash" type="text" inputmode="numeric" placeholder="예) 50,000,000" value="${loanCash?comma(loanCash):''}" oninput="fmtInput(this);loanCalc()"></div>
@@ -1528,8 +1544,8 @@ function openCompare(force){
     </div>
   </div>`;
   h+=`<div class="cmp-cta">
-    <button class="sms-btn" onclick="openSms()">📩 문자로 견적 받기<span class="s">비교 견적을 이미지로 보내드립니다</span></button>
-    <button class="fb-btn" onclick="openFeedback()">💬 의견 보내기</button>
+    <button class="sms-btn" onclick="openSms()">문자로 견적 받기<span class="s">비교 견적을 이미지로 보내드립니다</span></button>
+    <button class="fb-btn" onclick="openFeedback()">의견 보내기<span class="s">계산기에 관련한 의견이 있으면 말씀해 주세요</span></button>
   </div>`;
   h+=`<button class="home-btn" onclick="closeCompare()">← 이전</button>`;
   h+=`<button class="home-btn" onclick="goHome()">처음으로 돌아가기</button>`;
@@ -1679,13 +1695,13 @@ function smsBankBlock(){
 }
 function openSms(){
   lastQuoteImg=quoteImageURL();
-  openModalHTML(`<h3>📩 문자로 견적 받기</h3><div class="mdesc">입력하신 번호로 구성별 비교 견적표를 보내드립니다</div>
+  openModalHTML(`<h3>문자로 견적 받기</h3><div class="mdesc">입력하신 번호로 구성별 비교 견적표를 보내드립니다</div>
     <div class="ov-sum">📷 <b>구성별 비교 견적표</b>를 입력하신 번호로 <b>문자(MMS)</b> 발송해 드립니다.</div>
     ${smsBankBlock()}
     <div class="field"><label>이름 *</label><input class="inp" id="smsName" placeholder="홍길동"></div>
     <div class="field"><label>연락처 (휴대폰) *</label><input class="inp" id="smsPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
     <label class="agree"><input type="checkbox" id="smsAgree"><span>개인정보 수집·이용(견적 문자 발송 목적)에 동의합니다.</span></label>
-    <button class="modal-save" style="margin-top:4px;" onclick="submitSms()">📩 견적표 문자 신청</button>
+    <button class="modal-save" style="margin-top:4px;" onclick="submitSms()">견적표 문자 신청</button>
     <div class="ov-note">ℹ️ 신청하시면 입력하신 번호로 견적표가 <b>문자(MMS)</b>로 발송됩니다. (영업일 기준 순차 발송)</div>`);
 }
 // ── Apps Script 전송 (자격진단 레퍼런스와 동일 방식: no-cors POST, 서버가 솔라피 발송·시트 기록) ──
@@ -1781,7 +1797,7 @@ let fbRating=0;
 const FB_LBL=['','매우 불만족','불만족','보통','만족','매우 만족'];
 function openFeedback(){
   fbRating=0;
-  openModalHTML(`<h3>💬 의견 보내기</h3><div class="mdesc">더 나은 계산기를 위해 의견을 들려주세요</div>
+  openModalHTML(`<h3>의견 보내기</h3><div class="mdesc">더 나은 계산기를 위해 의견을 들려주세요</div>
     <div class="field"><label>계산기 만족도 *</label>
       <div class="stars" id="fbStars">${[1,2,3,4,5].map(n=>`<span onclick="setFbStar(${n})">☆</span>`).join('')}</div>
       <div class="star-lbl" id="fbStarLbl">별을 눌러 평가해 주세요</div></div>
