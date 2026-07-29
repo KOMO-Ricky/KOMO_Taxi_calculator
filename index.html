@@ -1129,7 +1129,7 @@ function openCar(){
 function renderCarModal(){
   const fuels=getFuels();
   let h=`<h3>${SVG_CAR}차량 선택</h3>`;
-  h+=`<div class="guide"><span class="gt">이렇게 선택하세요</span><b>①연료 → ②제조사 → ③차량</b>을 차례대로 입력하면, 각 차량 종류에 맞는 비용들이 자동으로 채워집니다.<br>차량 할부 설정에 따라 초도비용이 다르게 산정됩니다.</div>`;
+  h+=`<div class="guide" style="margin-top:14px;"><span class="gt">이렇게 선택하세요</span><b>①연료 → ②제조사 → ③차량</b>을 차례대로 입력하면, 각 차량 종류에 맞는 비용들이 자동으로 채워집니다.<br>차량 할부 설정에 따라 초도비용이 다르게 산정됩니다.</div>`;
   h+=`<div class="subtitle">① 연료 타입</div><div class="tog-row" style="flex-wrap:wrap;">`;
   fuels.forEach(f=>{h+=`<button class="tog-btn${tmpCar.fuel===f?' on':''}" onclick="selFuel('${f}')">${f}</button>`;});
   h+=`</div>`;
