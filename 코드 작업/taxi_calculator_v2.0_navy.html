@@ -1613,6 +1613,8 @@ function syncScrollLock(){
   document.documentElement.classList.toggle('scroll-lock',lock);
 }
 function goHome(){
+  // 입력한 구성 전체 초기화 후 커버로 복귀
+  CONFIGS=[newCfg(),newCfg()];CFG_NAMED=[false,false];CFG_NAMES=['1번 구성','2번 구성'];activeCfg=0;S=CONFIGS[0];renderAll();
   closeCompare();closeModal();
   el('coverPage').classList.remove('hide');
   document.body.classList.add('cover-open');
@@ -1622,7 +1624,7 @@ function goHome(){
 }
 // 처음으로 돌아가기 확인 팝업
 function goHomeConfirm(){
-  confirmModal('처음 화면으로 돌아가시겠습니까?<br>입력하신 내용은 그대로 유지됩니다.',goHome);
+  confirmModal('처음 화면으로 돌아가시겠습니까?<br>입력하신 내용이 모두 초기화됩니다.',goHome);
 }
 // 비교표에서 항목 직접 수정 → 해당 구성의 입력 모달 오픈
 function editCmp(cfgIdx,key){
