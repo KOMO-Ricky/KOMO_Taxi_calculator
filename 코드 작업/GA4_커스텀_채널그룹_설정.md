@@ -18,7 +18,8 @@
 | 3 | 네이버 타카페(전국택시연합모임) | `calculator.licen.co.kr/cafe_2` | `naver_cafe_taxiunion` | `cafe_union` |
 | 4 | 카카오톡 오픈채팅 | `calculator.licen.co.kr/kakao_open_1` | `kakao_openchat` | `kakao_open_1` |
 | 5 | 유튜브 | `calculator.licen.co.kr/youtube` | `youtube` | `video` |
-| 6 | 문자(SMS) | `calculator.licen.co.kr/sms` | `sms` | `sms` |
+| 6 | 유튜브(에반스) | `calculator.licen.co.kr/youtube_evans` | `youtube_evans` | `youtube_evans` |
+| 7 | 문자(SMS) | `calculator.licen.co.kr/sms` | `sms` | `sms` |
 
 공통: `utm_campaign=calculator_launch`
 
@@ -52,9 +53,14 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 | 3 | 카카오 오픈채팅 | `세션 소스` **정확히 일치** `kakao_openchat` |
 | 4 | 홈페이지 | `세션 소스` **정확히 일치** `homepage` |
 | 5 | 유튜브 | `세션 소스` **정확히 일치** `youtube` |
-| 6 | 문자(SMS) | `세션 소스` **정확히 일치** `sms` |
-| 7 | 직접 유입 | `세션 소스` **정확히 일치** `(direct)` |
-| 8 | 기타 유입 | 위 조건에 해당하지 않는 나머지 (기본 잔여 채널) |
+| 6 | 유튜브(에반스) | `세션 소스` **정확히 일치** `youtube_evans` |
+| 7 | 문자(SMS) | `세션 소스` **정확히 일치** `sms` |
+| 8 | 직접 유입 | `세션 소스` **정확히 일치** `(direct)` |
+| 9 | 기타 유입 | 위 조건에 해당하지 않는 나머지 (기본 잔여 채널) |
+
+> 유튜브 채널을 하나로 합쳐 보고 싶다면 5·6번을 하나로 만들고
+> 조건을 `세션 소스` **시작값** `youtube` 으로 지정하면 됩니다.
+> (단, 이 경우 두 채널이 구분되지 않으므로 소스별로 나눠 보려면 위 표대로 분리해 두세요.)
 
 ### 매체(medium) 기준으로 걸고 싶을 때
 
@@ -92,3 +98,4 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 - utm_medium 변경: `community`/`community`/`messenger`
   → `cafe_official`/`cafe_union`/`kakao_open_1`
 - 경로명 변경: `/union` → `/cafe_2`
+- 경로 추가: `/youtube_evans` (source·medium 모두 `youtube_evans`)
