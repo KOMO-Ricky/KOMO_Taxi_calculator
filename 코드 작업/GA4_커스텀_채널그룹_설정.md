@@ -17,7 +17,7 @@
 | 2 | 네이버 대표카페 | `calculator.licen.co.kr/cafe` | `naver_cafe_official` | `cafe_official` |
 | 3 | 네이버 타카페(전국택시연합모임) | `calculator.licen.co.kr/cafe_2` | `naver_cafe_taxiunion` | `cafe_union` |
 | 4 | 카카오톡 오픈채팅 | `calculator.licen.co.kr/kakao_open_1` | `kakao_openchat` | `kakao_open_1` |
-| 5 | 유튜브 | `calculator.licen.co.kr/youtube` | `youtube` | `video` |
+| 5 | 유튜브 | `calculator.licen.co.kr/youtube` | `youtube` | `youtube` |
 | 6 | 유튜브(에반스) | `calculator.licen.co.kr/youtube_evans` | `youtube_evans` | `youtube_evans` |
 | 7 | 문자(SMS) | `calculator.licen.co.kr/sms` | `sms` | `sms` |
 
@@ -99,3 +99,4 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
   → `cafe_official`/`cafe_union`/`kakao_open_1`
 - 경로명 변경: `/union` → `/cafe_2`
 - 경로 추가: `/youtube_evans` (source·medium 모두 `youtube_evans`)
+- utm_medium 변경: `/youtube` `video` → `youtube`
