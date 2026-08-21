@@ -21,8 +21,18 @@
 
 // ── 설정 ─────────────────────────────────────────────────────────────
 var SITE_URL   = 'http://www.tlxc.co.kr/';   // ★ 시세가 표시되는 페이지 주소로 교체
-var ANCHOR     = '';                          // ★ 시세 바로 앞에 오는 문구 (예: '서울 개인택시 면허 시세')
-                                              //    비워두면 페이지에서 '조건에 맞는 첫 금액'을 사용
+
+/* 추출 방식 — 위에서부터 우선 적용된다. 하나만 채우면 된다.
+ *  (1) MARKER_ID  : 가장 안정적. 아임웹 HTML 위젯에 아래처럼 넣고 ID를 적는다.
+ *                   <span id="kola-license-price">113,500,000</span>
+ *  (2) SELECTOR    : 기존 요소의 id 또는 class 를 지정 (예: 'id:site_1234', 'class:price-text')
+ *                   ※ 아임웹은 편집 시 자동 생성 클래스가 바뀔 수 있어 (1)보다 불안정
+ *  (3) ANCHOR      : 시세 앞에 오는 고정 문구 (예: '서울 개인택시 면허 시세')
+ *  세 값이 모두 비면 페이지에서 '조건에 맞는 첫 금액'을 사용한다(권장하지 않음).
+ */
+var MARKER_ID  = '';                          // 예: 'kola-license-price'
+var SELECTOR   = '';                          // 예: 'class:price-text'
+var ANCHOR     = '';                          // 예: '서울 개인택시 면허 시세'
 var SHEET_NAME = '자금계산기 DB';
 var CELL_PRICE = 'B3';    // 면허 시세
 var CELL_DATE  = 'B9';    // 데이터 기준일
@@ -115,13 +125,49 @@ function 시세후보_확인() {
 }
 
 
-/** 실제 시세 추출 (ANCHOR 우선, 없으면 첫 유효 금액) */
-function extractPrice_() {
-  var text = htmlToText_(fetchHtml_());
+/** id="..." 또는 class="..." 인 요소의 내부 텍스트를 뽑는다 */
+function pickElementText_(html, kind, name) {
+  // 여는 태그를 찾고, 거기서부터 같은 태그가 닫힐 때까지의 구간을 취한다(단순 스캔)
+  var re = kind === 'id'
+    ? new RegExp('<([a-zA-Z][\\w-]*)[^>]*\\sid\\s*=\\s*["\']' + name + '["\'][^>]*>', 'i')
+    : new RegExp('<([a-zA-Z][\\w-]*)[^>]*\\sclass\\s*=\\s*["\'][^"\']*\\b' + name + '\\b[^"\']*["\'][^>]*>', 'i');
+  var m = re.exec(html);
+  if (!m) return null;
 
-  // ANCHOR가 지정되면 그 문구 뒤쪽에서 첫 금액을 찾는다
+  var tag = m[1], start = m.index + m[0].length, depth = 1, i = start;
+  var open = new RegExp('<' + tag + '\\b', 'ig');
+  var close = new RegExp('</' + tag + '\\s*>', 'ig');
+  open.lastIndex = start; close.lastIndex = start;
+
+  var end = html.length, guard = 0;
+  while (depth > 0 && guard++ < 500) {
+    close.lastIndex = i; var c = close.exec(html);
+    if (!c) break;
+    open.lastIndex = i; var o = open.exec(html);
+    if (o && o.index < c.index) { depth++; i = o.index + o[0].length; }
+    else { depth--; i = c.index + c[0].length; end = c.index; }
+  }
+  return htmlToText_(html.substring(start, end));
+}
+
+
+/** 실제 시세 추출 (MARKER_ID → SELECTOR → ANCHOR → 첫 유효 금액) */
+function extractPrice_() {
+  var html = fetchHtml_();
+  var text = htmlToText_(html);
   var scope = text;
-  if (ANCHOR) {
+
+  if (MARKER_ID) {
+    scope = pickElementText_(html, 'id', MARKER_ID);
+    if (scope === null) throw new Error('마커 ID를 찾지 못했습니다: #' + MARKER_ID);
+  } else if (SELECTOR) {
+    var parts = String(SELECTOR).split(':');
+    var kind = (parts[0] || '').trim().toLowerCase();
+    var name = (parts[1] || '').trim();
+    if (kind !== 'id' && kind !== 'class') throw new Error("SELECTOR 형식은 'id:이름' 또는 'class:이름' 입니다.");
+    scope = pickElementText_(html, kind, name);
+    if (scope === null) throw new Error('선택자를 찾지 못했습니다: ' + SELECTOR);
+  } else if (ANCHOR) {
     var idx = text.indexOf(ANCHOR);
     if (idx < 0) throw new Error('기준 문구(ANCHOR)를 페이지에서 찾지 못했습니다: ' + ANCHOR);
     scope = text.substring(idx, idx + 300);
@@ -177,6 +223,45 @@ function 시세_자동갱신() {
   sh.getRange(CELL_PRICE).setValue(got.value);
   sh.getRange(CELL_DATE).setValue(new Date());   // 기준일 = 수집일
   writeLog_('갱신', before, got.value, '원문: ' + got.raw);
+}
+
+
+/**
+ * [0단계] 페이지 구조 진단.
+ * 아임웹이 자바스크립트로 시세를 그리는지 / 정적 HTML에 들어있는지 판별한다.
+ */
+function 구조진단() {
+  var html = fetchHtml_();
+  var text = htmlToText_(html);
+  var money = text.match(/[0-9]{1,3}(?:,[0-9]{3}){2,}|[0-9]+억|[0-9,]{3,}만원/g) || [];
+
+  Logger.log('── 페이지 구조 진단 ──');
+  Logger.log('HTML 길이      : ' + html.length.toLocaleString() + ' 자');
+  Logger.log('본문 텍스트 길이: ' + text.length.toLocaleString() + ' 자');
+  Logger.log('한글 포함 여부  : ' + (/[가-힣]/.test(text) ? '예' : '아니오 (인코딩 문제 가능)'));
+  Logger.log('금액 패턴 개수  : ' + money.length + (money.length ? '  → ' + money.slice(0, 10).join(', ') : ''));
+
+  if (MARKER_ID) {
+    var mk = pickElementText_(html, 'id', MARKER_ID);
+    Logger.log('마커(#' + MARKER_ID + ') : ' + (mk === null ? '찾지 못함' : '찾음 → "' + mk + '"'));
+  }
+
+  if (text.length < 500 || money.length === 0) {
+    Logger.log('');
+    Logger.log('※ 본문이 거의 비었거나 금액이 없습니다.');
+    Logger.log('  아임웹이 자바스크립트로 내용을 그리는 경우일 수 있습니다.');
+    Logger.log('  이 경우 아임웹 관리자에서 HTML 위젯으로 고정 마커를 삽입하는 방식이 필요합니다.');
+    Logger.log('  예) <span id="kola-license-price">113,500,000</span>');
+  }
+
+  // 참고용: id/class 에 price·money·시세 가 들어간 요소 목록
+  var cand = html.match(/<[a-zA-Z][^>]*(?:id|class)\s*=\s*["'][^"']*(?:price|money|cost|amount|sise)[^"']*["'][^>]*>/gi) || [];
+  if (cand.length) {
+    Logger.log('');
+    Logger.log('가격 관련 선택자 후보 ' + cand.length + '건:');
+    cand.slice(0, 15).forEach(function (c, i) { Logger.log('  [' + (i + 1) + '] ' + c.substring(0, 160)); });
+  }
+  return { htmlLen: html.length, textLen: text.length, moneyCount: money.length };
 }
 
 
