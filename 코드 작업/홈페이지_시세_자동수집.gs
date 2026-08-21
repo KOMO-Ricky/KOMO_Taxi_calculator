@@ -273,6 +273,78 @@ function 구조진단() {
 }
 
 
+/** 숫자 → 콤마 표기 */
+function comma_(n) {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/** html 의 idx 위치가 <script> 내부인지 */
+function isInsideScript_(html, idx) {
+  var head = html.substring(0, idx);
+  var opens = (head.match(/<script\b/gi) || []).length;
+  var closes = (head.match(/<\/script\s*>/gi) || []).length;
+  return opens > closes;
+}
+
+
+/**
+ * [0-2단계] 원본 HTML 전체(script/JSON 포함)에서 시세 숫자의 위치를 찾는다.
+ * 구조진단에서 "금액이 안 보인다"고 나왔을 때 실행한다.
+ * 시트 B3의 현재 값을 여러 표기로 바꿔 원본 HTML에서 직접 검색한다.
+ */
+function 원시_시세위치_찾기() {
+  var html = fetchHtml_();
+
+  var t = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '(제목 없음)';
+  Logger.log('페이지 제목 : ' + t.replace(/\s+/g, ' ').trim());
+  Logger.log('HTML 길이   : ' + comma_(html.length) + ' 자');
+
+  var sh = SpreadsheetApp.openById(SISE_SS_ID).getSheetByName(SHEET_NAME);
+  var cur = sh ? (Number(sh.getRange(CELL_PRICE).getValue()) || 0) : 0;
+  Logger.log('시트 ' + CELL_PRICE + ' 현재값 : ' + comma_(cur) + '원');
+  Logger.log('');
+
+  if (!cur) { Logger.log('B3 값이 비어 있어 비교할 수 없습니다.'); return; }
+
+  // 같은 금액의 여러 표기 만들기
+  var man = Math.round(cur / 10000);
+  var eok = Math.floor(cur / 100000000);
+  var rest = Math.round((cur - eok * 100000000) / 10000);
+  var variants = [String(cur), comma_(cur), comma_(man) + '만', String(man) + '만'];
+  if (eok) variants.push(eok + '억');
+  if (eok && rest) { variants.push(eok + '억 ' + comma_(rest) + '만'); variants.push(eok + '억' + comma_(rest) + '만'); }
+
+  Logger.log('── 표기별 원본 HTML 검색 ──');
+  var anyHit = false;
+  variants.forEach(function (v) {
+    var idx = -1, found = 0;
+    while ((idx = html.indexOf(v, idx + 1)) !== -1 && found < 4) {
+      found++; anyHit = true;
+      var ctx = html.substring(Math.max(0, idx - 130), idx + v.length + 130).replace(/\s+/g, ' ');
+      Logger.log('[' + v + '] ' + found + '번째' + (isInsideScript_(html, idx) ? '  (script 내부)' : '  (일반 HTML)'));
+      Logger.log('     …' + ctx + '…');
+    }
+    if (!found) Logger.log('[' + v + '] 없음');
+  });
+
+  // 원본 전체의 금액 패턴(중복 제거)
+  var raw = html.match(/[0-9]{1,3}(?:,[0-9]{3}){2,}/g) || [];
+  var uniq = [], seen = {};
+  raw.forEach(function (r) { if (!seen[r]) { seen[r] = 1; uniq.push(r); } });
+  Logger.log('');
+  Logger.log('원본 HTML 내 콤마 금액 패턴 ' + uniq.length + '종: ' + uniq.slice(0, 25).join(', '));
+
+  if (!anyHit) {
+    Logger.log('');
+    Logger.log('※ 어떤 표기로도 시세를 찾지 못했습니다.');
+    Logger.log('  → 시세가 페이지 로드 후 별도 통신으로 채워지는 구조입니다.');
+    Logger.log('  → 아임웹 관리자에서 HTML 위젯으로 고정 마커를 넣는 방식이 필요합니다.');
+    Logger.log('     예) <span id="kola-license-price">' + comma_(cur) + '</span>');
+  }
+  return anyHit;
+}
+
+
 /** 실행 이력 기록 */
 function writeLog_(status, before, after, memo) {
   var ss = SpreadsheetApp.openById(SISE_SS_ID);
