@@ -369,9 +369,14 @@ function 원시_시세위치_찾기() {
   var man = Math.round(cur / 10000);
   var eok = Math.floor(cur / 100000000);
   var rest = Math.round((cur - eok * 100000000) / 10000);
-  var variants = [String(cur), comma_(cur), comma_(man) + '만', String(man) + '만'];
+  var variants = [String(cur), comma_(cur), comma_(cur) + '원',
+                  comma_(man) + '만', comma_(man) + ' 만원', String(man) + '만'];
   if (eok) variants.push(eok + '억');
-  if (eok && rest) { variants.push(eok + '억 ' + comma_(rest) + '만'); variants.push(eok + '억' + comma_(rest) + '만'); }
+  if (eok && rest) {
+    variants.push(eok + '억 ' + comma_(rest) + ' 만원');   // 실제 tlxc.co.kr 표기
+    variants.push(eok + '억 ' + comma_(rest) + '만원');
+    variants.push(eok + '억' + comma_(rest) + '만');
+  }
 
   Logger.log('── 표기별 원본 HTML 검색 ──');
   var anyHit = false;
