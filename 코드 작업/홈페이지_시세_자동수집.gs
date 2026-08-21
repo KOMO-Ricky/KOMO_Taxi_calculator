@@ -22,7 +22,8 @@
  *    4) 결과에 따라 MARKER_ID · SELECTOR · ANCHOR 중 하나를 지정
  *    5) [시세_미리보기] 로 값이 제대로 뽑히는지 확인 (시트는 건드리지 않음)
  *    6) 값이 맞으면 [시세_자동갱신] 실행 → B3/B9 반영
- *    7) 트리거 등록: 시간 기반 → 일 단위(예: 매일 오전 6~7시) → 시세_자동갱신
+ *    7) [트리거_설정] 실행 → 매일 09·12·15·18시 자동 갱신 등록
+ *       (시각 변경은 TRIGGER_HOURS 배열 수정)
  *
  *  ※ 함수 실행: 편집기 상단 함수 선택 드롭다운에서 고른 뒤 [실행]
  *     결과는 하단 '실행 로그'에서 확인
@@ -406,6 +407,52 @@ function 원시_시세위치_찾기() {
     Logger.log('     예) <span id="kola-license-price">' + comma_(cur) + '</span>');
   }
   return anyHit;
+}
+
+
+/* ═══════════════ 트리거 관리 ═══════════════
+ *  UI의 '시간 타이머'는 1·2·4·6·8·12시간만 지원해 3시간 간격을 만들 수 없다.
+ *  대신 '매일 특정 시각' 트리거를 여러 개 만들어 3시간 간격을 구성한다.
+ *
+ *  [트리거_설정] 한 번 실행하면 아래 시각들에 매일 자동 실행된다.
+ *  ※ 구글 트리거는 지정 시각 '전후 약 15분' 범위에서 실행된다(정시 보장 아님).
+ */
+var TRIGGER_HOURS = [9, 12, 15, 18];   // ★ 원하는 시각 (24시간제)
+var TRIGGER_TZ    = 'Asia/Seoul';
+
+
+/** 기존 트리거를 지우고 TRIGGER_HOURS 시각으로 새로 등록 */
+function 트리거_설정() {
+  트리거_해제();
+  TRIGGER_HOURS.forEach(function (h) {
+    var b = ScriptApp.newTrigger('시세_자동갱신').timeBased().atHour(h).everyDays(1);
+    try { b = b.nearMinute(0); } catch (e) {}          // 지원 안 되면 생략
+    try { b = b.inTimezone(TRIGGER_TZ); } catch (e) {} // 지원 안 되면 프로젝트 시간대 사용
+    b.create();
+    Logger.log('등록: 매일 ' + h + '시 → 시세_자동갱신');
+  });
+  Logger.log('완료 — 총 ' + TRIGGER_HOURS.length + '개 트리거');
+  트리거_목록();
+}
+
+
+/** 이 스크립트가 만든 시세 트리거 전부 삭제 */
+function 트리거_해제() {
+  var all = ScriptApp.getProjectTriggers(), n = 0;
+  all.forEach(function (t) {
+    if (t.getHandlerFunction() === '시세_자동갱신') { ScriptApp.deleteTrigger(t); n++; }
+  });
+  if (n) Logger.log('기존 트리거 ' + n + '개 삭제');
+}
+
+
+/** 현재 등록된 트리거 확인 */
+function 트리거_목록() {
+  var all = ScriptApp.getProjectTriggers();
+  Logger.log('── 등록된 트리거 ' + all.length + '개 ──');
+  all.forEach(function (t) {
+    Logger.log('  ' + t.getHandlerFunction() + '  (' + t.getEventType() + ')');
+  });
 }
 
 
