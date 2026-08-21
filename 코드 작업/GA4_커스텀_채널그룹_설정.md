@@ -20,6 +20,7 @@
 | 5 | 유튜브 | `calculator.licen.co.kr/youtube` | `youtube` | `youtube` |
 | 6 | 유튜브(에반스) | `calculator.licen.co.kr/youtube_evans` | `youtube_evans` | `youtube_evans` |
 | 7 | 문자(SMS) | `calculator.licen.co.kr/sms` | `sms` | `sms` |
+| 8 | QR코드 | `calculator.licen.co.kr/qr` | `qr` | `qr` |
 
 공통: `utm_campaign=calculator_launch`
 
@@ -49,7 +50,7 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 
 - **기본 채널을 지우지 말 것** — 홍보 링크 외 트래픽(검색·직접·기타 유입)의
   분류를 담당하는 안전망입니다. 지우면 전부 Unassigned로 빠집니다.
-- 아래 7개를 **[새 채널 추가]** 로 만든 뒤, **[재정렬]** 로 **목록 맨 위(1~7번)** 에 배치합니다.
+- 아래 8개를 **[새 채널 추가]** 로 만든 뒤, **[재정렬]** 로 **목록 맨 위(1~8번)** 에 배치합니다.
 - `Direct`, `기타 유입` 등은 기본 채널이 이미 처리하므로 따로 만들지 않습니다.
 
 ### 순서가 중요한 이유
@@ -60,7 +61,7 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 - `Organic Social` : 카카오 등 소셜 소스를 매칭
 - `Referral` : 나머지를 폭넓게 매칭
 
-따라서 커스텀 채널 7개가 **반드시 기본 채널보다 위**에 있어야 합니다.
+따라서 커스텀 채널 8개가 **반드시 기본 채널보다 위**에 있어야 합니다.
 
 ### 추가할 채널 (모두 `세션 소스` **정확히 일치**)
 
@@ -73,8 +74,9 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 | 5 | 유튜브 | `youtube` |
 | 6 | 유튜브(에반스) | `youtube_evans` |
 | 7 | 문자(SMS) | `sms` |
+| 8 | QR코드 | `qr` |
 
-8번 이하는 기본 채널(Direct, Cross-network, … Organic Search, Referral 등) 그대로 유지
+9번 이하는 기본 채널(Direct, Cross-network, … Organic Search, Referral 등) 그대로 유지
 
 > 유튜브 채널을 하나로 합쳐 보고 싶다면 5·6번을 하나로 만들고
 > 조건을 `세션 소스` **시작값** `youtube` 으로 지정하면 됩니다.
@@ -109,6 +111,17 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 - 채널을 추가할 때는 리다이렉트 폴더를 하나 더 만들고(예: `/blog`),
   이 문서의 표와 GA4 채널 규칙에 같은 방식으로 한 줄씩 추가하면 됩니다.
 
+### QR코드에 대하여
+
+- QR 이미지는 `promo/qr/` 에 있다.
+  - `qr_plain.png` : 검정 (인쇄용 권장 — 대비가 가장 높아 인식률이 좋다)
+  - `qr_navy.png`  : 브랜드 네이비
+  - `qr_navy.svg`  : 벡터 (현수막·전단 등 대형 인쇄용)
+- 담고 있는 주소: `https://calculator.licen.co.kr/qr`
+- 오류정정 레벨 H(30% 손상까지 복원)로 생성되어, 일부가 가려져도 인식된다.
+- 부착 위치별로 나눠 보고 싶다면 `/qr_card`(명함), `/qr_flyer`(전단) 처럼
+  경로를 나누고 각각 QR을 만들면 된다.
+
 ---
 
 ## 6. 변경 이력
@@ -118,3 +131,4 @@ GA4 → **관리(⚙️)** → **데이터 표시** → **채널 그룹** → **
 - 경로명 변경: `/union` → `/cafe_2`
 - 경로 추가: `/youtube_evans` (source·medium 모두 `youtube_evans`)
 - utm_medium 변경: `/youtube` `video` → `youtube`
+- 경로 추가: `/qr` (source·medium 모두 `qr`) + QR 이미지 promo/qr/
