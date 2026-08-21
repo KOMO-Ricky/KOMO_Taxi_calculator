@@ -4,14 +4,21 @@
  *  현재는 홈페이지의 시세를 수기로 B3에 입력하고 있는데,
  *  이 스크립트가 홈페이지를 읽어 B3(면허시세)·B9(기준일)을 자동 갱신한다.
  *
+ *  ▶ 설치
+ *    스프레드시트 → 확장 프로그램 → Apps Script → 파일(+) → 스크립트
+ *    → 이 내용을 붙여넣고 저장(Ctrl+S)
+ *
  *  ▶ 사용 순서
  *    1) 아래 SITE_URL 에 '시세가 표시되는 페이지' 주소를 넣는다.
- *    2) [시세후보_확인] 을 먼저 실행한다.  (실행 → 로그 보기)
- *       → 페이지에서 찾은 금액 후보들이 주변 문구와 함께 출력된다.
- *    3) 로그를 보고 ANCHOR(시세 앞에 붙는 고정 문구)를 정확히 지정한다.
- *    4) [시세_미리보기] 로 값이 제대로 뽑히는지 확인한다. (시트는 건드리지 않음)
- *    5) 값이 맞으면 [시세_자동갱신] 실행 → B3/B9 반영
- *    6) 트리거 등록: 시간 기반 → 일 단위(예: 매일 오전 6~7시) → 시세_자동갱신
+ *    2) [구조진단] 실행 → 페이지가 정적 HTML인지 / JS 렌더링인지 판별
+ *    3) [시세후보_확인] 실행 → 금액 후보와 주변 문구 확인
+ *    4) 결과에 따라 MARKER_ID · SELECTOR · ANCHOR 중 하나를 지정
+ *    5) [시세_미리보기] 로 값이 제대로 뽑히는지 확인 (시트는 건드리지 않음)
+ *    6) 값이 맞으면 [시세_자동갱신] 실행 → B3/B9 반영
+ *    7) 트리거 등록: 시간 기반 → 일 단위(예: 매일 오전 6~7시) → 시세_자동갱신
+ *
+ *  ※ 함수 실행: 편집기 상단 함수 선택 드롭다운에서 고른 뒤 [실행]
+ *     결과는 하단 '실행 로그'에서 확인
  *
  *  ▶ 안전장치
  *    - 파싱 실패 / 값이 허용 범위 밖이면 시트를 덮어쓰지 않는다.
@@ -33,6 +40,7 @@ var SITE_URL   = 'http://www.tlxc.co.kr/';   // ★ 시세가 표시되는 페�
 var MARKER_ID  = '';                          // 예: 'kola-license-price'
 var SELECTOR   = '';                          // 예: 'class:price-text'
 var ANCHOR     = '';                          // 예: '서울 개인택시 면허 시세'
+var SISE_SS_ID = '16tTQilanjKsumRLmSHrbeBghgdMNF2p9FjemZq-9Qco';   // 자금계산기 DB 스프레드시트
 var SHEET_NAME = '자금계산기 DB';
 var CELL_PRICE = 'B3';    // 면허 시세
 var CELL_DATE  = 'B9';    // 데이터 기준일
@@ -202,7 +210,7 @@ function 시세_미리보기() {
  * [3단계] 실제 반영. 트리거는 이 함수에 건다.
  */
 function 시세_자동갱신() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SISE_SS_ID);
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) { writeLog_('실패', 0, 0, SHEET_NAME + ' 시트를 찾을 수 없음'); return; }
 
@@ -267,7 +275,7 @@ function 구조진단() {
 
 /** 실행 이력 기록 */
 function writeLog_(status, before, after, memo) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SISE_SS_ID);
   var lg = ss.getSheetByName(LOG_SHEET);
   if (!lg) {
     lg = ss.insertSheet(LOG_SHEET);
