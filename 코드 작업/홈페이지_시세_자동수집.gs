@@ -8,6 +8,13 @@
  *    스프레드시트 → 확장 프로그램 → Apps Script → 파일(+) → 스크립트
  *    → 이 내용을 붙여넣고 저장(Ctrl+S)
  *
+ *  ▶ tlxc.co.kr 확인 결과 (2026-08 기준)
+ *    시세가 정적 HTML에 그대로 들어 있어 자동 수집이 가능하다.
+ *      <span style="font-size: 60px;">1억 1,500 만원</span>
+ *      <span style="font-size: 16px;">2026년 8월 21일 기준</span>
+ *    → 별도 설정 없이(MARKER_ID/SELECTOR/ANCHOR 모두 공란) 동작하며,
+ *      기준일(B9)도 페이지에 적힌 날짜를 그대로 가져온다.
+ *
  *  ▶ 사용 순서
  *    1) 아래 SITE_URL 에 '시세가 표시되는 페이지' 주소를 넣는다.
  *    2) [구조진단] 실행 → 페이지가 정적 HTML인지 / JS 렌더링인지 판별
@@ -84,6 +91,14 @@ function htmlToText_(html) {
 }
 
 
+/** 금액 패턴 정규식 (호출할 때마다 새로 만들어 lastIndex 오염 방지)
+ *  대응 표기: '1억 1,500 만원' / '1억1500만원' / '11,500 만원' / '115,000,000원'
+ */
+function moneyRe_() {
+  return /([0-9]+\s*억(?:\s*[0-9,]+\s*만?)?\s*원?|[0-9]{1,3}(?:,[0-9]{3})+\s*만\s*원?|[0-9]{1,3}(?:,[0-9]{3}){2,}\s*원?|[0-9]{3,}\s*만\s*원?)/g;
+}
+
+
 /** '1억 1,350만원' / '113,500,000' / '11,350만원' → 숫자 */
 function parseKrw_(str) {
   if (!str) return 0;
@@ -112,7 +127,7 @@ function parseKrw_(str) {
  */
 function 시세후보_확인() {
   var text = htmlToText_(fetchHtml_());
-  var re = /([0-9]{1,3}(?:,[0-9]{3}){2,}원?|[0-9]+억\s*[0-9,]*\s*만?원?|[0-9,]{3,}\s*만원)/g;
+  var re = moneyRe_();
   var out = [], m, i = 0;
   while ((m = re.exec(text)) !== null && i < 60) {
     out.push({
@@ -181,13 +196,23 @@ function extractPrice_() {
     scope = text.substring(idx, idx + 300);
   }
 
-  var re = /([0-9]{1,3}(?:,[0-9]{3}){2,}원?|[0-9]+억\s*[0-9,]*\s*만?원?|[0-9,]{3,}\s*만원)/g;
+  var pageDate = extractDate_(text);   // 페이지에 적힌 '○년 ○월 ○일 기준'
+  var re = moneyRe_();
   var m;
   while ((m = re.exec(scope)) !== null) {
     var v = parseKrw_(m[1]);
-    if (v >= MIN_PRICE && v <= MAX_PRICE) return { value: v, raw: m[1] };
+    if (v >= MIN_PRICE && v <= MAX_PRICE) return { value: v, raw: m[1], date: pageDate };
   }
   throw new Error('허용 범위(' + MIN_PRICE + '~' + MAX_PRICE + ') 안의 금액을 찾지 못했습니다.');
+}
+
+
+/** 페이지에서 '2026년 8월 21일 기준' 형태의 기준일을 뽑는다 */
+function extractDate_(text) {
+  var m = text.match(/([0-9]{4})\s*년\s*([0-9]{1,2})\s*월\s*([0-9]{1,2})\s*일/);
+  if (!m) return null;
+  var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
 }
 
 
@@ -197,7 +222,8 @@ function extractPrice_() {
 function 시세_미리보기() {
   try {
     var r = extractPrice_();
-    Logger.log('추출 성공 → ' + r.value + '원  (원문: ' + r.raw + ')');
+    Logger.log('추출 성공 → ' + comma_(r.value) + '원  (원문: ' + r.raw + ')');
+    Logger.log('기준일     → ' + (r.date ? Utilities.formatDate(r.date, 'Asia/Seoul', 'yyyy-MM-dd') : '페이지에서 못 찾음(수집일로 대체됨)'));
     return r.value;
   } catch (e) {
     Logger.log('추출 실패 → ' + e.message);
@@ -223,14 +249,22 @@ function 시세_자동갱신() {
     return;
   }
 
-  if (got.value === before) {
-    writeLog_('변동없음', before, got.value, '동일 값');
+  var newDate = got.date || new Date();         // 페이지 기준일, 없으면 수집일
+  var beforeDate = sh.getRange(CELL_DATE).getValue();
+  var sameDate = (beforeDate instanceof Date) &&
+                 Utilities.formatDate(beforeDate, 'Asia/Seoul', 'yyyy-MM-dd') ===
+                 Utilities.formatDate(newDate,   'Asia/Seoul', 'yyyy-MM-dd');
+
+  if (got.value === before && sameDate) {
+    writeLog_('변동없음', before, got.value, '금액·기준일 동일');
     return;
   }
 
   sh.getRange(CELL_PRICE).setValue(got.value);
-  sh.getRange(CELL_DATE).setValue(new Date());   // 기준일 = 수집일
-  writeLog_('갱신', before, got.value, '원문: ' + got.raw);
+  sh.getRange(CELL_DATE).setValue(newDate);
+  writeLog_('갱신', before, got.value,
+            '원문: ' + got.raw + ' / 기준일: ' + Utilities.formatDate(newDate, 'Asia/Seoul', 'yyyy-MM-dd') +
+            (got.date ? '' : ' (페이지에 기준일 없어 수집일 사용)'));
 }
 
 
