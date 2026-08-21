@@ -95,29 +95,44 @@ function htmlToText_(html) {
  *  대응 표기: '1억 1,500 만원' / '1억1500만원' / '11,500 만원' / '115,000,000원'
  */
 function moneyRe_() {
-  return /([0-9]+\s*억(?:\s*[0-9,]+\s*만?)?\s*원?|[0-9]{1,3}(?:,[0-9]{3})+\s*만\s*원?|[0-9]{1,3}(?:,[0-9]{3}){2,}\s*원?|[0-9]{3,}\s*만\s*원?)/g;
+  return /([0-9]+(?:\.[0-9]+)?\s*억(?:\s*[0-9,천백십]+\s*만?)?\s*원?|[0-9,천백십]{2,}\s*만\s*원?|[0-9]{1,3}(?:,[0-9]{3}){2,}\s*원?|[0-9]{6,10}\s*원)/g;
 }
 
 
-/** '1억 1,350만원' / '113,500,000' / '11,350만원' → 숫자 */
+/** '1천5백' → 1500 처럼 한글 수사 포함 숫자를 해석 */
+function korNum_(t) {
+  if (/^[0-9]+$/.test(t)) return Number(t);
+  var total = 0, cur = 0;
+  for (var i = 0; i < t.length; i++) {
+    var ch = t.charAt(i);
+    if (/[0-9]/.test(ch)) { cur = cur * 10 + Number(ch); }
+    else if (ch === '천') { total += (cur || 1) * 1000; cur = 0; }
+    else if (ch === '백') { total += (cur || 1) * 100;  cur = 0; }
+    else if (ch === '십') { total += (cur || 1) * 10;   cur = 0; }
+  }
+  return total + cur;
+}
+
+
+/** 금액 문자열 → 숫자
+ *  지원: '1억 1,500 만원' / '1억1천5백만원' / '1.15억' / '11,500만원' / '115,000,000원'
+ */
 function parseKrw_(str) {
   if (!str) return 0;
-  var s = String(str).replace(/\s/g, '');
+  var s = String(str).replace(/\s/g, '').replace(/,/g, '');
+  var total = 0, matched = false;
 
-  // 1) 억/만 표기
-  var m = s.match(/(?:([0-9]+(?:\.[0-9]+)?)억)?\s*([0-9,]+)?만?원?/);
-  if (/억/.test(s)) {
-    var eok = m && m[1] ? parseFloat(m[1]) : 0;
-    var man = m && m[2] ? Number(m[2].replace(/,/g, '')) : 0;
-    return Math.round(eok * 100000000 + man * 10000);
+  var mE = s.match(/([0-9]+(?:\.[0-9]+)?)억/);
+  if (mE) { total += parseFloat(mE[1]) * 100000000; s = s.replace(mE[0], ''); matched = true; }
+
+  var mM = s.match(/([0-9천백십]+)만/);
+  if (mM) { total += korNum_(mM[1]) * 10000; s = s.replace(mM[0], ''); matched = true; }
+
+  if (!matched) {
+    var n = Number(s.replace(/[^0-9]/g, ''));
+    if (!isNaN(n)) total = n;
   }
-  if (/만원|만/.test(s)) {
-    var only = s.replace(/[^0-9]/g, '');
-    return Number(only) * 10000;
-  }
-  // 2) 콤마 포함 원 단위
-  var n = Number(s.replace(/[^0-9]/g, ''));
-  return isNaN(n) ? 0 : n;
+  return Math.round(total);
 }
 
 
@@ -197,11 +212,21 @@ function extractPrice_() {
   }
 
   var pageDate = extractDate_(text);   // 페이지에 적힌 '○년 ○월 ○일 기준'
-  var re = moneyRe_();
-  var m;
+  // 후보를 모두 모은 뒤, '억/만/원' 단위가 붙은 것을 우선 선택한다.
+  // (CSS 색상값 '255,255,255' 같은 단위 없는 숫자가 잘못 잡히는 것을 방지)
+  var re = moneyRe_(), m, cands = [];
   while ((m = re.exec(scope)) !== null) {
     var v = parseKrw_(m[1]);
-    if (v >= MIN_PRICE && v <= MAX_PRICE) return { value: v, raw: m[1], date: pageDate };
+    if (v >= MIN_PRICE && v <= MAX_PRICE) {
+      cands.push({ value: v, raw: m[1], date: pageDate, unit: /[억만원]/.test(m[1]) });
+    }
+  }
+  for (var ci = 0; ci < cands.length; ci++) { if (cands[ci].unit) return cands[ci]; }
+  if (cands.length) return cands[0];
+  // 마커/선택자로 직접 지정한 구간이면 단위 없는 숫자도 시세로 인정
+  if (MARKER_ID || SELECTOR) {
+    var direct = parseKrw_(scope);
+    if (direct >= MIN_PRICE && direct <= MAX_PRICE) return { value: direct, raw: scope, date: pageDate };
   }
   throw new Error('허용 범위(' + MIN_PRICE + '~' + MAX_PRICE + ') 안의 금액을 찾지 못했습니다.');
 }
