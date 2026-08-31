@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MyTaxiPlan 시연 인서트 v12</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; }
+  body { font-family:'Pretendard Variable', Pretendard, -apple-system, sans-serif; position:relative;
+         background:#F2F4F9; }
+  #bg { position:absolute; inset:0; background:#0C1B3D; opacity:0; }
+  /* ── 폰 목업 ── */
+  #phone { position:absolute; left:50%; top:450px; width:586px; height:1265px;
+           transform:translateX(-50%);
+           background:#15181E; border-radius:74px; padding:12px;
+           box-shadow:0 42px 90px rgba(12,27,61,.42), 0 10px 26px rgba(12,27,61,.28); }
+  #screen { position:relative; width:562px; height:1241px; border-radius:62px; overflow:hidden; background:#fff; }
+  #screen video, #screen img.still { position:absolute; left:0; top:0; width:562px; height:1216px;
+           object-fit:cover; display:none; filter:brightness(0.92); }
+  #screen video.on, #screen img.still.on { display:block; }
+  #screen .chin { position:absolute; left:0; bottom:0; width:562px; height:25px; background:#F4F4F4; }
+  /* ── 캡션 ── */
+  #cap { position:absolute; left:0; top:108px; width:1080px; text-align:center; z-index:8; padding:0 110px; }
+  .cap-main { font-weight:800; font-size:72px; line-height:1.25; color:#0C1B3D; letter-spacing:-0.015em; }
+  .gold { color:#E8A800; }
+  #cap .gold { color:#0C1B3D; }
+  .mtp { color:#F0A500; font-weight:800; }
+  /* ── 인트로 후킹 ── */
+  #hook { position:absolute; inset:0; z-index:9; display:flex; flex-direction:column;
+          justify-content:center; align-items:center; text-align:center; padding:0 150px 160px; }
+  #hook .h-kola { height:100px; width:auto; margin-bottom:34px; }
+  #hook .h-small { font-weight:800; font-size:65px; color:#F0A500; letter-spacing:.18em; margin-bottom:40px; position:relative; top:-5px; }
+  #hook .h-big { font-weight:800; font-size:76px; line-height:1.4; color:#fff; letter-spacing:-0.02em; }
+  /* ── 화이트 인/아웃 ── */
+  #white { position:absolute; inset:0; background:#fff; z-index:30; opacity:0; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<div id="phone">
+  <div id="screen">
+    <video id="v1" src="scenes4/s1_cover.mp4"   muted preload="auto"></video>
+    <video id="v2" src="scenes6/s2_license.mp4" muted preload="auto"></video>
+    <video id="v3" src="scenes4/s3_car.mp4"     muted preload="auto"></video>
+    <img class="still" id="p1" src="still_ins.png">
+    <img class="still" id="p2" src="still_work.png">
+    <img class="still" id="p3" src="still_cmp.png">
+    <img class="still" id="p4" src="still_cfg.png">
+    <div class="chin"></div>
+  </div>
+</div>
+
+<div id="cap"></div>
+<div id="hook" style="opacity:0">
+  <img class="h-kola" src="kola_logo.png" alt="KOLA"><div class="h-small">MYTAXIPLAN</div>
+  <div class="h-big"><span class="gold">개인택시</span>,<br>대체 얼마가 있어야<br>시작할 수 있을까?</div>
+</div>
+<div id="white"></div>
+
+<script>
+/* ══════════ 타임라인 ══════════ */
+// fadeIn/fadeOut: 폰 화면 안 미디어의 페이드 (0.28s)
+const SCENES = [
+  { id:'hook', dst:[0.0, 2.4], navy:true },
+  { id:'s1', v:'v1', dst:[2.4, 5.8],    src:[0.3, 5.0],
+    cap:'<div class="cap-main" style="font-size:68px">복잡한 개인택시 창업비용,<br><span class="gold">한 눈에 비교</span>하며<br>확인해 보세요</div>' },
+  { id:'s2', v:'v2', dst:[5.8, 16.3],  src:[0.1, 10.4],
+    cap:'<div class="cap-main">지역별 면허 시세<br><span class="gold">자동 연동</span></div>' },
+  { id:'s3', v:'v3', dst:[16.3, 28.4], src:[0.1, 17.32], holdEnd:0.5, fadeOut:true,
+    cap:'<div class="cap-main" style="font-size:64px">취득세부터 할부 이율까지<br>내가 원하는 차값을 <span class="gold">한 번에!</span></div>' },
+  { id:'cutA', img:'p1', dst:[28.4, 30.9], fadeIn:true, fadeOut:true,
+    cap:'<div class="cap-main">조합과 보험은 어떻게<br>가입해야 할지 <span class="gold">비교 가능</span></div>' },
+  { id:'cutB', img:'p2', dst:[30.9, 33.4], fadeIn:true, fadeOut:true,
+    cap:'<div class="cap-main" style="font-size:66px">생소한 차량 작업비 견적도<br><span class="gold">쉽게 계산</span></div>' },
+  { id:'cutC', img:'p3', dst:[33.4, 36.2], fadeIn:true, fadeOut:true,
+    cap:'<div class="cap-main">여러 가지 견적을<br>서로 <span class="gold">비교</span>해 보세요</div>' },
+  { id:'cutD', img:'p4', dst:[36.2, 39.2], fadeIn:true,
+    cap:'<div class="cap-main" style="font-size:54px;line-height:1.4"><span class="mtp">마이택시플랜</span>에서<br>개인택시에 필요한 모든 비용을<br>손쉽게 한 페이지로 확인해 보세요!</div>' },
+];
+const TOTAL = 39.2;
+const WHITE_IN = 0.55;
+const WHITE_OUT = 0.65;
+const FADE = 0.28;
+
+/* ══════════ 유틸 ══════════ */
+const $ = (s) => document.querySelector(s);
+const clamp = (x,a,b) => Math.min(b, Math.max(a,x));
+const lerp = (a,b,t) => a+(b-a)*t;
+const easeOutCubic = (t) => 1-Math.pow(1-t,3);
+const activeScene = (t) => SCENES.find(s => t>=s.dst[0] && t<s.dst[1]) || SCENES[SCENES.length-1];
+
+/* ══════════ SEEK(t) ══════════ */
+async function SEEK(t) {
+  t = clamp(t, 0, TOTAL-0.001);
+  const sc = activeScene(t);
+  const lt = t - sc.dst[0];
+  const sdur = sc.dst[1] - sc.dst[0];
+
+  /* 화이트 인/아웃 */
+  const wIn = 1 - clamp(t/WHITE_IN, 0, 1);
+  const wOut = clamp((t-(TOTAL-WHITE_OUT))/WHITE_OUT, 0, 1);
+  $('#white').style.opacity = Math.max(wIn, wOut).toFixed(3);
+
+  /* 배경 네이비 (인트로) */
+  let navy = 0;
+  for (const s of SCENES) {
+    if (!s.navy) continue;
+    const fadeInBg = clamp((t - s.dst[0] + 0.6)/0.55, 0, 1);
+    const fadeOutBg = clamp((s.dst[1] - t + 0.08)/0.42, 0, 1);
+    navy = Math.max(navy, Math.min(fadeInBg, fadeOutBg));
+  }
+  $('#bg').style.opacity = navy.toFixed(3);
+
+  /* 인트로 후킹 */
+  const hook = $('#hook');
+  if (sc.id === 'hook') {
+    hook.style.opacity = clamp(lt/0.4, 0, 1) * clamp((sc.dst[1]-t)/0.35, 0, 1);
+    const k = easeOutCubic(clamp(lt/0.8, 0, 1));
+    hook.style.transform = `translateY(${lerp(50, 0, k)}px)`;
+  } else hook.style.opacity = 0;
+
+  /* 폰: 인트로 중 숨김 → s1에서 상승 등장 */
+  const ph = $('#phone');
+  let phY = 0, phO = 1;
+  if (sc.id === 'hook') { phY = 1700; phO = 0; }
+  else if (sc.id === 's1') {
+    const k = easeOutCubic(clamp(lt/0.85, 0, 1));
+    phY = lerp(1700, 0, k);
+  }
+  if (!['hook','s1'].includes(sc.id)) phY += Math.sin(t*1.4)*5;
+  ph.style.transform = `translateX(-50%) translateY(${phY}px)`;
+  ph.style.opacity = phO;
+
+  /* 미디어 (비디오/스틸) + 페이드 */
+  const mediaOpacity = (s, on) => {
+    if (!on) return 0;
+    let o = 1;
+    if (s.fadeIn)  o = Math.min(o, clamp((t - s.dst[0])/FADE, 0, 1));
+    if (s.fadeOut) o = Math.min(o, clamp((s.dst[1] - t)/FADE, 0, 1));
+    return o;
+  };
+  const seeks = [];
+  for (const s of SCENES) {
+    if (s.v) {
+      const vid = $('#'+s.v);
+      const on = (s === sc);
+      vid.classList.toggle('on', on);
+      vid.style.opacity = mediaOpacity(s, on).toFixed(3);
+      if (on) {
+        const spd = (s.src[1]-s.src[0]) / (sdur - (s.holdEnd || 0));
+        let srcT = clamp(s.src[0] + lt * spd, s.src[0], s.src[1]-0.034);
+        if (Math.abs(vid.currentTime - srcT) > 0.001) {
+          seeks.push(new Promise(res => {
+            const done = () => { vid.removeEventListener('seeked', done); res(); };
+            vid.addEventListener('seeked', done);
+            vid.currentTime = srcT;
+            setTimeout(res, 800);
+          }));
+        }
+      }
+    }
+    if (s.img) {
+      const im = $('#'+s.img);
+      const on = (s === sc);
+      im.classList.toggle('on', on);
+      im.style.opacity = mediaOpacity(s, on).toFixed(3);
+    }
+  }
+
+  /* 캡션 */
+  const cap = $('#cap');
+  if (sc.cap) {
+    if (cap.dataset.scene !== sc.id) { cap.innerHTML = sc.cap; cap.dataset.scene = sc.id; }
+    const kIn = easeOutCubic(clamp(lt/0.5, 0, 1));
+    const kOut = clamp((sc.dst[1]-t)/0.28, 0, 1);
+    cap.style.opacity = Math.min(kIn, kOut);
+    cap.style.transform = `translateY(${lerp(44, 0, kIn)}px)`;
+  } else { cap.style.opacity = 0; cap.dataset.scene = ''; }
+
+  await Promise.all(seeks);
+  return 'ok';
+}
+
+window.READY = (async () => {
+  await document.fonts.ready;
+  const vids = [...document.querySelectorAll('video')];
+  await Promise.all(vids.map(v => new Promise(res => {
+    if (v.readyState >= 2) return res();
+    v.addEventListener('loadeddata', res, { once: true });
+    v.addEventListener('error', res, { once: true });
+  })));
+  const imgs = [...document.querySelectorAll('img.still')];
+  await Promise.all(imgs.map(im => im.complete ? Promise.resolve() : new Promise(r => { im.onload = r; im.onerror = r; })));
+  await SEEK(0);
+  return 'ready';
+})();
+window.SEEK = SEEK;
+window.TOTAL = TOTAL;
+</script>
+</body>
+</html>
