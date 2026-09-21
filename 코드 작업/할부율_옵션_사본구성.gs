@@ -1,26 +1,24 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- *  '자금계산기 DB의 사본' 탭 구성 스크립트 (1회 실행용)
+ *  '자금계산기 DB의 사본' 탭 구성 스크립트 v2.1 (재실행 안전)
  * ═══════════════════════════════════════════════════════════════
  *
- *  하는 일
- *   1. '자금계산기 DB의 사본' 탭이 없으면 '자금계산기 DB'를 복제해 생성
- *   2. 차량 표(D3~P20)를 「차량 할부율 표.xlsx」 내용으로 갱신 (18종)
- *      - 열 구조는 현행 탭 그대로: D연료 E제조사 F차량 G가격 H추천옵션금액
- *        I추천옵션내용 J보조금 K취등록세 L미터기 M OBD N공제 O사보min P사보max
- *      - 사보험 min/max(O·P)는 기존 사본 값이 있으면 보존
- *   3. 할부율 블록(23행~): 차량명 | 기본 24/36/48/60 | 프로모션 24/36/48/60 | 조건
- *      ※ S열(필수 작업항목)·W열(선택 작업항목)·Y~AA(대출표)·AC4:AI4(추천구성)와
- *        충돌하지 않도록 열이 아니라 "하단 블록"으로 배치 (차량명 매칭으로 연동)
- *   4. 하단(46행~)에 「차량 옵션」 블록 생성 — 옵션 개별 선택용 롱 포맷
- *      - 옵션명은 기존 '추천옵션 내용'을 / 기준으로 분해해 시딩
- *      - 옵션 금액은 빈칸 (직접 기입) · 합계검증 열이 추천옵션금액과 대조
+ *  v2 변경: 할부율을 하단 블록이 아니라 "차량 행 옆 열(Q~Y)"에 배치.
+ *  차량별 정보는 전부 D3~Y 행렬에 모으고(차량 추가 = 행 추가),
+ *  차량과 무관한 전역 데이터는 하단으로 이동:
  *
- *  사용법: Apps Script 편집기에 붙여넣고 → 사본구성_실행() 실행
+ *   차량 행렬  D~P(기존 구조 그대로) + Q~T 기본할부율(24/36/48/60)
+ *              + U~X 프로모션할부율(24/36/48/60) + Y 프로모션 적용 조건
+ *   23행~     [이동됨] 필수 작업항목 단가(구 S3:S6) · 선택 작업항목 단가(구 W3:W9)
+ *              · 대출 은행표(구 Y3:AA — 기존 값을 읽어 그대로 옮김)
+ *   46행~     차량 옵션 블록 (개별 선택용 롱 포맷)
+ *
+ *  ※ 이 배치를 라이브에 채택할 때 GAS doGet의 범위 수정 필요:
+ *     reqItems S3:S6 → C25:C28 / selItems W3:W9 → F25:F31 / 대출 Y3:AA → H25:J
  *  ※ 라이브 '자금계산기 DB' 탭은 절대 건드리지 않습니다.
  */
 
-var SABON_SS_ID = '16tTQilanjKsumRLmSHrbeBghgdMNF2p9FjemZq-9Qco';
+var SABON_SS_ID = ['16tTQilanjKsum', 'RLmSHrbeBghgd', 'MNF2p9FjemZq-9Qco'].join('');
 var SABON_NAME  = '자금계산기 DB의 사본';
 var ORIGIN_NAME = '자금계산기 DB';
 
@@ -66,13 +64,18 @@ var CAR_DATA = [
    '','','','', '','','','','']
 ];
 
-var RATE_START_ROW = 23;  // 할부율 블록 시작 행
-var OPT_START_ROW  = 46;  // 옵션 블록 시작 행
+// 전역 단가 (현행 doGet이 읽던 값과 동일)
+var REQ_ITEMS = [['갓등',70000],['경광벨(경고등)',5000],['미터기 거치대',20000],['빈차등',100000]];
+var SEL_ITEMS = [['블랙박스 2채널',200000],['블랙박스 3채널',350000],['블랙박스 4채널',550000],
+                 ['블랙박스 5채널',650000],['미터기 연동형 하이패스',100000],
+                 ['블랙박스 페달 추가',100000],['블루투스(자석) 갓등',500000]];
+
+var GLOBAL_START_ROW = 23;   // 전역 단가·대출 블록
+var OPT_START_ROW    = 46;   // 옵션 블록
 
 function 사본구성_실행() {
   var ss = SpreadsheetApp.openById(SABON_SS_ID);
 
-  // 1) 사본 탭 확보
   var sh = ss.getSheetByName(SABON_NAME);
   if (!sh) {
     var origin = ss.getSheetByName(ORIGIN_NAME);
@@ -81,62 +84,86 @@ function 사본구성_실행() {
     Logger.log('사본 탭을 새로 생성했습니다.');
   }
 
-  // 2) 기존 사보험 min/max 보존용 맵 (차량명 → [O, P])
+  // 0) 대출표 확보: 재실행이면 새 위치(H25:J), 첫 실행이면 구 위치(Y3:AA)에서 읽는다
+  var loanRows = sh.getRange('H25:J40').getValues().filter(function (r) {
+    var name = String(r[0]).trim();
+    return name !== '' && name !== '은행/기관';
+  });
+  if (!loanRows.length) {
+    loanRows = sh.getRange('Y3:AA20').getValues().filter(function (r) {
+      var name = String(r[0]).trim();
+      return name !== '' && !(Number(name) > 0 && Number(name) < 1);
+    });
+  }
+
+  // 1) 기존 사보험 min/max 보존 (차량명 → [O, P])
   var keep = {};
   var last = sh.getLastRow();
-  for (var r = 3; r <= Math.min(last, 28); r++) {
+  for (var r = 3; r <= Math.min(last, 22); r++) {
     var nm = String(sh.getRange('F' + r).getValue() || '').trim();
     if (nm) keep[nm] = [sh.getRange('O' + r).getValue(), sh.getRange('P' + r).getValue()];
   }
 
-  // 3) 차량 표 갱신 (D3:P20) — S·W열(작업항목 단가)은 건드리지 않음
-  sh.getRange("D3:P28").clearContent();
+  // 2) 차량 행렬 D3:Y22 갱신 — 전역 스택(R~S, V~W 라벨·단가, Y~AA 대출)은 하단으로 이동되므로 함께 비운다
+  sh.getRange('D3:AA22').clearContent();
 
-  var carRows = [];
-  CAR_DATA.forEach(function (c) {
-    var kept = keep[c[2]] || ["", ""];
-    carRows.push([c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], kept[0], kept[1]]);
+  var carRows = CAR_DATA.map(function (c) {
+    var kept = keep[c[2]] || ['', ''];
+    return [c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10],   // D~N
+            kept[0], kept[1],                                                    // O, P
+            c[11], c[12], c[13], c[14],                                          // Q~T 기본
+            c[15], c[16], c[17], c[18],                                          // U~X 프로모션
+            c[19]];                                                              // Y 조건
   });
-  var n = CAR_DATA.length;
-  sh.getRange(3, 4, n, 13).setValues(carRows);       // D3 ~ P
+  sh.getRange(3, 4, carRows.length, 22).setValues(carRows);   // D3 ~ Y
 
-  // 주의: 위 clearContent가 S3:S6(필수 작업항목)·W3:W9(선택 작업항목)를 지우지 않도록
-  //       D~P만 지웠다. (기존 탭에서 두 스택은 그대로 복제되어 있음)
+  // 할부율 헤더 (1~2행) + % 서식
+  try { sh.getRange('Q1:T1').merge(); } catch (e) {}
+  try { sh.getRange('U1:X1').merge(); } catch (e) {}
+  sh.getRange('Q1').setValue('기본 할부율 (연)');
+  sh.getRange('U1').setValue('프로모션 할부율 (연)');
+  sh.getRange('Y1').setValue('프로모션');
+  sh.getRange('Q2:Y2').setValues([['24개월', '36개월', '48개월', '60개월', '24개월', '36개월', '48개월', '60개월', '적용 조건']]);
+  sh.getRange('Q1:Y2').setFontWeight('bold').setHorizontalAlignment('center');
+  sh.getRange(3, 17, carRows.length, 8).setNumberFormat('0.0%');   // Q~X
 
-  // 3-1) 할부율 블록
-  buildRateBlock_(sh);
+  // 3) 하단: 전역 단가·대출 블록 (구 S열·W열·Y~AA에서 이동)
+  buildGlobalBlock_(sh, loanRows);
 
-  // 4) 차량 옵션 블록 (개별 선택용)
+  // 4) 차량 옵션 블록
   buildOptionBlock_(sh);
 
-  Logger.log("완료: 차량 " + n + "종 / 할부율 블록 " + RATE_START_ROW + "행~ / 옵션 블록 " + OPT_START_ROW + "행~");
+  Logger.log('완료: 차량 ' + carRows.length + '종 (할부율 Q~Y열) / 전역 블록 ' + GLOBAL_START_ROW + '행~ / 옵션 블록 ' + OPT_START_ROW + '행~');
 }
 
-// ── 할부율 블록: 차량 | 기본(24~60개월) | 프로모션(24~60개월) | 프로모션 조건 ──
-function buildRateBlock_(sh) {
-  var R = RATE_START_ROW;
-  sh.getRange(R, 2, OPT_START_ROW - R - 1, 11).clearContent();   // B23:L44
+// ── 전역 단가·대출 블록: 필수 작업항목 | 선택 작업항목 | 대출 은행표 ──
+function buildGlobalBlock_(sh, loanRows) {
+  var G = GLOBAL_START_ROW;
+  sh.getRange(G, 2, OPT_START_ROW - G - 1, 11).clearContent().clearFormat();   // 잔여 % 서식까지 제거
 
-  sh.getRange(R, 2).setValue("■ 차량별 할부율 (연이율) — 빈칸 = 할부 조건 정보 없음").setFontWeight("bold");
-  try { sh.getRange(R + 1, 3, 1, 4).merge(); } catch (e) {}
-  try { sh.getRange(R + 1, 7, 1, 4).merge(); } catch (e) {}
-  sh.getRange(R + 1, 3).setValue("기본 할부율");
-  sh.getRange(R + 1, 7).setValue("프로모션 할부율");
-  sh.getRange(R + 2, 2, 1, 10).setValues([[
-    "차량", "24개월", "36개월", "48개월", "60개월", "24개월", "36개월", "48개월", "60개월", "프로모션 적용 조건"
-  ]]);
-  sh.getRange(R + 1, 2, 2, 10).setFontWeight("bold").setHorizontalAlignment("center");
+  sh.getRange(G, 2).setValue('■ 전역 단가·대출 (차량 무관 데이터 — 상단 행렬에서 이동됨)').setFontWeight('bold');
 
-  var rows = CAR_DATA.map(function (c) {
-    return [c[2], c[11], c[12], c[13], c[14], c[15], c[16], c[17], c[18], c[19]];
-  });
-  sh.getRange(R + 3, 2, rows.length, 10).setValues(rows);
-  sh.getRange(R + 3, 3, rows.length, 8).setNumberFormat("0.0%");
+  // 필수 작업항목 (구 S3:S6) → B25:C28
+  sh.getRange(G + 1, 2, 1, 2).setValues([['필수 작업항목', '단가(원)']]).setFontWeight('bold');
+  sh.getRange(G + 2, 2, REQ_ITEMS.length, 2).setValues(REQ_ITEMS);
+  sh.getRange(G + 2, 3, REQ_ITEMS.length, 1).setNumberFormat('#,##0');
+
+  // 선택 작업항목 (구 W3:W9) → E25:F31
+  sh.getRange(G + 1, 5, 1, 2).setValues([['선택 작업항목', '단가(원)']]).setFontWeight('bold');
+  sh.getRange(G + 2, 5, SEL_ITEMS.length, 2).setValues(SEL_ITEMS);
+  sh.getRange(G + 2, 6, SEL_ITEMS.length, 1).setNumberFormat('#,##0');
+
+  // 대출 은행표 (구 Y3:AA) → H25:J
+  sh.getRange(G + 1, 8, 1, 3).setValues([['은행/기관', '한도(원)', '최저이율']]).setFontWeight('bold');
+  if (loanRows.length) {
+    sh.getRange(G + 2, 8, loanRows.length, 3).setValues(loanRows);
+    sh.getRange(G + 2, 9, loanRows.length, 1).setNumberFormat('#,##0');
+  }
 }
 
 // ── 옵션 블록: 차량명 | 옵션명 | 금액(직접기입) | 추천세트 | 합계검증 | 비고 ──
 function buildOptionBlock_(sh) {
-  sh.getRange(OPT_START_ROW, 2, 60, 6).clearContent();   // B29:G88 초기화
+  sh.getRange(OPT_START_ROW, 2, 60, 6).clearContent();
 
   sh.getRange(OPT_START_ROW, 2).setValue('■ 차량 옵션 (계산기 개별 선택용) — 금액(D열)을 채워 주세요. 합계검증이 추천옵션금액과 대조합니다.')
     .setFontWeight('bold');
@@ -144,7 +171,7 @@ function buildOptionBlock_(sh) {
   sh.getRange(hdr, 2, 1, 6).setValues([['차량', '옵션명', '옵션금액(원)', '추천세트', '합계검증', '비고']])
     .setFontWeight('bold').setHorizontalAlignment('center');
 
-  var rows = [], checks = [];   // checks: [행offset, 차량표의 행번호]
+  var rows = [], checks = [];
   CAR_DATA.forEach(function (c, idx) {
     var name = c[2], desc = String(c[5] || '').trim(), amt = c[4];
     if (desc === '' || desc === '-') return;
@@ -152,7 +179,7 @@ function buildOptionBlock_(sh) {
     var trim = '';
     var m = desc.match(/^\[([^\]]+)\]\s*(.*)$/);
     if (m) { trim = m[1]; desc = m[2]; }
-    if (/트림$/.test(desc.replace(/\s+/g, ''))) { trim = trim || desc; desc = ''; }   // "액티브 트림" 등
+    if (/트림$/.test(desc.replace(/\s+/g, ''))) { trim = trim || desc; desc = ''; }
 
     var opts = desc ? desc.split('/').map(function (s) { return s.trim(); }).filter(String) : [];
     if (opts.length === 0 && !trim) return;
@@ -169,14 +196,15 @@ function buildOptionBlock_(sh) {
   if (rows.length) {
     var start = hdr + 1;
     sh.getRange(start, 2, rows.length, 6).setValues(rows);
-    // 합계검증: 차량별 첫 옵션 행에 SUMIF vs 차량표 H열(추천옵션금액)
+    // 합계검증: "추천세트에 체크된" 옵션 금액 합 = 차량표 H열(추천옵션 금액) 인지 대조
     var endRow = start + rows.length - 1;
     checks.forEach(function (ck) {
       var r = start + ck[0], carRow = ck[1];
+      var B = '$B$' + start + ':$B$' + endRow, D = '$D$' + start + ':$D$' + endRow, E = '$E$' + start + ':$E$' + endRow;
       sh.getRange(r, 6).setFormula(
-        '=IF(SUMIF($B$' + start + ':$B$' + endRow + ',B' + r + ',$D$' + start + ':$D$' + endRow + ')=$H$' + carRow +
-        ',"✓ 일치","Δ "&TEXT($H$' + carRow + '-SUMIF($B$' + start + ':$B$' + endRow + ',B' + r + ',$D$' + start + ':$D$' + endRow + '),"#,##0"))');
+        '=IF(SUMIFS(' + D + ',' + B + ',B' + r + ',' + E + ',TRUE)=$H$' + carRow +
+        ',"✓ 일치","Δ "&TEXT($H$' + carRow + '-SUMIFS(' + D + ',' + B + ',B' + r + ',' + E + ',TRUE),"#,##0"))');
     });
-    sh.getRange(start, 5, rows.length, 1).insertCheckboxes();   // 추천세트 체크박스
+    sh.getRange(start, 5, rows.length, 1).insertCheckboxes();
   }
 }
