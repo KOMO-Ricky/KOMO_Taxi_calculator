@@ -208,3 +208,57 @@ function buildOptionBlock_(sh) {
     sh.getRange(start, 5, rows.length, 1).insertCheckboxes();
   }
 }
+
+
+// ═══ 차량 옵션 전용 탭 구성 ═══════════════════════════════════
+// - 새 탭 '차량옵션': 차량(세로 병합) | 옵션명 | 옵션금액(직접 기입) | 추천세트(V 표기) | 비고
+// - 사본 탭의 옵션 블록(46행~)은 제거 (체크박스 유효성 검사 포함)
+// - 미래 doGet 파싱 규칙: A열이 비어 있으면 직전 차량명을 계승 (병합 셀)
+function 옵션탭_구성() {
+  var ss = SpreadsheetApp.openById(SABON_SS_ID);
+  var sh = ss.getSheetByName('차량옵션');
+  if (!sh) sh = ss.insertSheet('차량옵션');
+  sh.clear();
+  try { sh.getRange(1, 1, Math.max(sh.getMaxRows(), 2), 5).breakApart(); } catch (e) {}
+
+  sh.getRange(1, 1, 1, 5).setValues([['차량', '옵션명', '옵션금액(원)', '추천세트', '비고']])
+    .setFontWeight('bold').setHorizontalAlignment('center');
+
+  var rows = [], groups = [];   // groups: [데이터 내 시작 인덱스, 행 수]
+  CAR_DATA.forEach(function (c) {
+    var name = c[2], desc = String(c[5] || '').trim();
+    if (desc === '' || desc === '-') return;
+
+    var trim = '';
+    var m = desc.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (m) { trim = m[1]; desc = m[2]; }
+    if (/트림$/.test(desc.replace(/\s+/g, ''))) { trim = trim || desc; desc = ''; }
+
+    var opts = desc ? desc.split('/').map(function (t) { return t.trim(); }).filter(String) : [];
+    var startIdx = rows.length, first = true;
+    opts.forEach(function (op) {
+      rows.push([first ? name : '', op, '', 'V', first && trim ? '기준 트림: ' + trim : '']);
+      first = false;
+    });
+    if (opts.length === 0 && trim) rows.push([name, '(옵션 없음)', '', '', '기준 트림: ' + trim]);
+    if (rows.length > startIdx) groups.push([startIdx, rows.length - startIdx]);
+  });
+
+  if (rows.length) {
+    sh.getRange(2, 1, rows.length, 5).setValues(rows);
+    groups.forEach(function (g) {
+      if (g[1] > 1) sh.getRange(2 + g[0], 1, g[1], 1).merge();
+    });
+    sh.getRange(2, 1, rows.length, 1).setVerticalAlignment('middle');
+    sh.getRange(2, 3, rows.length, 1).setNumberFormat('#,##0');
+    sh.getRange(2, 4, rows.length, 1).setHorizontalAlignment('center');
+  }
+  sh.setColumnWidth(1, 150); sh.setColumnWidth(2, 220); sh.setColumnWidth(3, 110);
+  sh.setColumnWidth(4, 80);  sh.setColumnWidth(5, 180);
+
+  // 사본 탭의 옵션 블록 제거
+  var sab = ss.getSheetByName(SABON_NAME);
+  if (sab) sab.getRange(OPT_START_ROW, 2, 60, 6).clearContent().clearFormat().clearDataValidations();
+
+  Logger.log('차량옵션 탭 구성 완료: 옵션 ' + rows.length + '행 / 사본 옵션 블록 제거');
+}
