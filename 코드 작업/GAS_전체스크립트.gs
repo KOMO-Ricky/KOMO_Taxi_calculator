@@ -24,11 +24,21 @@ function doGet(e) {
   var lastRow = s.getLastRow();
 
   var carFuels=[],carMakers=[],carNames=[];
+  var carBaseRates=[],carPromoRates=[],carPromoConditions=[];
+  function rateCell(v){
+    if(v===''||v==null)return null;
+    var text=String(v).trim(), n=Number(text.replace('%',''));
+    if(!isFinite(n)||n<0)return null;
+    return Math.round((text.indexOf('%')>=0?n:(n>0&&n<1?n*100:n))*10000)/10000;
+  }
   var carPrice=[],carOptAmt=[],carOptDesc=[],evSubsidy=[],taxFee=[],meterWork=[],insurance=[],saInsMin=[],saInsMax=[];
   for(var r=3;r<=lastRow;r++){
     var fuel=s.getRange('D'+r).getValue();
     if(fuel==='')continue;
     carFuels.push(String(fuel));
+    carBaseRates.push(s.getRange('N'+r+':Q'+r).getValues()[0].map(rateCell));
+    carPromoRates.push(s.getRange('R'+r+':U'+r).getValues()[0].map(rateCell));
+    carPromoConditions.push(String(s.getRange('V'+r).getValue()||''));
     carMakers.push(String(s.getRange('E'+r).getValue()));
     carNames.push(String(s.getRange('F'+r).getValue()));
     carPrice.push(s.getRange('G'+r).getValue());
@@ -37,28 +47,33 @@ function doGet(e) {
     evSubsidy.push(s.getRange('J'+r).getValue());
     taxFee.push(s.getRange('K'+r).getValue());
     meterWork.push(s.getRange('L'+r).getValue());
-    insurance.push(s.getRange('N'+r).getValue());
-    saInsMin.push(s.getRange('O'+r).getValue());
-    saInsMax.push(s.getRange('P'+r).getValue());
+    insurance.push(s.getRange('X'+r).getValue());
+    saInsMin.push(s.getRange('Y'+r).getValue());
+    saInsMax.push(s.getRange('Z'+r).getValue());
   }
 
   var loanBanks=[],loanLimits=[],loanRates=[];
   for(var r2=3;r2<=lastRow;r2++){
-    var bank=s.getRange('Y'+r2).getValue();
+    var bank=s.getRange('AI'+r2).getValue();
     if(!bank)continue;
     loanBanks.push(String(bank));
-    loanLimits.push(Number(s.getRange('Z'+r2).getValue())||0);
-    loanRates.push(Number(s.getRange('AA'+r2).getValue())||0);
+    loanLimits.push(Number(s.getRange('AJ'+r2).getValue())||0);
+    loanRates.push(Number(s.getRange('AK'+r2).getValue())||0);
   }
 
   var data = {
     licensePrice:   s.getRange('B3').getValue(),
     commission:     s.getRange('B6').getValue(),
     dataDate:       fmtDate(s.getRange('B9').getValue()),
+    dateLicense:    fmtDate(s.getRange('B9').getValue()),
     evSubsidyDate:  fmtDate(s.getRange('B12').getValue()),
-    dateLoan:       fmtDate(s.getRange('B15').getValue()),
-    combineFee:     s.getRange('B18').getValue(),
+    dateCar:        fmtDate(s.getRange('B15').getValue()),
+    dateLoan:       fmtDate(s.getRange('B18').getValue()),
+    combineFee:     s.getRange('B21').getValue(),
     carFuels:   carFuels,
+    carBaseRates: carBaseRates,
+    carPromoRates: carPromoRates,
+    carPromoConditions: carPromoConditions,
     carMakers:  carMakers,
     carNames:   carNames,
     carPrice:   carPrice,
@@ -72,29 +87,29 @@ function doGet(e) {
     saInsMax:   saInsMax,
     selItems: (function(){
       var result=[];
-      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,23).getValue()); }   // W3:W9 = 2/3/4/5채널·하이패스·페달·블루투스갓등
+      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,33).getValue()); }   // AG3:AG9 = 2/3/4/5채널·하이패스·페달·블루투스갓등
       return result;
     })(),
     reqItems: (function(){
       var result=[];
-      for(var r4=3;r4<=6;r4++){ result.push(s.getRange(r4,19).getValue()); }
+      for(var r4=3;r4<=6;r4++){ result.push(s.getRange(r4,29).getValue()); }
       return result;
     })(),
     loanBanks:  loanBanks,
     loanLimits: loanLimits,
     loanRates:  loanRates,
-    // ── 추천 구성 (AC4:AI4) ──
+    // ── 추천 구성 (AM4:AS4) ──
     reco: (function(){
-      var r = s.getRange('AC4:AI4').getValues()[0];   // AC~AI = 29~35열
+      var r = s.getRange('AM4:AS4').getValues()[0];   // AM~AS = 39~45열
       var t = function(v){ return String(v==null?'':v).trim(); };
       return {
-        car:    t(r[0]),   // AC 차량 종류
-        option: t(r[1]),   // AD 옵션
-        pay:    t(r[2]),   // AE 할부여부
-        ins:    t(r[3]),   // AF 보험/조합
-        bb:     t(r[4]),   // AG 블랙박스
-        hipass: t(r[5]),   // AH 미터기 연동형 하이패스
-        pedal:  t(r[6])    // AI 블랙박스 페달 추가
+        car:    t(r[0]),   // AM 차량 종류
+        option: t(r[1]),   // AN 옵션
+        pay:    t(r[2]),   // AO 할부여부
+        ins:    t(r[3]),   // AP 보험/조합
+        bb:     t(r[4]),   // AQ 블랙박스
+        hipass: t(r[5]),   // AR 미터기 연동형 하이패스
+        pedal:  t(r[6])    // AS 블랙박스 페달 추가
       };
     })()
   };

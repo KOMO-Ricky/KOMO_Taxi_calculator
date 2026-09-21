@@ -655,9 +655,9 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],combineFee:0,
-  carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
+  carBaseRates:[],carPromoRates:[],carPromoConditions:[],carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],
-  reco:null};   // reco=추천 구성(AC4:AI4), carRate=할부율(연%), date*=기준일
+  reco:null};   // reco=추천 구성(AM4:AS4), carRate=할부수수료율(연%), date*=기준일
 
 // ── 흑백(라인) 아이콘 — 구성 페이지 항목 아이콘과 동일 계열 ──
 const SVG_LIC='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>';
@@ -679,7 +679,7 @@ let activeCfg=0;
 let S=CONFIGS[activeCfg];    // 현재 편집 중인 구성 (참조)
 
 const DEFAULT_MONTHS=60;
-const MONTH_OPTIONS=[12,24,36,48,60];
+const MONTH_OPTIONS=[24,36,48,60];
 const SELF_COVER_FEE=550000;   // 자손/자차 보장 1년 약 50~60만원 (중앙값)
 
 // ── 유틸 ──
@@ -717,14 +717,17 @@ async function loadData(){
     DB.saInsMin=(d.saInsMin||[]).map(N);DB.saInsMax=(d.saInsMax||[]).map(N);
     DB.selItems=(d.selItems||[]).map(N);DB.reqItems=(d.reqItems||[]).map(N);
     DB.combineFee=N(d.combineFee);
-    DB.carRate=(d.carRate||[]).map(N);                 // 할부율(연%) — DB 연동 예정
-    DB.dateLicense=d.dateLicense||'';DB.dateCar=d.dateCar||'';DB.dateCombine=d.dateCombine||'';
+    DB.carBaseRates=d.carBaseRates||[];
+    DB.carPromoRates=d.carPromoRates||[];
+    DB.carPromoConditions=d.carPromoConditions||[];
+    DB.carRate=(d.carRate||[]).map(N);                 // 할부수수료율(연%) — DB 연동 예정
+    DB.dateLicense=d.dateLicense||d.dataDate||'';DB.dateCar=d.dateCar||'';DB.dateCombine=d.dateCombine||'';
     DB.dataDate=d.dataDate||'';
     DB.dateLoan=d.dateLoan||'';
     DB.loanBanks=(d.loanBanks||[]).map(v=>String(v).trim()).filter(Boolean);
     DB.loanLimits=(d.loanLimits||[]).map(N);
     DB.loanRates=(d.loanRates||[]).map(v=>{let x=parseFloat(v)||0;return (x>0&&x<1)?Math.round(x*1000)/10:x;});   // 0.052 → 5.2
-    DB.reco=d.reco||null;   // 추천 구성 (스프레드시트 AC4:AI4)
+    DB.reco=d.reco||null;   // 추천 구성 (스프레드시트 AM4:AS4)
     el('hdDate').textContent='• 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
   }catch(e){
@@ -754,7 +757,7 @@ function fallback(){
     selItems:[200000,350000,550000,650000,100000,100000,500000],   // 2/3/4/5채널·하이패스·페달·블루투스갓등
     reqItems:[60000,20000,30000,100000],
     combineFee:1500000,
-    carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부율 DB 연동 예정 (지금은 0% = 무이자)
+    carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부수수료율 DB 연동 예정 (지금은 0% = 무이자)
     dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
     dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9],
     reco:{car:'쏘나타',option:'현대 스마트센스 / 1열 통풍시트',pay:'60개월',ins:'공제보험',bb:'5채널',hipass:'O',pedal:'X'}};
@@ -765,9 +768,27 @@ function getFuels(){return[...new Set(DB.carFuels.filter(f=>f))];}
 function getMakers(fuel){const s=new Set();DB.carFuels.forEach((f,i)=>{if(f===fuel&&DB.carMakers[i])s.add(DB.carMakers[i]);});return[...s];}
 function getCars(fuel,maker){const r=[];DB.carNames.forEach((n,i)=>{if(DB.carFuels[i]===fuel&&DB.carMakers[i]===maker)r.push({n,i});});return r;}
 function carRateOf(idx){return (DB.carRate&&DB.carRate[idx])?DB.carRate[idx]:0;}
-// 개월수별 고정 할부이율(연%) — 차량과 무관하게 일괄 적용 (쏘나타 기준, 선납 0%)
-const MONTHS_RATE={12:4.2,24:4.4,36:4.6,48:4.8,60:5.0};
-function rateByMonths(m){return (MONTHS_RATE[m]!=null)?MONTHS_RATE[m]:MONTHS_RATE[DEFAULT_MONTHS];}
+// 차량별·개월별 연 이율 (미등록과 0% 구분)
+const EXAMPLE_INSTALLMENT_RATES={standard:{24:6.0,36:6.2,48:6.4,60:6.6},electric:{24:5.0,36:5.2,48:5.4,60:5.6}};
+function hasCarRateData(idx){
+  const filled=v=>v!=null&&String(v).trim()!=='';
+  return (DB.carBaseRates?.[idx]||[]).some(filled)||
+    (DB.carPromoRates?.[idx]||[]).some(filled)||
+    filled(DB.carPromoConditions?.[idx]);
+}
+function providedRateByMonths(m,car){
+  const row=((car&&car.ratePlan==='promo')?DB.carPromoRates:DB.carBaseRates)||[];
+  const v=(row[car?car.idx:-1]||[])[MONTH_OPTIONS.indexOf(Number(m))];
+  return v===null||v===undefined||v===''?null:Number(v);
+}
+function rateByMonths(m,car){
+  const provided=providedRateByMonths(m,car);
+  if(provided!=null)return provided;
+  const rates=EXAMPLE_INSTALLMENT_RATES[car&&isEV(car.idx)?'electric':'standard'];
+  return rates[m]??rates[DEFAULT_MONTHS];
+}
+function rateText(rate){return rate==null?'미등록':rate+'%';}
+function escapeRateText(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* ==================================================================
    계산 (상태를 인자로 받는 순수 함수)
@@ -812,12 +833,14 @@ function carInstOf(car){
   if(car.payType==='일부선납')return Math.max(0,instBase-(car.down||0));
   return 0;
 }
-// 월 할부금액 — 원리금균등상환 (할부율 0%면 단순분할)
+// 월 할부금액 — 원리금균등상환 (할부수수료율 0%면 단순분할)
 function monthlyOf(car){
   const P=carInstOf(car);
   if(P<=0)return 0;
   const n=(car&&car.months)?car.months:DEFAULT_MONTHS;
-  const r=rateByMonths(n)/100/12;
+  const rate=rateByMonths(n,car);
+  if(rate==null)return 0;
+  const r=rate/100/12;
   if(r>0)return Math.round(P*r/(1-Math.pow(1+r,-n)));
   return Math.round(P/n);
 }
@@ -864,7 +887,7 @@ function computeBreakdown(st){
     b.carInst=carInstOf(st.car);
     b.carUpfront=b.carFull-b.carInst;
     b.months=(st.car.months)?st.car.months:DEFAULT_MONTHS;
-    b.rate=(st.car.payType&&st.car.payType!=='일시불')?rateByMonths(st.car.months||DEFAULT_MONTHS):0;
+    b.rate=(st.car.payType&&st.car.payType!=='일시불')?rateByMonths(st.car.months||DEFAULT_MONTHS,st.car):0;
     b.monthly=monthlyOf(st.car);
   }
   if(st.ins&&st.car){
@@ -1063,7 +1086,7 @@ function flashBtn(b){b.classList.remove('cf-flash');void b.offsetWidth;b.classLi
 const TIPS={};
 TIPS.pay='<b>일시불</b> 전액 현금 납부<br><b>전액할부</b> 차량값 전부 할부<br><b>일부선납</b> 일부 현금 + 나머지 할부';
 TIPS.months='할부 원금을 몇 개월로 나눠 낼지 선택합니다.';
-TIPS.rate='할부 이자율(연). 화면 값은 <b>참고용 예상치</b>이며, 실제 이율은 개인 신용·선납금·개월수·캐피탈 심사와 월별 프로모션에 따라 달라집니다. 무이자·저금리 행사가 있을 수 있으니 정확한 금액은 상담으로 확인하세요.';
+TIPS.rate='할부수수료율(연). 화면 값은 <b>참고용 예상치</b>이며, 실제 이율은 개인 신용·선납금·개월수·캐피탈 심사와 월별 프로모션에 따라 달라집니다. 무이자·저금리 행사가 있을 수 있으니 정확한 금액은 상담으로 확인하세요.';
 TIPS.trim='<b>영업용(2.4%)</b> 개인택시 등록 · <b>일반용(7%)</b> 일반 승용 등록. 수입차 취등록세율 차이입니다.';
 TIPS.gongje='<b>공제보험</b> 전국개인택시공제조합. 1년치 보험료를 <b>초기비용</b>으로 계산하며 조합 가입이 필수입니다.';
 TIPS.sabom='<b>사보험</b> 일반 손해보험사 상품. 가입자마다 상이하므로 <b>금액을 직접 입력</b>할 수 있습니다.';
@@ -1142,7 +1165,7 @@ function saveLicense(){
 // ── 차량 모달 ──
 let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
 function openCar(){
-  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0,optOn:S.car.optOn===true}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0,optOn:false};
+  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,ratePlan:S.car.ratePlan||'base',priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0,optOn:S.car.optOn===true}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0,optOn:false};
   renderCarModal();
 }
 function renderCarModal(){
@@ -1193,7 +1216,7 @@ function renderCarModal(){
           if(isEV(i))h+=`<div class="sublabel">• ${DB.evSubsidyDate?('보조금 기준일 '+DB.evSubsidyDate):'보조금 기준일 DB 연동 예정'}</div>`;}
         if(exc)h+=`<div class="mrow"><span class="ml">개별소비세 면제</span><span class="mv green">- ${comma(exc)} 원</span></div>`;
         h+=`<div class="mrow"><span class="ml">취등록세/공채</span><span class="mv">${tax===0?'0 원':(tax?'약 '+comma(tax)+' 원':'—')}</span></div>`;
-        h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
+
       }else{
         h+=`<div class="subtitle" style="margin-top:6px;">${SVG_EDIT}차량 금액 직접 입력</div>
         <div class="sublabel">금액을 입력하시면 아래 차량 소계에 자동 반영됩니다.</div>
@@ -1217,18 +1240,24 @@ function renderCarModal(){
         <input class="inp" type="text" inputmode="numeric" id="downAmt" placeholder="예) 5,000,000" value="${tmpCar.down?comma(tmpCar.down):''}" oninput="fmtInput(this);tmpCar.down=N(this.value);updateCarManualSum()"></div>`;
     }
     if(tmpCar.payType==='전액할부'||tmpCar.payType==='일부선납'){
-      const rate=rateByMonths(tmpCar.months);
+      const rate=rateByMonths(tmpCar.months,tmpCar);
+      const hasRateData=hasCarRateData(tmpCar.idx);
+      const usesExampleRate=providedRateByMonths(tmpCar.months,tmpCar)==null;
+      if(hasRateData)h+='<div class="subtitle">할부수수료율 종류</div><div class="sel-wrap"><select onchange="readCarInputs();tmpCar.ratePlan=this.value;renderCarModal()"><option value="base"'+(tmpCar.ratePlan!=='promo'?' selected':'')+'>기본 할부수수료율</option><option value="promo"'+(tmpCar.ratePlan==='promo'?' selected':'')+'>프로모션 할부수수료율 (조건 확인)</option></select><span class="arr">▼</span></div>';
+      if(DB.carPromoConditions[tmpCar.idx])h+='<div class="sublabel">프로모션 적용 조건: '+escapeRateText(DB.carPromoConditions[tmpCar.idx])+'</div>';
+
       h+=`<div class="subtitle">할부 개월수 <span class="qm" onclick="tip('months')">?</span></div>
         <div class="tog-row" style="flex-wrap:wrap;">`;
       MONTH_OPTIONS.forEach(m=>{h+=`<button class="tog-btn${tmpCar.months===m?' on':''}" onclick="selMonths(${m})">${m}개월</button>`;});
       h+=`</div>
-        <div class="mrow" style="margin-top:8px;"><span class="ml">할부율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rate}%</span></div>
-        <div class="sublabel" style="margin-top:2px;">※ 현재 이율은 <b>차량에 관계없이 개월수 기준</b>으로 임의설정값이 일괄 적용됩니다.</div>
+        <div class="mrow" style="margin-top:8px;"><span class="ml">할부수수료율 (연) <span class="qm" onclick="tip('rate')">?</span></span><span class="mv accent">${rateText(rate)}</span></div>
+        <div class="sublabel" style="margin-top:2px;">${!hasRateData?'※ 제조사로부터 할부수수료율 데이터가 제공되지 않는 차량입니다. <b>유사 차종 및 개월수를 기준으로 한 평균값으로 적용됩니다.</b>':usesExampleRate?'※ 제조사로부터 해당 개월 수에 대한 할부수수료율 데이터가 제공되지 않습니다. <b>유사 차종 및 개월수를 기준으로 한 평균값으로 적용됩니다.</b>':'선택 차량과 개월수에 해당하는 할부수수료율입니다.'}</div>
         <div class="mrow" style="margin-top:6px;"><span class="ml">초기 일시 소요비용 <small style="color:var(--muted)">(할부 외 현금${tmpCar.payType==='일부선납'?' · 선납금 포함':''})</small></span><span class="mv accent" id="carUpfrontDisp">${won(previewCarUpfront())}</span></div>
-        <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent" id="carMonthlyDisp">${won(previewMonthly())}</span></div>
-        <div class="alert info" style="margin-top:8px;">ℹ️ 이율·월 납입금은 <b>참고용 예상치</b>입니다. 실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.</div>`;
+        <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent" id="carMonthlyDisp">${rate==null?'할부수수료율 미등록':won(previewMonthly())}</span></div>
+        <div class="alert info" style="margin-top:8px;">${!usesExampleRate?'제조사로부터 제공되는 기본적인 할부수수료율 정보를 기반으로 계산됩니다. 구매월의 프로모션 및 개인 신용·선납금·개월수·캐피탈 심사 등에 따라 달라질 수 있습니다.':'실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.'}</div>`;
     }
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" id="carSubDisp" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
+    h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
     if(!isForeign(i)){
       if(!tmpCar.priceManual){
         h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}차량 금액 직접 입력하기</div>
@@ -1247,10 +1276,10 @@ function carManualTotal(){const base=el('carBaseOvr')?N(el('carBaseOvr').value):
 function updateCarManualSum(){
   const e=el('carManualSum');if(e)e.textContent=won(carManualTotal());
   const cs=el('carSubDisp');if(cs)cs.textContent=won(previewCarSub());       // '차량 소계' 즉시 반영
-  const cm=el('carMonthlyDisp');if(cm)cm.textContent=won(previewMonthly());   // 월 예상 납입 즉시 반영
+  const cm=el('carMonthlyDisp');if(cm)cm.textContent=rateByMonths(tmpCar.months,tmpCar)==null?'할부수수료율 미등록':won(previewMonthly());   // 월 예상 납입 즉시 반영
   const cu=el('carUpfrontDisp');if(cu)cu.textContent=won(previewCarUpfront()); // 초기 일시 소요비용 즉시 반영
 }
-function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
+function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
 function toggleOpt(){readCarInputs();tmpCar.optOn=!tmpCar.optOn;renderCarModal();}
 function previewCarSub(){return carFullOf(tmpCarState());}
 function previewMonthly(){return monthlyOf(tmpCarState());}
@@ -1258,7 +1287,7 @@ function previewCarUpfront(){const st=tmpCarState();return Math.max(0,carFullOf(
 function readFPrice(){const e=el('fPrice');return e?N(e.value):tmpCar.foreignPrice;}
 function selFuel(f){tmpCar.fuel=f;tmpCar.maker='';tmpCar.idx=-1;renderCarModal();}
 function selMaker(m){tmpCar.maker=m;tmpCar.idx=-1;renderCarModal();}
-function selCar(i){tmpCar.idx=i;tmpCar.payType='';renderCarModal();}
+function selCar(i){tmpCar.ratePlan='base';tmpCar.idx=i;tmpCar.payType='';renderCarModal();}
 function selTrim(t){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);tmpCar.trim=t;renderCarModal();}
 function selPay(v){readCarInputs();tmpCar.payType=v;renderCarModal();}
 function selMonths(m){readCarInputs();tmpCar.months=m;renderCarModal();}
@@ -1274,7 +1303,8 @@ function saveCar(){
   if(tmpCar.payType==='일부선납'&&!tmpCar.down){toast('선납금액을 입력해 주세요');return;}
   readCarInputs();
   if(tmpCar.priceManual&&!isForeign(tmpCar.idx)&&!(tmpCar.baseOvr>0)){toast('차량 기본금액을 입력해 주세요');return;}
-  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
+  if(tmpCar.payType!=='일시불'&&rateByMonths(tmpCar.months,tmpCar)==null){toast('해당 선택 개월 수에 적용되는 할부수수료율 데이터가 제공되지 않습니다.');return;}
+  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
   autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
@@ -1863,7 +1893,7 @@ function submitFeedback(){
 // 추천 구성
 // ══════════════════════════════════════════
 let RECO=null;
-// 스프레드시트 AC4:AI4(추천 구성) → RECO 구성. (X/빈칸은 제외)
+// 스프레드시트 AM4:AS4(추천 구성) → RECO 구성. (X/빈칸은 제외)
 function buildReco(){
   const R=DB.reco||{};
   const isOn=v=>{const s=String(v==null?'':v).trim().toUpperCase();return !!s&&s!=='X'&&s!=='-'&&s!=='없음'&&s!=='0'&&s!=='N'&&s!=='FALSE';};
@@ -1892,6 +1922,7 @@ function buildReco(){
     ins:{type:insType,combine:true,saCustom:0},
     work:{bb:bbOn,bbCh:bbOn?bbCh:'',hi:hiOn,pedal:pedalOn,btGat:false,ovr:0},
     licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};
+  if(payType!=='일시불'&&rateByMonths(months,RECO.car)==null){RECO=null;return;}
   const rb=computeBreakdown(RECO);
   const baseCost=rb.carFull+rb.work;   // 지역 무관 항목(차량+작업)만 — 면허·보험은 지역 선택 후 반영
   const carLbl=DB.carNames[idx]+' · '+(payType==='일시불'?'일시불':(payType+' '+months+'개월'));
