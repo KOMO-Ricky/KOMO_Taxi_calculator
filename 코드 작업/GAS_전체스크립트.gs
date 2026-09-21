@@ -79,6 +79,30 @@ function doGet(e) {
     carPrice:   carPrice,
     carOptAmt:  carOptAmt,
     carOptDesc: carOptDesc,
+    // ── 차량별 개별 옵션 ('차량옵션' 탭, 2행~마지막행 동적) ──
+    // A차량명(병합: 빈칸이면 직전 차량 계승) B옵션명 C금액 D추천세트(V)
+    // 금액이 비었거나 0이면 계산기에 노출하지 않는다 → 시트에 금액을 채우는 순간 자동 반영
+    carOptions: (function(){
+      var out = {};
+      try {
+        var os = ss.getSheetByName('차량옵션');
+        if (os) {
+          var lr = os.getLastRow();
+          if (lr >= 2) {
+            var v = os.getRange(2, 1, lr - 1, 4).getValues(), cur = '';
+            for (var i2 = 0; i2 < v.length; i2++) {
+              var nm2 = String(v[i2][0] || '').trim();
+              if (nm2) cur = nm2;
+              var op = String(v[i2][1] || '').trim();
+              var pr = Number(v[i2][2]) || 0;
+              if (!cur || !op || op === '(옵션 없음)' || pr <= 0) continue;
+              (out[cur] = out[cur] || []).push({ n: op, p: pr, r: String(v[i2][3] || '').trim().toUpperCase() === 'V' });
+            }
+          }
+        }
+      } catch (e2) {}
+      return out;
+    })(),
     evSubsidy:  evSubsidy,
     taxFee:     taxFee,
     meterWork:  meterWork,

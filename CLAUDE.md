@@ -1,5 +1,7 @@
 # 마이택시플랜 (MyTaxiPlan) — 개인택시 준비자금 계산기
 
+> **공통 인수인계:** 작업 시작 전에 [WORK_LOG.md](WORK_LOG.md)를 읽고, 작업 종료 시 변경·검증·배포 상태를 갱신하세요. 아래 기존 시트 주소 설명보다 WORK_LOG.md의 2026-09-21 셀 배치가 우선합니다.
+
 모바일 우선 단일 HTML 웹앱. GitHub Pages로 배포되며 **이미 서비스 중**이다.
 
 - **라이브 주소**: https://calculator.licen.co.kr (루트 `index.html`, `main` 브랜치)
