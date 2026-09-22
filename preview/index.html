@@ -203,7 +203,7 @@ body.modal-open{overflow:hidden;}
 .amt-disp{font-size:22px;font-weight:800;color:var(--primary);padding:6px 0;}
 .amt-disp.green{color:var(--success);}
 .sublabel{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
-.refdate{font-size:11px;color:var(--info);background:#eef5ff;border-radius:8px;padding:6px 10px;margin-top:8px;display:inline-block;font-weight:600;}
+.refdate{font-size:11px;color:var(--info);background:#eef5ff;border-radius:8px;padding:6px 10px;margin-top:8px;display:block;width:fit-content;margin-left:auto;font-weight:600;}
 .opt-block{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
 .opt-head{display:flex;align-items:center;gap:10px;}
 .opt-head input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex-shrink:0;}
@@ -702,8 +702,13 @@ function setStatus(state,txt){const s=el('status');s.className='status'+(state==
 // ── 데이터 로드 ──
 async function loadData(){
   try{
-    const r=await fetch(API);if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
+    let d=null;
+    for(let att=1;att<=3;att++){                     // 간헐적 404(배포 전파 지연) 대응: 최대 3회 재시도
+      try{
+        const r=await fetch(API);if(!r.ok)throw new Error('HTTP '+r.status);
+        d=await r.json();break;
+      }catch(err){ if(att===3)throw err; await new Promise(res=>setTimeout(res,1200*att)); }
+    }
     DB.licensePrice=N(d.licensePrice);DB.commission=N(d.commission);
     DB.evSubsidyDate=d.evSubsidyDate||'';
     DB.carNames=(d.carNames||[]).map(v=>String(v).trim());
@@ -1281,6 +1286,7 @@ function renderCarModal(){
         <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent" id="carMonthlyDisp">${rate==null?'할부수수료율 미등록':won(previewMonthly())}</span></div>
         <div class="alert info" style="margin-top:8px;">${!usesExampleRate?'제조사로부터 제공되는 기본적인 할부수수료율 정보를 기반으로 계산됩니다. 구매월의 프로모션 및 개인 신용·선납금·개월수·캐피탈 심사 등에 따라 달라질 수 있습니다.':'실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.'}</div>`;
     }
+    h+=`<div class="alert info" style="margin-top:8px;">※본 계산에 개인택시 영업용 차량 대상 부가세 환급금은 포함되지 않았습니다.</div>`;
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" id="carSubDisp" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
     h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
     if(!isForeign(i)){
