@@ -151,3 +151,15 @@
 - 직전 Claude 기록에서 차량옵션 트림 열 삽입으로 옵션 연동 복구 대기 상태가 확인됨. 대규모 유입 전에 현 라이브 동작 점검 필요(이번에는 라이브 재검증하지 않음).
 - 참고: YouTube Shorts 설명/댓글 일반 URL은 클릭 불가. 채널 프로필 링크 또는 관련 일반 영상으로 이동 동선 필요: https://support.google.com/youtube/answer/13748639
 - 검증/배포: 전략 조언을 위한 저장소 기록·GA 코드 검색 및 공식 문서 조사만 수행. 제품 코드 수정, 게시, 광고, 배포 없음.
+
+## 2026-09-23 — GA4 계산 행동 기록 추가 (Codex)
+- Claude 최신 기록(옵션 선택, 재시도, 기준일 우측 정렬, 부가세 안내, 트림 대응 대기)을 확인하고 기존 기능을 유지한 채 HTML 3개 동기화.
+- 이벤트(각 페이지 로드당 이벤트별 1회): calculator_start(시작 버튼), quote_complete(면허·차량·보험/조합·작업비 4개가 설정된 구성이 최소 1개), comparison_view(미완성 포함 실제 비교 화면 노출), completed_comparison_view(완성 구성이 최소 1개인 비교 화면), quote_request_submitted(이름/전화/동의 검증 후 기존 문자 요청 전송 호출).
+- complete_count 매개변수는 해당 이벤트 시점의 완성 구성 수(0~2). 첫 발생만 기록하므로 나중에 두 번째 구성 완성까지 모두 추적하는 지표는 아님. 추천 구성도 실제 필수 항목이 채워지면 완성으로 집계.
+- 중복 방지는 페이지 메모리 기준. 새로고침하면 다시 기록되며 GA 세션 단위 중복 방지라고 해석하면 안 됨. 완료율은 단순 이벤트 횟수 나누기보다 GA4 사용자 기준 유입경로 탐색 사용.
+- 개인정보(이름/전화/자유입력 구성명), 견적 금액·이미지는 추가 이벤트 매개변수에 보내지 않음. GA 기본 페이지/기기 정보 수집은 기존 설정 유지.
+- 중요: 기존 postGAS는 no-cors이고 응답 성공 여부를 확인하지 않음. 따라서 quote_request_success를 만들지 않고 제출 시도인 quote_request_submitted로 명명. 실제 문자 발송 성공 지표는 별도 백엔드 작업 필요.
+- GA4 설정: 탐색 → 유입경로 탐색에서 calculator_start → quote_complete → completed_comparison_view → quote_request_submitted. 전체 비교 진입만 보려면 comparison_view 사용. complete_count로 분석하려면 관리의 맞춤 정의에서 이벤트 범위 맞춤 측정기준으로 등록. 이 GA 설정은 아직 수행하지 않음.
+- 테스트 URL에 ?analytics_debug=1을 붙이면 추가 이벤트에 debug_mode:true 전달. GA DebugView 실제 수신은 배포 후 별도 확인 필요.
+- 검증: node --check 통과. 네트워크 차단된 Playwright 스텁으로 이벤트 순서·반복 호출 중복 방지·미완성/완성 비교 구분·허용 매개변수·gtag 오류가 계산기를 중단하지 않음·debug_mode 확인. 문자 이벤트는 전송 없이 기록 헬퍼로 검증(실제 문자 미발송). 모바일 390×844/PC 1280×800 비교 화면 스크린샷 확인. HTML 3개 동일.
+- 배포: 로컬 수정만 완료. 커밋/푸시/운영 GA 수신 확인 미실행. Apps Script 수정/재배포 불필요.
