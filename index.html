@@ -1286,7 +1286,7 @@ function renderCarModal(){
         <div class="mrow" style="margin-top:6px;"><span class="ml">월 예상 납입 <small style="color:var(--muted)">(원리금균등)</small></span><span class="mv accent" id="carMonthlyDisp">${rate==null?'할부수수료율 미등록':won(previewMonthly())}</span></div>
         <div class="alert info" style="margin-top:8px;">${!usesExampleRate?'제조사로부터 제공되는 기본적인 할부수수료율 정보를 기반으로 계산됩니다. 구매월의 프로모션 및 개인 신용·선납금·개월수·캐피탈 심사 등에 따라 달라질 수 있습니다.':'실제 이율은 <b>개인 신용·선납금·개월수·캐피탈 심사</b>와 그 달의 <b>프로모션(무이자·저금리 포함)</b>에 따라 달라질 수 있습니다.'}</div>`;
     }
-    h+=`<div class="alert info" style="margin-top:8px;">※본 계산은 개인택시 영업용 차량 대상 부가세 환급금은 포함되지 않습니다.</div>`;
+    h+=`<div class="alert info" style="margin-top:8px;">※본 계산은 개인택시 영업용 차량 대상 부가세 환급금을 포함하지 않습니다.</div>`;
     h+=`<div class="mrow" style="margin-top:6px;"><span class="ml"><b>차량 소계</b></span><span class="mv" id="carSubDisp" style="color:var(--primary);font-size:19px;">${won(previewCarSub())}</span></div>`;
     h+=`<div class="refdate">${refDate(DB.dateCar)}</div>`;
     if(!isForeign(i)){
