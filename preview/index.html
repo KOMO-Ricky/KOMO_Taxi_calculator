@@ -181,6 +181,7 @@ body.modal-open{overflow:hidden;}
 .item .tag-guide{display:inline-block;font-size:9px;font-weight:800;color:var(--accent);background:#FDF3D7;border-radius:5px;padding:1px 5px;margin-left:5px;vertical-align:middle;}
 
 /* 모달 */
+body.cover-open .modal-bg{z-index:2100;}
 .modal-bg{position:fixed;inset:0;background:rgba(10,14,20,.55);display:none;align-items:flex-end;justify-content:center;z-index:1700;backdrop-filter:blur(2px);}
 .modal-bg.show{display:flex;}
 .modal{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 20px 30px;max-height:90vh;overflow-y:auto;overscroll-behavior:contain;animation:slideUp .25s ease;}
@@ -630,6 +631,7 @@ html.scroll-lock{overflow:hidden;}   /* 오버레이(커버/비교표/모달) �
     </div>
     <div class="f2-divider"></div>
     <div class="f2-addr">서울특별시 송파구 올림픽로 319 교통회관 11층 개인택시양수도센터<br>본 계산기는 서울 기준 예상 금액이며 실제와 차이가 있을 수 있습니다.</div>
+    <div style="margin-top:12px;font-size:11px;line-height:1.6">선택 항목은 서비스 개선을 위한 이용 통계로 기록됩니다. <button type="button" onclick="openUsagePrivacy()" style="border:0;background:none;color:inherit;text-decoration:underline;cursor:pointer">수집 항목·설정</button></div>
     <div class="f2-copy">Copyright 2026. KOMOLAB Inc. All rights reserved.</div>
     </div>
 </div>
@@ -670,7 +672,7 @@ const SVG_EDIT='<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentC
 // GA4 milestones: deduplicated within this page load; no form values or quote details.
 const analyticsMilestones=new Set();
 function trackCalculatorEvent(name,params={},key=name){
-  if(analyticsMilestones.has(key))return;
+  if(!usageTrackingAllowed()||analyticsMilestones.has(key))return;
   try{
     if(typeof gtag!=='function')return;
     gtag('event',name,{...params,...(new URLSearchParams(location.search).get('analytics_debug')==='1'?{debug_mode:true}:{})});
@@ -686,10 +688,85 @@ function trackQuoteCompletion(){
   if(count>0)trackCalculatorEvent('quote_complete',{complete_count:count});
 }
 function trackComparisonView(){
+  CONFIGS.forEach((c,i)=>{if(c.licSet||c.car||c.ins||c.work)usageCompared[i]=true;});
+  recordUsageSelections();
   trackQuoteCompletion();
   const count=completedQuoteCount();
   trackCalculatorEvent('comparison_view',{complete_count:count});
   if(count>0)trackCalculatorEvent('completed_comparison_view',{complete_count:count});
+}
+
+// Selection telemetry: page-local quote IDs, no identity or financial form fields.
+let usageStarted=false;
+let usageDisabled=false;
+try{usageDisabled=localStorage.getItem('mtp_usage_disabled')==='1';}catch(e){}
+const usagePageId=typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+const usageLast=[null,null],usageRevision=[0,0],usageCompared=[false,false],usageTimers=[null,null];
+function usageTrackingAllowed(){return !usageDisabled;}
+function usageChoice(value,allowed){return allowed.includes(value)?value:'';}
+function usageSnapshot(c,i){
+  const car=c.car,ins=c.ins,work=c.work,idx=car?car.idx:-1;
+  const catalog=(idx>=0&&DB.carNames[idx])?idx:-1;
+  return {
+    config_number:i+1,
+    region:c.licSet?usageChoice(c.licRegion,LIC_REGIONS):'',
+    car_name:catalog>=0?String(DB.carNames[catalog]).slice(0,100):'',
+    fuel:catalog>=0?String(DB.carFuels[catalog]).slice(0,30):'',
+    payment_type:car?usageChoice(car.payType,['일시불','전액할부','일부선납']):'',
+    installment_months:car&&car.payType!=='일시불'&&MONTH_OPTIONS.includes(car.months)?car.months:0,
+    rate_plan:car&&car.payType!=='일시불'?(providedRateByMonths(car.months,car)==null?'example':car.ratePlan==='promo'?'promo':'base'):'',
+    insurance_type:ins?usageChoice(ins.type,['공제','사보험']):'',
+    combine:!!(ins&&ins.combine),self_cover:!!(ins&&ins.selfCover),
+    options:car&&catalog>=0?carOptSelOf(car).slice(0,30).map(n=>String(n).slice(0,100)):[],
+    option_mode:car?(carOptsOf(idx).length?'individual':car.optOn?'recommended':'none'):'',
+    blackbox:!!(work&&work.bb),blackbox_channels:work&&work.bb?String(work.bbCh||'').slice(0,10):'',
+    hipass:!!(work&&work.hi),pedal:!!(work&&work.pedal),roof_light:!!(work&&work.btGat),
+    license_saved:!!c.licSet,car_saved:!!car,insurance_saved:!!ins,work_saved:!!work,
+    complete:!!(c.licSet&&car&&ins&&work),comparison_viewed:usageCompared[i]
+  };
+}
+function sendSelectionEvent(name,params){
+  try{if(usageTrackingAllowed()&&typeof gtag==='function')gtag('event',name,{...params,...(new URLSearchParams(location.search).get('analytics_debug')==='1'?{debug_mode:true}:{})});}catch(e){}
+}
+function flushUsage(i){
+  clearTimeout(usageTimers[i]);usageTimers[i]=null;
+  if(!usageTrackingAllowed()||!usageLast[i])return;
+  const payload={requestType:'calculator_usage',quoteId:usagePageId+'-'+(i+1),revision:usageRevision[i],test:new URLSearchParams(location.search).get('analytics_debug')==='1',selection:usageLast[i]};
+  try{fetch(API,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(()=>{});}catch(e){}
+}
+function recordUsageSelections(){
+  if(!usageStarted||!usageTrackingAllowed())return;
+  try{
+    CONFIGS.forEach((c,i)=>{
+      const snapshot=usageSnapshot(c,i),previous=usageLast[i];
+      if(!previous&&!c.licSet&&!c.car&&!c.ins&&!c.work)return;
+      if(JSON.stringify(previous)===JSON.stringify(snapshot))return;
+      usageLast[i]=snapshot;usageRevision[i]++;
+      // GA parameters are an explicit allowlist (never spread calculator state).
+      const params={config_number:i+1,region:snapshot.region,car_name:snapshot.car_name,fuel:snapshot.fuel,
+        payment_type:snapshot.payment_type,installment_months:snapshot.installment_months,rate_plan:snapshot.rate_plan,
+        insurance_type:snapshot.insurance_type,combine:snapshot.combine,self_cover:snapshot.self_cover,
+        option_count:snapshot.options.length,option_mode:snapshot.option_mode,blackbox:snapshot.blackbox,
+        blackbox_channels:snapshot.blackbox_channels,hipass:snapshot.hipass,pedal:snapshot.pedal,roof_light:snapshot.roof_light,
+        quote_status:snapshot.complete?'complete':'in_progress',comparison_viewed:snapshot.comparison_viewed};
+      sendSelectionEvent('quote_selection_updated',params);
+      const oldOptions=previous&&previous.car_name===snapshot.car_name?previous.options:[];
+      const names=new Set([...oldOptions,...snapshot.options]);
+      names.forEach(name=>{const selected=snapshot.options.includes(name);if(selected!==oldOptions.includes(name))
+        sendSelectionEvent('quote_option_changed',{config_number:i+1,car_name:snapshot.car_name,option_name:name,selected});});
+      clearTimeout(usageTimers[i]);usageTimers[i]=setTimeout(()=>flushUsage(i),500);
+    });
+  }catch(e){ /* Do not interfere with saving a quote. */ }
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')usageTimers.forEach((t,i)=>{if(t)flushUsage(i);});});
+function openUsagePrivacy(){
+  openModalHTML('<h3>이용 통계 안내</h3><p class="mdesc">서비스 개선과 이용 수요 분석을 위해 항목 저장 시 선택한 지역·차량·옵션·구매 방식·할부 개월수·보험·작업 항목 및 완성/비교 여부를 Google Analytics와 운영자 스프레드시트에 기록합니다. 문자 신청 여부와 관계없이 기록되며, 선택값을 바꾸면 해당 견적 내역이 갱신됩니다.</p><p class="mdesc">이 기록에는 이름·전화번호·직접 입력한 구성명·의견·보유자금 및 직접 입력 금액을 보내지 않습니다. 견적 구분용 임시번호는 페이지를 새로 열면 바뀝니다. Google Analytics의 기본 방문 통계는 별도입니다.</p><p class="mdesc">운영자: 한국모빌리티연구소 / 개인택시 양수도센터. 아래 설정은 이 브라우저의 추가 행동·선택 내역 수집에 적용되며, 기존 기록을 삭제하지는 않습니다.</p><button class="modal-save" onclick="toggleUsagePrivacy()">'+(usageDisabled?'추가 이용 통계 수집 켜기':'추가 이용 통계 수집 끄기')+'</button><button class="modal-close" onclick="closeModal()">닫기</button>');
+}
+function toggleUsagePrivacy(){
+  usageDisabled=!usageDisabled;
+  try{localStorage.setItem('mtp_usage_disabled',usageDisabled?'1':'0');}catch(e){}
+  if(usageDisabled)usageTimers.forEach(t=>clearTimeout(t));
+  openUsagePrivacy();
 }
 
 function newCfg(){return{car:null,ins:null,work:null,licSet:false,licRegion:'',licManual:false,licPrice:0,licFee:0};}
@@ -959,6 +1036,7 @@ function isFilled(cfg){return !!(cfg&&cfg.car);}
 
 /* ===== 렌더링 ===== */
 function renderAll(){
+  recordUsageSelections();
   trackQuoteCompletion();
   const b=computeBreakdown(S);
   {const li=el('item_license'),lr=el('rv_license'),ld=el('ds_license');
@@ -2004,6 +2082,7 @@ function buildReco(){
 
 // 커버 → 계산기 진입 전환
 function startCalc(){
+  usageStarted=true;
   trackCalculatorEvent('calculator_start');
   el('coverPage').classList.add('hide');
   document.body.classList.remove('cover-open');

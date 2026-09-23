@@ -147,9 +147,69 @@ function doGet(e) {
 // ==========================================================================
 //  doPost — 문자 견적 신청 / 의견 접수  (DB 기록 + 솔라피 발송)
 // ==========================================================================
+// Selection-only usage log. Fixed destination and column allowlist; never store the raw request.
+function saveCalculatorUsage_(d){
+  function result(v){return ContentService.createTextOutput(v);}
+  if(typeof d.quoteId!=='string'||!/^[a-zA-Z0-9-]{12,80}-[12]$/.test(d.quoteId))return result('invalid id');
+  if(!Number.isInteger(d.revision)||d.revision<1||d.revision>100000)return result('invalid revision');
+  var q=d.selection;
+  if(!q||[1,2].indexOf(q.config_number)<0||!d.quoteId.endsWith('-'+q.config_number))return result('invalid selection');
+  function txt(v,n){
+    var s=typeof v==='string'?v.slice(0,n||100):'';
+    // Prevent formula interpretation in Sheets, including whitespace-prefixed formulas.
+    return /^\s*[=+@-]/.test(s)?"'"+s:s;
+  }
+  function choice(v,allowed){return allowed.indexOf(v)>=0?v:'';}
+  function flag(v){return v===true?'Y':'N';}
+  var complete=q.license_saved===true&&q.car_saved===true&&q.insurance_saved===true&&q.work_saved===true;
+  var header=['견적 기록번호','갱신번호','최초 기록시각','최근 기록시각','테스트','구성 번호','완성 여부','비교 진입',
+    '면허 저장','차량 저장','보험 저장','작업비 저장','지역','차량','연료','구매 방식','할부 개월수','수수료율 종류',
+    '보험 유형','조합 가입','자손/자차','옵션 방식','선택 옵션','블랙박스','블랙박스 채널','하이패스','페달','블루투스 갓등'];
+  var recordId=d.quoteId.replace(/-[12]$/,'');
+  var fields=['갱신번호'].concat(header.slice(6));
+  header=['접속 기록번호','최초 기록시각','최근 기록시각','테스트']
+    .concat(fields.map(function(v){return '1번 '+v;}),fields.map(function(v){return '2번 '+v;}));
+  var blockCol=5+(q.config_number-1)*fields.length;
+  var lock=LockService.getScriptLock();
+  if(!lock.tryLock(10000))return result('busy');
+  try{
+    var ss=SpreadsheetApp.openById(SS_ID);
+    var sh=ss.getSheetByName('계산기 이용내역');
+    if(sh&&sh.getLastRow()>0&&sh.getRange(1,1).getValue()==='견적 기록번호'){
+      sh=ss.getSheetByName('계산기 이용내역(통합)')||ss.insertSheet('계산기 이용내역(통합)');
+    }
+    if(!sh){sh=ss.insertSheet('계산기 이용내역');sh.getRange(1,1,1,header.length).setValues([header]);sh.setFrozenRows(1);}
+    if(sh.getLastRow()===0)sh.getRange(1,1,1,header.length).setValues([header]);
+    if(JSON.stringify(sh.getRange(1,1,1,header.length).getValues()[0])!==JSON.stringify(header))return result('schema mismatch');
+    var last=sh.getLastRow();
+    var found=last>1?sh.getRange(2,1,last-1,1).createTextFinder(recordId).matchEntireCell(true).useRegularExpression(false).findNext():null;
+    var row=found?found.getRow():last+1;
+    var now=new Date(),first=now;
+    if(found){
+      var prior=[sh.getRange(row,blockCol).getValue(),sh.getRange(row,2).getValue()];
+      if(Number(prior[0])>=d.revision)return result('stale');
+      first=prior[1];
+    }
+    var values=[d.quoteId,d.revision,first,now,flag(d.test),q.config_number,complete?'완성':'작성 중',flag(q.comparison_viewed),
+      flag(q.license_saved),flag(q.car_saved),flag(q.insurance_saved),flag(q.work_saved),
+      choice(q.region,['서울특별시','경기도','인천광역시','부산광역시','대구광역시','대전광역시','광주광역시','울산광역시','기타 지역']),
+      txt(q.car_name),txt(q.fuel,30),choice(q.payment_type,['일시불','전액할부','일부선납']),
+      [24,36,48,60].indexOf(q.installment_months)>=0?q.installment_months:'',choice(q.rate_plan,['base','promo','example']),
+      choice(q.insurance_type,['공제','사보험']),flag(q.combine),flag(q.self_cover),choice(q.option_mode,['individual','recommended','none']),
+      txt(Array.isArray(q.options)?q.options.slice(0,30).filter(function(v){return typeof v==='string';}).map(function(v){return v.slice(0,100);}).join(' | '):'',3100),
+      flag(q.blackbox),txt(q.blackbox_channels,10),flag(q.hipass),flag(q.pedal),flag(q.roof_light)];
+    if(!found)sh.getRange(row,1,1,header.length).setValues([Array(header.length).fill('')]);
+    sh.getRange(row,1,1,4).setValues([[recordId,first,now,flag(d.test)]]);
+    sh.getRange(row,blockCol,1,fields.length).setValues([[d.revision].concat(values.slice(6))]);
+    sh.getRange(row,2,1,2).setNumberFormat('yyyy-mm-dd hh:mm:ss');
+    return result('ok');
+  }finally{lock.releaseLock();}
+}
+
 function doPost(e){
   try{
     var d  = JSON.parse(e.postData.contents);
+    if (d.requestType === 'calculator_usage') return saveCalculatorUsage_(d);
     var ss = SpreadsheetApp.openById(SS_ID);
 
     if (d.requestType === 'calc_feedback'){
