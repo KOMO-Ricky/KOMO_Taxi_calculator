@@ -322,28 +322,3 @@ function 옵션탭_행렬구성() {
   for (var c = 3; c <= 10; c++) sh.setColumnWidth(c, 150);
   Logger.log('차량옵션 v3(행렬표) 구성 완료 — 6개 차량 블록');
 }
-
-
-// ═══ 만원 단위 입력 자동 변환 (onEdit 트리거) ═══════════════════
-// 차량옵션 탭에서 10,000 미만의 양수를 입력하면 만원 단위로 보고 ×10,000.
-// 예) 59 → 590,000 / 103 → 1,030,000 / 3312 → 33,120,000. 전체 금액을 그대로 쳐도 됨.
-var 만원변환_대상탭 = ["차량옵션"];
-function 만원자동변환(e) {
-  try {
-    var sh = e.range.getSheet();
-    if (만원변환_대상탭.indexOf(sh.getName()) < 0) return;
-    var vals = e.range.getValues(), changed = false;
-    for (var i = 0; i < vals.length; i++) {
-      for (var j = 0; j < vals[i].length; j++) {
-        var v = vals[i][j];
-        if (typeof v === "number" && v > 0 && v < 10000) { vals[i][j] = v * 10000; changed = true; }
-      }
-    }
-    if (changed) { e.range.setValues(vals); e.range.setNumberFormat("#,##0"); }
-  } catch (err) {}
-}
-function 트리거설정_만원변환() {
-  var exists = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === "만원자동변환"; });
-  if (!exists) ScriptApp.newTrigger("만원자동변환").forSpreadsheet(SABON_SS_ID).onEdit().create();
-  Logger.log("만원자동변환 onEdit 트리거 " + (exists ? "이미 있음" : "설정 완료"));
-}
