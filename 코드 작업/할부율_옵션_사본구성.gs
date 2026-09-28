@@ -262,3 +262,71 @@ function 옵션탭_구성() {
 
   Logger.log('차량옵션 탭 구성 완료: 옵션 ' + rows.length + '행 / 사본 옵션 블록 제거');
 }
+
+
+// ═══ 차량옵션 탭 v2 — 확정 양식(차량 | 옵션 적용 트림 | 옵션명 | 옵션금액) 1회 구성 ═══
+// 추천세트 열 제거. 트림 여러 개 공유 시 '트림A/트림B' 슬래시 표기. 병합은 빈칸 연속 구간.
+function 옵션탭_이미지구성() {
+  var ss = SpreadsheetApp.openById(SABON_SS_ID);
+  var sh = ss.getSheetByName('차량옵션');
+  if (!sh) sh = ss.insertSheet('차량옵션');
+  sh.clear();
+  try { sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).breakApart(); } catch (e) {}
+
+  var HDR = ['차량', '옵션 적용 트림', '옵션명', '옵션금액(원)'];
+  var R = [
+    ['쏘나타', '모빌리티(기본)', '현대 스마트센스', 640000],
+    ['', '', '1열 통풍시트', 380000],
+    ['그랜저', '고급형(기본)', 'VIP패키지', 1370000],
+    ['', '', '동승석 컴포트', 280000],
+    ['스타리아', '모빌리티 7(LPG)/모빌리티 하이브리드 7/모빌리티 하이브리드 9', 'BOSE 프리미엄 사운드(12스피커, 외장앰프)', 600000],
+    ['', '', '듀얼와이드선루프 (선택 시, 루프 모니터 선택 불가)', 850000],
+    ['', '', '스마트', 1160000],
+    ['', '', '테크', 1050000],
+    ['', '모빌리티 7(LPG)/모빌리티 하이브리드 7', '컴포트', 500000],
+    ['', '모빌리티 하이브리드 9', '컴포트 Ⅰ', 1100000],
+    ['', '', '컴포트 Ⅱ', 500000],
+    ['K5', '트렌디/프레스티지', '애프터마켓용 컬렉션', 250000],
+    ['', '', 'SBW팩', 480000],
+    ['', '', '드라이브 와이즈(SBW팩 적용 시 선택 가능)', 700000],
+    ['', '', '파노라마 선루프(선택 시, 애프터마켓용 컬렉션 선택 불가)', 1030000],
+    ['', '트렌디', '컴포트', 540000],
+    ['', '', '하이패스 시스템', 200000],
+    ['', '프레스티지', '12.3인치 클러스터 팩', 700000],
+    ['', '', '스마트 커넥트(12.3인치 클러스터 팩 적용 시 선택 가능)', 1030000],
+    ['K8', '프레스티지/노블레스', '파노라마 선루프', 1030000],
+    ['', '', '드라이브 와이즈', 1030000],
+    ['', '프레스티지', '컴포트+전자식 룸미러+하이패스 자동결제 시스템', 1220000],
+    ['', '노블레스', '메리디안 프리미엄 사운드', 1030000],
+    ['', '', '컨비니언스', 1690000],
+    ['', '', '스타일', 1600000],
+    ['', '', '헤드업 디스플레이+스마트 커넥트', 1690000],
+    ['아이오닉5', '', '컴포트', 2350000],
+    ['', '', '20인치 알로이 휠&미쉐린 타이어', 470000],
+    ['', '', '20인치 휠', 620000]
+  ];
+
+  sh.getRange(1, 1, 1, 4).setValues([HDR]).setFontWeight('bold').setHorizontalAlignment('center');
+  sh.getRange(2, 1, R.length, 4).setValues(R);
+  sh.getRange(2, 4, R.length, 1).setNumberFormat('#,##0');
+
+  // 병합: 각 열에서 값이 있는 행 = 그룹 시작, 빈칸 연속 = 그룹 연속.
+  // B열은 A열에 새 차량이 시작되면 강제로 그룹 경계. 시작값이 빈칸인 그룹(트림 미정)은 병합하지 않음.
+  [1, 2].forEach(function (col) {
+    var startK = 0;
+    for (var k = 1; k <= R.length; k++) {
+      var boundary = (k === R.length) || String(R[k][col - 1]) !== '' || (col === 2 && String(R[k][0]) !== '');
+      if (boundary) {
+        if (k - startK > 1 && String(R[startK][col - 1]) !== '') {
+          sh.getRange(startK + 2, col, k - startK, 1).mergeVertically();
+        }
+        startK = k;
+      }
+    }
+  });
+
+  sh.getRange(2, 1, R.length, 2).setVerticalAlignment('middle').setHorizontalAlignment('center').setWrap(true);
+  sh.getRange(1, 1, R.length + 1, 4).setBorder(true, true, true, true, true, true);
+  sh.setColumnWidth(1, 90); sh.setColumnWidth(2, 200); sh.setColumnWidth(3, 340); sh.setColumnWidth(4, 110);
+  Logger.log('차량옵션 v2 구성 완료: 옵션 ' + R.length + '행 (아이오닉5 트림 미정 3행 포함)');
+}
