@@ -654,7 +654,7 @@ html.scroll-lock{overflow:hidden;}   /* 오버레이(커버/비교표/모달) �
 const API='https://script.google.com/macros/s/AKfycby5B_q5QMC-0l606v8tuGoUKZJuYgApeL1VzrESX-L5R_-aiuzdxbNBVJ8uSUnAkdcq/exec';
 
 let DB={licensePrice:0,commission:0,evSubsidyDate:'',
-  carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],carOptions:{},
+  carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],carOptions:{},carTrims:{},
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],combineFee:0,
   carBaseRates:[],carPromoRates:[],carPromoConditions:[],carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
@@ -718,7 +718,7 @@ function usageSnapshot(c,i){
     insurance_type:ins?usageChoice(ins.type,['공제','사보험']):'',
     combine:!!(ins&&ins.combine),self_cover:!!(ins&&ins.selfCover),
     options:car&&catalog>=0?carOptSelOf(car).slice(0,30).map(n=>String(n).slice(0,100)):[],
-    option_mode:car?(carOptsOf(idx).length?'individual':car.optOn?'recommended':'none'):'',
+    option_mode:car?(carTrimsOf(idx).length?'trim':carOptsOf(idx).length?'individual':car.optOn?'recommended':'none'):'',
     blackbox:!!(work&&work.bb),blackbox_channels:work&&work.bb?String(work.bbCh||'').slice(0,10):'',
     hipass:!!(work&&work.hi),pedal:!!(work&&work.pedal),roof_light:!!(work&&work.btGat),
     license_saved:!!c.licSet,car_saved:!!car,insurance_saved:!!ins,work_saved:!!work,
@@ -819,7 +819,8 @@ async function loadData(){
     DB.carPrice=(d.carPrice||[]).map(N);
     DB.carOptAmt=(d.carOptAmt||[]).map(N);
     DB.carOptDesc=(d.carOptDesc||[]);
-    DB.carOptions=d.carOptions||{};                    // 차량옵션 탭 (개별 선택) — 없으면 기존 세트 방식 폴백
+    DB.carOptions=d.carOptions||{};                    // 구 개별 옵션 형식 (폴백용)
+    DB.carTrims=d.carTrims||{};                        // 차량옵션 행렬표: {차량명:[{t,p,o:[{n,p,b}]}]} — 없으면 구 방식 폴백
     DB.meterWork=(d.meterWork||[]).map(N);DB.taxFee=(d.taxFee||[]).map(N);
     DB.evSubsidy=(d.evSubsidy||[]).map(N);DB.insurance=(d.insurance||[]).map(N);
     DB.saInsMin=(d.saInsMin||[]).map(N);DB.saInsMax=(d.saInsMax||[]).map(N);
@@ -857,6 +858,7 @@ function fallback(){
     carOptAmt:[1020000,1450000,2710000,2130000,1220000,2870000,1090000,1730000,3910000,1100000,3250000,0],
     carOptDesc:['현대 스마트센스','VIP패키지','스마트/컴포트','[프레스티지]','스마트 파워트렁크','[노블레스]','컴포트/20인치','[어스-롱레인지]','[어스-롱레인지]','[어스-롱레인지]','[시그니처]',''],
     carOptions:{},
+    carTrims:{},
     meterWork:[200000,200000,250000,200000,200000,200000,250000,250000,250000,250000,250000,500000],
     taxFee:[780000,1180000,1380000,880000,1180000,1000000,1090000,0,0,0,1550000,0],
     evSubsidy:[0,0,0,0,0,0,10330000,9710000,9670000,9910000,0,0],
@@ -905,19 +907,37 @@ function escapeRateText(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&am
 function licenseBase(){return DB.licensePrice+DB.commission;}
 function licenseOf(st){if(!st||!st.licSet)return 0;if(st.licManual)return (st.licPrice||0)+(st.licFee||0);return licenseBase();}
 
-// ── 차량별 개별 옵션 ('차량옵션' 탭 연동) ──────────────────────
-// DB.carOptions = { 차량명: [{n:옵션명, p:금액, r:추천세트여부}] }
-// 데이터가 없는 차량은 기존 '추천옵션 세트(optOn/carOptAmt)' 방식으로 폴백된다.
+// ── 차량 트림·옵션 ('차량옵션' 탭 행렬표 연동) ──────────────────
+// DB.carTrims = { 차량명: [{t:트림명, p:트림 차량가, o:[{n:옵션명, p:금액, b:기본포함}]}] }
+// 트림 데이터가 없으면 구 carOptions(개별 옵션) → 그마저 없으면 추천옵션 세트(optOn/carOptAmt)로 폴백.
+// 차량 상태의 트림명은 trimSel에 저장한다 (car.trim은 수입차 영업용/일반용 전용).
 function carOptsOf(i){return (i>=0&&DB.carOptions&&DB.carOptions[DB.carNames[i]])||[];}
+function carTrimsOf(i){return (i>=0&&DB.carTrims&&DB.carTrims[DB.carNames[i]])||[];}
+function carTrimOf(car){                         // 선택된 트림 (미선택이면 첫 트림)
+  const ts=carTrimsOf(car.idx); if(!ts.length)return null;
+  if(car.trimSel){for(let k=0;k<ts.length;k++)if(ts[k].t===car.trimSel)return ts[k];}
+  return ts[0];
+}
+function carBaseOf(car){                         // 차량 기본금액: 트림 차량가 → 원본 DB 가격 폴백
+  const t=carTrimOf(car); return (t&&t.p>0)?t.p:(DB.carPrice[car.idx]||0);
+}
+function carOptListOf(car){                      // 선택 가능한 옵션 목록 (기본 장착 제외)
+  const t=carTrimOf(car); if(t)return t.o.filter(o=>!o.b);
+  return carOptsOf(car.idx);
+}
+function carOptBasicsOf(car){                    // 해당 트림 기본 장착 옵션 (0원, 표시용)
+  const t=carTrimOf(car); return t?t.o.filter(o=>o.b):[];
+}
 function carOptSelOf(car){                       // 현재 선택된 옵션명 배열
-  const opts=carOptsOf(car.idx); if(!opts.length)return [];
+  const opts=carOptListOf(car); if(!opts.length)return [];
   if(Array.isArray(car.optSel))return car.optSel.filter(n=>opts.some(o=>o.n===n));
   return car.optOn===true?opts.filter(o=>o.r).map(o=>o.n):[];   // 과거 저장분 호환
 }
-function carOptEff(car){                         // 옵션 금액 합계 (개별 선택 or 레거시 세트)
-  const i=car.idx, opts=carOptsOf(i);
+function carOptEff(car){                         // 옵션 금액 합계
+  const opts=carOptListOf(car);
   if(opts.length){const sel=carOptSelOf(car);let t=0;opts.forEach(o=>{if(sel.indexOf(o.n)>-1)t+=o.p;});return t;}
-  return car.optOn===true?(DB.carOptAmt[i]||0):0;
+  if(carTrimsOf(car.idx).length)return 0;        // 트림 데이터가 있으면 세트 금액으로 폴백하지 않음
+  return car.optOn===true?(DB.carOptAmt[car.idx]||0):0;
 }
 function carFullOf(car){
   if(!car)return 0;
@@ -928,7 +948,7 @@ function carFullOf(car){
     return fv+Math.floor(fv*rate);
   }
   if(car.priceManual)return Math.max(0,(car.baseOvr||0)+(car.taxOvr||0)-(car.subOvr||0));   // 직접 입력 (하위 항목 합산)
-  const base=DB.carPrice[i]||0, opt=carOptEff(car), tax=DB.taxFee[i]||0;
+  const base=carBaseOf(car), opt=carOptEff(car), tax=DB.taxFee[i]||0;
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
   return base+opt+tax-sub-exc;
@@ -948,7 +968,7 @@ function carInstOf(car){
     if(car.payType==='일부선납')return Math.max(0,instBase-(car.down||0));
     return 0;
   }
-  const base=DB.carPrice[i]||0, opt=carOptEff(car);
+  const base=carBaseOf(car), opt=carOptEff(car);
   const sub=DB.evSubsidy[i]||0;
   const exc=isEV(i)?Math.min(Math.floor((base+opt)*0.05),3000000):0;
   const instBase=Math.max(0,base+opt-sub-exc);
@@ -1288,9 +1308,9 @@ function saveLicense(){
 }
 
 // ── 차량 모달 ──
-let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS};
+let tmpCar={fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',trimSel:'',months:DEFAULT_MONTHS};
 function openCar(){
-  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',months:S.car.months||DEFAULT_MONTHS,ratePlan:S.car.ratePlan||'base',priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0,optOn:S.car.optOn===true,optSel:(Array.isArray(S.car.optSel)?S.car.optSel.slice():null)}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0,optOn:false,optSel:null};
+  tmpCar=S.car?{fuel:DB.carFuels[S.car.idx],maker:DB.carMakers[S.car.idx],idx:S.car.idx,payType:S.car.payType||'',down:S.car.down||0,foreignPrice:S.car.foreignPrice||0,trim:S.car.trim||'',trimSel:S.car.trimSel||'',months:S.car.months||DEFAULT_MONTHS,ratePlan:S.car.ratePlan||'base',priceManual:!!S.car.priceManual,baseOvr:S.car.baseOvr||0,taxOvr:S.car.taxOvr||0,subOvr:S.car.subOvr||0,optOn:S.car.optOn===true,optSel:(Array.isArray(S.car.optSel)?S.car.optSel.slice():null)}:{fuel:'',maker:'',idx:-1,payType:'',down:0,foreignPrice:0,trim:'',months:DEFAULT_MONTHS,priceManual:false,baseOvr:0,taxOvr:0,subOvr:0,optOn:false,optSel:null};
   renderCarModal();
 }
 function renderCarModal(){
@@ -1326,15 +1346,31 @@ function renderCarModal(){
     }else{
       h+=`<div class="divider"></div>`;
       if(!tmpCar.priceManual){
-        const base=DB.carPrice[i], opt=DB.carOptAmt[i], tax=DB.taxFee[i], sub=DB.evSubsidy[i]||0;
-        const optsList=carOptsOf(i);
-        const optEff=carOptEff({idx:i,optSel:tmpCar.optSel,optOn:tmpCar.optOn});
+        const tc={idx:i,trimSel:tmpCar.trimSel,optSel:tmpCar.optSel,optOn:tmpCar.optOn};
+        const trims=carTrimsOf(i);
+        const base=carBaseOf(tc), opt=DB.carOptAmt[i], tax=DB.taxFee[i], sub=DB.evSubsidy[i]||0;
+        const optsList=carOptListOf(tc), basics=carOptBasicsOf(tc);
+        const optEff=carOptEff(tc);
         const exc=isEV(i)?Math.min(Math.floor((base+optEff)*0.05),3000000):0;
+        if(trims.length>1){
+          const curT=(carTrimOf(tc)||{}).t;
+          h+=`<div class="subtitle">④ 트림 선택 *</div><div class="tog-row" style="flex-wrap:wrap;">`;
+          trims.forEach(function(t){
+            const nm=String(t.t).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+            h+=`<button class="tog-btn${curT===t.t?' on':''}" onclick="selCarTrim('${nm}')">${t.t}</button>`;
+          });
+          h+=`</div>`;
+        }else if(trims.length===1){
+          h+=`<div class="sublabel" style="margin-bottom:4px;">트림: <b>${trims[0].t}</b></div>`;
+        }
         h+=`<div class="guide" style="margin-bottom:10px;">아래 금액은 <b>선택한 차량에 맞춰 자동 계산</b>된 값입니다. 보조금·개별소비세 감면이 있으면 자동 차감됩니다.</div>
         <div class="mrow"><span class="ml">차량 기본금액</span><span class="mv">${base?comma(base)+' 원':'—'}</span></div>`;
-        if(optsList.length){
-          const selNames=carOptSelOf({idx:i,optSel:tmpCar.optSel,optOn:tmpCar.optOn});
+        if(optsList.length||basics.length){
+          const selNames=carOptSelOf(tc);
           h+=`<div class="mrow"><span class="ml">옵션 선택 <small style="font-weight:600;color:var(--muted)">(체크 시 포함)</small></span><span class="mv"${optEff?'':' style="color:var(--muted);"'}>${optEff?('약 '+comma(optEff)+' 원'):'미포함'}</span></div>`;
+          basics.forEach(function(o){
+            h+=`<div class="opt-block"><div class="opt-head"><label style="margin-left:0;">${o.n}</label><div class="oa" style="color:var(--muted);font-weight:600;">기본 포함</div></div></div>`;
+          });
           optsList.forEach(function(o){
             const on=selNames.indexOf(o.n)>-1;
             const nm=String(o.n).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
@@ -1397,7 +1433,7 @@ function renderCarModal(){
       if(!tmpCar.priceManual){
         h+=`<div class="subtitle" style="margin-top:14px;">${SVG_EDIT}차량 금액 직접 입력하기</div>
           <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
-          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){tmpCar.baseOvr=(DB.carPrice[${i}]||0)+(DB.carOptAmt[${i}]||0);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">직접 입력</button>`;
+          <button class="manual-btn" onclick="readCarInputs();tmpCar.priceManual=true;if(!tmpCar.baseOvr){var _c={idx:${i},trimSel:tmpCar.trimSel,optSel:tmpCar.optSel,optOn:tmpCar.optOn};tmpCar.baseOvr=carBaseOf(_c)+carOptEff(_c);tmpCar.taxOvr=DB.taxFee[${i}]||0;tmpCar.subOvr=(DB.evSubsidy[${i}]||0);}renderCarModal()">직접 입력</button>`;
       }else{
         h+=`<button class="manual-exit" onclick="readCarInputs();tmpCar.priceManual=false;renderCarModal()">직접 입력 취소</button>`;
       }
@@ -1414,9 +1450,9 @@ function updateCarManualSum(){
   const cm=el('carMonthlyDisp');if(cm)cm.textContent=rateByMonths(tmpCar.months,tmpCar)==null?'할부수수료율 미등록':won(previewMonthly());   // 월 예상 납입 즉시 반영
   const cu=el('carUpfrontDisp');if(cu)cu.textContent=won(previewCarUpfront()); // 초기 일시 소요비용 즉시 반영
 }
-function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,optSel:(Array.isArray(tmpCar.optSel)?tmpCar.optSel.slice():null),baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
+function tmpCarState(){return {idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:readFPrice(),trim:tmpCar.trim,trimSel:tmpCar.trimSel||'',months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,optSel:(Array.isArray(tmpCar.optSel)?tmpCar.optSel.slice():null),baseOvr:(el('carBaseOvr')?N(el('carBaseOvr').value):tmpCar.baseOvr),taxOvr:(el('carTaxOvr')?N(el('carTaxOvr').value):tmpCar.taxOvr),subOvr:(el('carSubOvr')?N(el('carSubOvr').value):tmpCar.subOvr)};}
 function toggleOpt(){readCarInputs();tmpCar.optOn=!tmpCar.optOn;renderCarModal();}
-function toggleCarOpt(on,name){readCarInputs();var sel=carOptSelOf({idx:tmpCar.idx,optSel:tmpCar.optSel,optOn:tmpCar.optOn});
+function toggleCarOpt(on,name){readCarInputs();var sel=carOptSelOf({idx:tmpCar.idx,trimSel:tmpCar.trimSel,optSel:tmpCar.optSel,optOn:tmpCar.optOn});
   if(on){if(sel.indexOf(name)<0)sel=sel.concat([name]);}else{sel=sel.filter(function(n){return n!==name;});}
   tmpCar.optSel=sel;renderCarModal();}
 function previewCarSub(){return carFullOf(tmpCarState());}
@@ -1425,8 +1461,9 @@ function previewCarUpfront(){const st=tmpCarState();return Math.max(0,carFullOf(
 function readFPrice(){const e=el('fPrice');return e?N(e.value):tmpCar.foreignPrice;}
 function selFuel(f){tmpCar.fuel=f;tmpCar.maker='';tmpCar.idx=-1;renderCarModal();}
 function selMaker(m){tmpCar.maker=m;tmpCar.idx=-1;renderCarModal();}
-function selCar(i){tmpCar.ratePlan='base';tmpCar.idx=i;tmpCar.payType='';tmpCar.optSel=carOptsOf(i).filter(function(o){return o.r;}).map(function(o){return o.n;});renderCarModal();}
+function selCar(i){tmpCar.ratePlan='base';tmpCar.idx=i;tmpCar.payType='';var ts=carTrimsOf(i);tmpCar.trimSel=ts.length?ts[0].t:'';tmpCar.optSel=ts.length?[]:carOptsOf(i).filter(function(o){return o.r;}).map(function(o){return o.n;});renderCarModal();}
 function selTrim(t){if(el('fPrice'))tmpCar.foreignPrice=N(el('fPrice').value);tmpCar.trim=t;renderCarModal();}
+function selCarTrim(t){readCarInputs();tmpCar.trimSel=t;tmpCar.optSel=[];renderCarModal();}   // 트림 변경 시 옵션 선택 초기화
 function selPay(v){readCarInputs();tmpCar.payType=v;renderCarModal();}
 function selMonths(m){readCarInputs();tmpCar.months=m;renderCarModal();}
 function saveCar(){
@@ -1442,7 +1479,7 @@ function saveCar(){
   readCarInputs();
   if(tmpCar.priceManual&&!isForeign(tmpCar.idx)&&!(tmpCar.baseOvr>0)){toast('차량 기본금액을 입력해 주세요');return;}
   if(tmpCar.payType!=='일시불'&&rateByMonths(tmpCar.months,tmpCar)==null){toast('해당 선택 개월 수에 적용되는 할부수수료율 데이터가 제공되지 않습니다.');return;}
-  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,optSel:(Array.isArray(tmpCar.optSel)?tmpCar.optSel.slice():null),baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
+  S.car={idx:tmpCar.idx,payType:tmpCar.payType,down:tmpCar.down,foreignPrice:tmpCar.foreignPrice,trim:tmpCar.trim,trimSel:tmpCar.trimSel||'',months:tmpCar.months,ratePlan:tmpCar.ratePlan||'base',priceManual:!!tmpCar.priceManual,optOn:tmpCar.optOn===true,optSel:(Array.isArray(tmpCar.optSel)?tmpCar.optSel.slice():null),baseOvr:tmpCar.baseOvr||0,taxOvr:tmpCar.taxOvr||0,subOvr:tmpCar.subOvr||0};
   autoNameCfg(activeCfg);
   closeModal();renderAll();refreshCmp();toast('차량 정보가 저장되었습니다',' green');
 }
@@ -1964,9 +2001,12 @@ function smsAnswerData(){
     push('차량','차량명', car?(DB.carNames[car.idx]||''):'(미선택)');
     push('차량','연료', car?(DB.carFuels[car.idx]||''):'');
     push('차량','제조사', car?(DB.carMakers[car.idx]||''):'');
-    (function(){var opts=car?carOptsOf(car.idx):[];
+    (function(){if(!car){push('차량','옵션 포함','');return;}
+      var tr=carTrimsOf(car.idx).length?carTrimOf(car):null;
+      if(tr)push('차량','트림', tr.t);
+      var opts=carOptListOf(car);
       if(opts.length){var sel=carOptSelOf(car);push('차량','옵션 선택', sel.length?(sel.join(', ')+' · '+comma(carOptEff(car))+'원'):'미포함');}
-      else push('차량','옵션 포함', car?(car.optOn===true?'포함':'미포함'):'');})();
+      else push('차량','옵션 포함', car.optOn===true?'포함':'미포함');})();
     push('차량','할부 방식', car?payLabel(car):'');
     push('차량','선납금', (car&&car.payType==='일부선납')?(car.down||0):'');
     push('차량','차량 소계', b.carFull);

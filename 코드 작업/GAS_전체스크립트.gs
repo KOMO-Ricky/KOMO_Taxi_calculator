@@ -31,34 +31,38 @@ function doGet(e) {
     if(!isFinite(n)||n<0)return null;
     return Math.round((text.indexOf('%')>=0?n:(n>0&&n<1?n*100:n))*10000)/10000;
   }
+  var carTrims = readCarTrims_(ss);   // '차량옵션' 탭 행렬표 (<차량명> 블록) → {차량명:[{t,p,o}]}
   var carPrice=[],carOptAmt=[],carOptDesc=[],evSubsidy=[],taxFee=[],meterWork=[],insurance=[],saInsMin=[],saInsMax=[];
   for(var r=3;r<=lastRow;r++){
     var fuel=s.getRange('D'+r).getValue();
     if(fuel==='')continue;
     carFuels.push(String(fuel));
-    carBaseRates.push(s.getRange('N'+r+':Q'+r).getValues()[0].map(rateCell));
-    carPromoRates.push(s.getRange('R'+r+':U'+r).getValues()[0].map(rateCell));
-    carPromoConditions.push(String(s.getRange('V'+r).getValue()||''));
+    carBaseRates.push(s.getRange('M'+r+':P'+r).getValues()[0].map(rateCell));   // 구 N:Q
+    carPromoRates.push(s.getRange('Q'+r+':T'+r).getValues()[0].map(rateCell));   // 구 R:U
+    carPromoConditions.push(String(s.getRange('U'+r).getValue()||''));   // 구 V
     carMakers.push(String(s.getRange('E'+r).getValue()));
-    carNames.push(String(s.getRange('F'+r).getValue()));
-    carPrice.push(s.getRange('G'+r).getValue());
-    carOptAmt.push(s.getRange('H'+r).getValue());
-    carOptDesc.push(s.getRange('I'+r).getValue());
-    evSubsidy.push(s.getRange('J'+r).getValue());
-    taxFee.push(s.getRange('K'+r).getValue());
-    meterWork.push(s.getRange('L'+r).getValue());
-    insurance.push(s.getRange('X'+r).getValue());
-    saInsMin.push(s.getRange('Y'+r).getValue());
-    saInsMax.push(s.getRange('Z'+r).getValue());
+    var nm=String(s.getRange('F'+r).getValue());
+    carNames.push(nm);
+    // 차량가격: G열 삭제 → '차량옵션' 탭 해당 차량 첫 트림의 차량가 (없으면 빈값)
+    var tl=carTrims[nm];
+    carPrice.push(tl&&tl.length&&tl[0].p>0?tl[0].p:'');
+    carOptAmt.push(s.getRange('G'+r).getValue());   // 구 H
+    carOptDesc.push(s.getRange('H'+r).getValue());   // 구 I
+    evSubsidy.push(s.getRange('I'+r).getValue());   // 구 J
+    taxFee.push(s.getRange('J'+r).getValue());   // 구 K
+    meterWork.push(s.getRange('K'+r).getValue());   // 구 L
+    insurance.push(s.getRange('W'+r).getValue());   // 구 X
+    saInsMin.push(s.getRange('X'+r).getValue());   // 구 Y
+    saInsMax.push(s.getRange('Y'+r).getValue());   // 구 Z
   }
 
   var loanBanks=[],loanLimits=[],loanRates=[];
   for(var r2=3;r2<=lastRow;r2++){
-    var bank=s.getRange('AI'+r2).getValue();
+    var bank=s.getRange('AH'+r2).getValue();   // 구 AI
     if(!bank)continue;
     loanBanks.push(String(bank));
-    loanLimits.push(Number(s.getRange('AJ'+r2).getValue())||0);
-    loanRates.push(Number(s.getRange('AK'+r2).getValue())||0);
+    loanLimits.push(Number(s.getRange('AI'+r2).getValue())||0);   // 구 AJ
+    loanRates.push(Number(s.getRange('AJ'+r2).getValue())||0);   // 구 AK
   }
 
   var data = {
@@ -79,30 +83,10 @@ function doGet(e) {
     carPrice:   carPrice,
     carOptAmt:  carOptAmt,
     carOptDesc: carOptDesc,
-    // ── 차량별 개별 옵션 ('차량옵션' 탭, 2행~마지막행 동적) ──
-    // A차량명(병합: 빈칸이면 직전 차량 계승) B옵션명 C금액 D추천세트(V)
-    // 금액이 비었거나 0이면 계산기에 노출하지 않는다 → 시트에 금액을 채우는 순간 자동 반영
-    carOptions: (function(){
-      var out = {};
-      try {
-        var os = ss.getSheetByName('차량옵션');
-        if (os) {
-          var lr = os.getLastRow();
-          if (lr >= 2) {
-            var v = os.getRange(2, 1, lr - 1, 4).getValues(), cur = '';
-            for (var i2 = 0; i2 < v.length; i2++) {
-              var nm2 = String(v[i2][0] || '').trim();
-              if (nm2) cur = nm2;
-              var op = String(v[i2][1] || '').trim();
-              var pr = Number(v[i2][2]) || 0;
-              if (!cur || !op || op === '(옵션 없음)' || pr <= 0) continue;
-              (out[cur] = out[cur] || []).push({ n: op, p: pr, r: String(v[i2][3] || '').trim().toUpperCase() === 'V' });
-            }
-          }
-        }
-      } catch (e2) {}
-      return out;
-    })(),
+    // ── 차량 트림·옵션 ('차량옵션' 탭 행렬표: <차량명> 블록, 행=트림, 열=옵션) ──
+    // {차량명:[{t:트림명, p:트림 차량가, o:[{n:옵션명, p:금액, b:기본포함}]}]}
+    carTrims: carTrims,
+    carOptions: {},   // 구 형식 — 옛 캐시 프런트 호환용 (빈 객체면 추천옵션 세트로 폴백)
     evSubsidy:  evSubsidy,
     taxFee:     taxFee,
     meterWork:  meterWork,
@@ -111,20 +95,20 @@ function doGet(e) {
     saInsMax:   saInsMax,
     selItems: (function(){
       var result=[];
-      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,33).getValue()); }   // AG3:AG9 = 2/3/4/5채널·하이패스·페달·블루투스갓등
+      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,32).getValue()); }   // AF3:AF9 (구 AG) = 2/3/4/5채널·하이패스·페달·블루투스갓등
       return result;
     })(),
     reqItems: (function(){
       var result=[];
-      for(var r4=3;r4<=6;r4++){ result.push(s.getRange(r4,29).getValue()); }
+      for(var r4=3;r4<=6;r4++){ result.push(s.getRange(r4,28).getValue()); }   // AB3:AB6 (구 AC)
       return result;
     })(),
     loanBanks:  loanBanks,
     loanLimits: loanLimits,
     loanRates:  loanRates,
-    // ── 추천 구성 (AM4:AS4) ──
+    // ── 추천 구성 (AL4:AR4, 구 AM4:AS4) ──
     reco: (function(){
-      var r = s.getRange('AM4:AS4').getValues()[0];   // AM~AS = 39~45열
+      var r = s.getRange('AL4:AR4').getValues()[0];   // AL~AR = 38~44열 (구 AM~AS)
       var t = function(v){ return String(v==null?'':v).trim(); };
       return {
         car:    t(r[0]),   // AM 차량 종류
@@ -141,6 +125,51 @@ function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// '차량옵션' 탭 행렬표 파서 — 고정 범위 없음, 규칙 기반:
+// A열의 <차량명> 셀 = 표 시작(꺾쇠는 반각/전각 모두, '차량 옵션표'/'옵션표' 꼬리말 무시)
+// 다음 행 = 헤더(구분|차량가|옵션명들; 옵션명은 빈 칸까지) / 이후 행 = 트림 (빈 행이나 다음 표에서 끝)
+// 셀 값: 숫자>0 = 그 트림의 옵션 금액, '기본'·'포함' = 기본 장착(0원, b:true), '-'·빈칸 = 미제공
+function readCarTrims_(ss) {
+  var out = {};
+  try {
+    var os = ss.getSheetByName('차량옵션');
+    if (!os) return out;
+    var v = os.getDataRange().getValues();
+    for (var i = 0; i < v.length; i++) {
+      var a = String(v[i][0] == null ? '' : v[i][0]).trim();
+      var mt = a.match(/^[<\uFF1C](.+)[>\uFF1E]$/);
+      if (!mt) continue;
+      var name = mt[1].replace(/\s*(차량\s*)?옵션표\s*$/, '').trim();
+      var hi = i + 1;
+      if (hi >= v.length || String(v[hi][0] == null ? '' : v[hi][0]).trim() !== '구분') continue;
+      var hdr = v[hi], optNames = [], c;
+      for (c = 2; c < hdr.length; c++) {
+        var on = String(hdr[c] == null ? '' : hdr[c]).trim();
+        if (!on) break;
+        optNames.push(on);
+      }
+      var trims = [];
+      for (var rI = hi + 1; rI < v.length; rI++) {
+        var tn = String(v[rI][0] == null ? '' : v[rI][0]).trim();
+        if (!tn || /^[<\uFF1C]/.test(tn)) break;
+        var opts = [];
+        for (c = 0; c < optNames.length; c++) {
+          var cell = v[rI][c + 2];
+          var txt = String(cell == null ? '' : cell).trim();
+          if (txt === '' || txt === '-') continue;
+          if (txt === '기본' || txt === '포함') { opts.push({ n: optNames[c], p: 0, b: true }); continue; }
+          var pn = Number(cell);
+          if (isFinite(pn) && pn > 0) opts.push({ n: optNames[c], p: pn });
+        }
+        trims.push({ t: tn, p: Number(v[rI][1]) || 0, o: opts });
+        i = rI;
+      }
+      if (trims.length) out[name] = trims;
+    }
+  } catch (e) {}
+  return out;
 }
 
 
