@@ -31,7 +31,9 @@ function doGet(e) {
     if(!isFinite(n)||n<0)return null;
     return Math.round((text.indexOf('%')>=0?n:(n>0&&n<1?n*100:n))*10000)/10000;
   }
-  var carTrims = readCarTrims_(ss);   // '차량옵션' 탭 행렬표 (<차량명> 블록) → {차량명:[{t,p,o}]}
+  var carTrimsRaw = readCarTrims_(ss);   // '차량옵션' 탭 행렬표 (<차량명> 블록) → {표제목:[{t,p,o}]}
+  var carTrims = {};                     // 원본 차량명 키로 재매핑 (아래 차량 루프에서 채움)
+  function normNm_(x){ return String(x == null ? '' : x).replace(/\s+/g, ''); }
   var carPrice=[],carOptAmt=[],carOptDesc=[],evSubsidy=[],taxFee=[],meterWork=[],insurance=[],saInsMin=[],saInsMax=[];
   for(var r=3;r<=lastRow;r++){
     var fuel=s.getRange('D'+r).getValue();
@@ -40,11 +42,18 @@ function doGet(e) {
     carBaseRates.push(s.getRange('M'+r+':P'+r).getValues()[0].map(rateCell));   // 구 N:Q
     carPromoRates.push(s.getRange('Q'+r+':T'+r).getValues()[0].map(rateCell));   // 구 R:U
     carPromoConditions.push(String(s.getRange('U'+r).getValue()||''));   // 구 V
-    carMakers.push(String(s.getRange('E'+r).getValue()));
+    var mk=String(s.getRange('E'+r).getValue());
+    carMakers.push(mk);
     var nm=String(s.getRange('F'+r).getValue());
     carNames.push(nm);
     // 차량가격: G열 삭제 → '차량옵션' 탭 해당 차량 첫 트림의 차량가 (없으면 빈값)
-    var tl=carTrims[nm];
+    // 표 제목 매칭: 정확 일치 → 공백 무시 → 제조사+차량명 (예: <BYD 돌핀>, <토레스 EVX>)
+    var tl=carTrimsRaw[nm];
+    if(!tl){
+      var tgt=normNm_(nm), tgtMk=normNm_(mk)+normNm_(nm);
+      for(var kk in carTrimsRaw){ var nk=normNm_(kk); if(nk===tgt||nk===tgtMk){ tl=carTrimsRaw[kk]; break; } }
+    }
+    if(tl) carTrims[nm]=tl;   // 계산기에는 원본 차량명 키로 전달
     carPrice.push(tl&&tl.length&&tl[0].p>0?tl[0].p:'');
     carOptAmt.push(s.getRange('G'+r).getValue());   // 구 H
     carOptDesc.push(s.getRange('H'+r).getValue());   // 구 I
@@ -143,7 +152,8 @@ function readCarTrims_(ss) {
       if (!mt) continue;
       var name = mt[1].replace(/\s*(차량\s*)?옵션표\s*$/, '').trim();
       var hi = i + 1;
-      if (hi >= v.length || String(v[hi][0] == null ? '' : v[hi][0]).trim() !== '구분') continue;
+      var h0 = hi < v.length ? String(v[hi][0] == null ? '' : v[hi][0]).trim() : '';
+      if (h0 !== '구분' && h0 !== '트림') continue;   // 헤더 첫 칸: 구분/트림 둘 다 허용
       var hdr = v[hi], optNames = [], c;
       for (c = 2; c < hdr.length; c++) {
         var on = String(hdr[c] == null ? '' : hdr[c]).trim();
