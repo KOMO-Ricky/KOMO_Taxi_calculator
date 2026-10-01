@@ -74,6 +74,17 @@ function doGet(e) {
     loanRates.push(Number(s.getRange('AJ'+r2).getValue())||0);   // 구 AK
   }
 
+  // ── 작업비 항목 동적 읽기: 필수 AA:AB(27,28), 선택 AD:AE:AF(30,31,32) — 행 추가/삭제 자동 반영 ──
+  var REQ2 = (function(){ var out=[]; for(var rq=3; rq<=60; rq++){ var n=String(s.getRange(rq,27).getValue()||'').trim(); if(!n)break; out.push({ n:n, p:Number(s.getRange(rq,28).getValue())||0 }); } return out; })();
+  var SEL2 = (function(){ var out=[], lastG=null; for(var rs=3; rs<=60; rs++){
+      var g=String(s.getRange(rs,30).getValue()||'').trim();   // AD 항목명(그룹)
+      var c=String(s.getRange(rs,31).getValue()||'').trim();   // AE 세부(채널)
+      var pv=Number(s.getRange(rs,32).getValue())||0;          // AF 금액
+      if(!g&&!c)break;
+      if(c){ if(g){ lastG={n:g,ch:[]}; out.push(lastG); } if(lastG&&lastG.ch) lastG.ch.push({n:c,p:pv}); }
+      else { out.push({n:g,p:pv}); lastG=null; }
+    } return out; })();
+
   var data = {
     licensePrice:   s.getRange('B3').getValue(),
     commission:     s.getRange('B6').getValue(),
@@ -102,16 +113,16 @@ function doGet(e) {
     insurance:  insurance,
     saInsMin:   saInsMin,
     saInsMax:   saInsMax,
+    // 구 프런트 호환: [2ch,3ch,4ch,5ch,하이패스,페달,블루투스] — SEL2에서 이름으로 역매핑
     selItems: (function(){
-      var result=[];
-      for(var r3=3;r3<=9;r3++){ result.push(s.getRange(r3,32).getValue()); }   // AF3:AF9 (구 AG) = 2/3/4/5채널·하이패스·페달·블루투스갓등
-      return result;
+      function find(n){ for(var q=0;q<SEL2.length;q++){ var it=SEL2[q];
+        if(it.ch){ for(var w=0;w<it.ch.length;w++) if(it.ch[w].n===n) return it.ch[w].p; }
+        else if(it.n.indexOf(n)>-1) return it.p; } return ''; }
+      return [find('2채널'),find('3채널'),find('4채널'),find('5채널'),find('하이패스'),find('페달'),find('블루투스')];
     })(),
-    reqItems: (function(){
-      var result=[];
-      for(var r4=3;r4<=6;r4++){ result.push(s.getRange(r4,28).getValue()); }   // AB3:AB6 (구 AC)
-      return result;
-    })(),
+    reqItemsV2: REQ2,
+    selItemsV2: SEL2,
+    reqItems: REQ2.slice(0,4).map(function(x){return x.p;}),   // 구 프런트 호환 (앞 4개)
     loanBanks:  loanBanks,
     loanLimits: loanLimits,
     loanRates:  loanRates,

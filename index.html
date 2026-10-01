@@ -657,7 +657,7 @@ const API='https://script.google.com/macros/s/AKfycby5B_q5QMC-0l606v8tuGoUKZJuYg
 let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   carNames:[],carMakers:[],carFuels:[],carPrice:[],carOptAmt:[],carOptDesc:[],carOptions:{},carTrims:{},
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
-  selItems:[],reqItems:[],combineFee:0,
+  selItems:[],reqItems:[],reqItems2:null,selItems2:null,meterWorkDisp:[],combineFee:0,
   carBaseRates:[],carPromoRates:[],carPromoConditions:[],carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
   dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],
   reco:null};   // reco=추천 구성(AM4:AS4), carRate=할부수수료율(연%), date*=기준일
@@ -822,10 +822,16 @@ async function loadData(){
     DB.carOptDesc=(d.carOptDesc||[]);
     DB.carOptions=d.carOptions||{};                    // 구 개별 옵션 형식 (폴백용)
     DB.carTrims=d.carTrims||{};                        // 차량옵션 행렬표: {차량명:[{t,p,o:[{n,p,b}]}]} — 없으면 구 방식 폴백
-    DB.meterWork=(d.meterWork||[]).map(N);DB.taxFee=(d.taxFee||[]).map(N);
+    const mwRaw=(d.meterWork||[]);
+    const mwRange=v=>String(v==null?'':v).match(/([\d,]+)\s*~\s*([\d,]+)/);   // 예: 300,000~400,000
+    DB.meterWorkDisp=mwRaw.map(v=>{const m=mwRange(v);return m?(comma(N(m[1]))+' ~ '+comma(N(m[2]))+' 원'):null;});   // 범위 그대로 표시용
+    DB.meterWork=mwRaw.map(v=>{const m=mwRange(v);return m?Math.round((N(m[1])+N(m[2]))/2):N(v);});                   // 합산은 중앙값
+    DB.taxFee=(d.taxFee||[]).map(N);
     DB.evSubsidy=(d.evSubsidy||[]).map(N);DB.insurance=(d.insurance||[]).map(N);
     DB.saInsMin=(d.saInsMin||[]).map(N);DB.saInsMax=(d.saInsMax||[]).map(N);
     DB.selItems=(d.selItems||[]).map(N);DB.reqItems=(d.reqItems||[]).map(N);
+    DB.reqItems2=(Array.isArray(d.reqItemsV2)&&d.reqItemsV2.length)?d.reqItemsV2:null;   // 시트 동적 [{n,p}]
+    DB.selItems2=(Array.isArray(d.selItemsV2)&&d.selItemsV2.length)?d.selItemsV2:null;   // [{n,p}|{n,ch:[{n,p}]}]
     DB.combineFee=N(d.combineFee);
     DB.carBaseRates=d.carBaseRates||[];
     DB.carPromoRates=d.carPromoRates||[];
@@ -868,6 +874,7 @@ function fallback(){
     saInsMax:[4000000,4000000,5000000,4000000,4000000,4000000,4500000,4500000,4500000,4500000,4500000,0],
     selItems:[200000,350000,550000,650000,100000,100000,500000],   // 2/3/4/5채널·하이패스·페달·블루투스갓등
     reqItems:[60000,20000,30000,100000],
+    reqItems2:null,selItems2:null,meterWorkDisp:[],
     combineFee:1500000,
     carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부수수료율 DB 연동 예정 (지금은 0% = 무이자)
     dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
@@ -1004,17 +1011,38 @@ function combineOf(ins){
   if(ins.type==='공제'||ins.combine)return DB.combineFee||0;
   return 0;
 }
-// 블랙박스 채널 선택항목 (selItems[0~3] = 2/3/4/5채널, [4]=하이패스, [5]=페달, [6]=블루투스갓등)
-const BB_CH=['2채널','3채널','4채널','5채널'];
+// ── 작업비 항목 (시트 동적 연동: reqItemsV2/selItemsV2 — 없으면 구 고정 매핑 폴백) ──
+const BB_CH=['2채널','3채널','4채널','5채널'];   // 구 API 폴백용
 function bbPrice(ch){const i=BB_CH.indexOf(ch);return i>=0?(DB.selItems[i]||0):0;}
+function workReqList(){                          // 필수 항목 [{n,p}]
+  if(DB.reqItems2)return DB.reqItems2;
+  return ['갓등','경광벨(경고등)','미터기 거치대','빈차등'].map((n,ix)=>({n:n,p:DB.reqItems[ix]||0}));
+}
+function workSelList(){                          // 선택 항목 [{n,p} | {n,ch:[{n,p}]}]
+  if(DB.selItems2)return DB.selItems2;
+  return [{n:'블랙박스',ch:BB_CH.map((c,ix)=>({n:c,p:DB.selItems[ix]||0}))},
+          {n:'미터기 연동형 하이패스',p:DB.selItems[4]||0},
+          {n:'블랙박스 페달 추가',p:DB.selItems[5]||0},
+          {n:'블루투스(자석) 갓등',p:DB.selItems[6]||0}];
+}
+function workChPrice(it,chName){if(!it||!it.ch)return 0;for(let k=0;k<it.ch.length;k++)if(it.ch[k].n===chName)return it.ch[k].p||0;return 0;}
+function workOnHas(work,name){const o=work&&work.on;if(!o)return false;return Array.isArray(o)?o.indexOf(name)>-1:!!o[name];}
+function workChOf(work,name){return (work&&work.ch&&work.ch[name])||'';}
 function workSubtotalOf(work,car){
   if(!work)return 0;
   if(work.ovr>0)return work.ovr;               // 직접 입력 우선
   let t=0;
   const i=car?car.idx:-1;
-  if(i>=0&&!isForeign(i))t+=DB.meterWork[i]||0;
-  t+=(DB.reqItems[0]||0)+(DB.reqItems[1]||0)+(DB.reqItems[2]||0)+(DB.reqItems[3]||0);
-  if(work.bb&&work.bbCh)t+=bbPrice(work.bbCh);
+  if(i>=0&&!isForeign(i))t+=DB.meterWork[i]||0;   // 범위 입력 차량은 중앙값
+  workReqList().forEach(it=>{t+=it.p||0;});
+  if(work.on){                                  // 신규 상태 (항목명 기반)
+    workSelList().forEach(it=>{
+      if(!workOnHas(work,it.n))return;
+      t+=it.ch?workChPrice(it,workChOf(work,it.n)):(it.p||0);
+    });
+    return t;
+  }
+  if(work.bb&&work.bbCh)t+=bbPrice(work.bbCh);  // 구 저장분·추천구성 폴백
   if(work.hi)t+=DB.selItems[4]||0;
   if(work.pedal)t+=DB.selItems[5]||0;
   if(work.btGat)t+=DB.selItems[6]||0;
@@ -1099,10 +1127,13 @@ function renderAll(){
     if(S.work.ovr>0){wd.textContent='직접 입력';}
     else{
       const opts=[];
+      if(Array.isArray(S.work.on)){S.work.on.forEach(n=>{const c=S.work.ch&&S.work.ch[n];opts.push(c?(n+' '+c):n);});}
+      else{
       if(S.work.bb)opts.push('블박'+(S.work.bbCh||''));
       if(S.work.hi)opts.push('하이패스');
       if(S.work.pedal)opts.push('페달');
       if(S.work.btGat)opts.push('블루투스갓등');
+      }
       wd.textContent=opts.length?'필수 + '+opts.join(', '):'필수 항목';
     }
   }else{wi.classList.add('empty');wi.classList.remove('done');wr.textContent='—';wd.textContent='미터점 작업 항목';}
@@ -1599,12 +1630,27 @@ function saveIns(){
 }
 
 // ── 작업비 모달 (직접입력 override) ──
-let tmpWork={bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
+let tmpWork={on:{},ch:{},ovr:0};
 function openWork(){
-  tmpWork=S.work?{bb:S.work.bb,bbCh:S.work.bbCh,hi:S.work.hi,pedal:S.work.pedal,btGat:S.work.btGat,ovr:S.work.ovr||0}:{bb:false,bbCh:'',hi:false,pedal:false,btGat:false,ovr:0};
+  tmpWork={on:{},ch:{},ovr:S.work?(S.work.ovr||0):0};
+  if(S.work){
+    if(Array.isArray(S.work.on)){S.work.on.forEach(n=>tmpWork.on[n]=true);Object.assign(tmpWork.ch,S.work.ch||{});}
+    else{                                        // 구 저장분 → 이름 매칭 마이그레이션
+      workSelList().forEach(it=>{
+        if(it.ch&&S.work.bb&&it.n.indexOf('블랙박스')>-1){tmpWork.on[it.n]=true;if(S.work.bbCh)tmpWork.ch[it.n]=S.work.bbCh;}
+        if(!it.ch){
+          if(S.work.hi&&it.n.indexOf('하이패스')>-1)tmpWork.on[it.n]=true;
+          if(S.work.pedal&&it.n.indexOf('페달')>-1)tmpWork.on[it.n]=true;
+          if(S.work.btGat&&it.n.indexOf('블루투스')>-1)tmpWork.on[it.n]=true;
+        }
+      });
+    }
+  }
   tmpWork.manual=tmpWork.ovr>0;
   renderWorkModal();
 }
+function wkToggle(name,onv){tmpWork.on[name]=onv;if(!onv)delete tmpWork.ch[name];renderWorkModal();}
+function wkCh(name,chName){tmpWork.ch[name]=chName;renderWorkModal();}
 function renderWorkModal(){
   const i=S.car?S.car.idx:-1;
   const meter=(i>=0&&!isForeign(i))?DB.meterWork[i]:0;
@@ -1614,34 +1660,37 @@ function renderWorkModal(){
   h+=`<div class="guide"><span class="gt">필수와 선택</span>
     <b>① 필수 항목</b>은 자동 합산, <b>② 선택 항목</b>은 체크 시 추가됩니다. 총액을 직접 넣으려면 <b>[입력하기]</b>를 누르세요.</div>`;
   h+=`<div class="subtitle">① 필수 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(자동 포함)</small></div>`;
-  if(i>=0&&!isForeign(i))h+=`<div class="mrow"><span class="ml">미터기 작업비</span>${amt(meter===0?'0 원':won(meter))}</div>`;
-  h+=`<div class="mrow"><span class="ml">갓등</span>${amt(won(DB.reqItems[0]))}</div>
-    <div class="mrow"><span class="ml">경광벨(경고등)</span>${amt(won(DB.reqItems[1]))}</div>
-    <div class="mrow"><span class="ml">미터기 거치대</span>${amt(won(DB.reqItems[2]))}</div>
-    <div class="mrow"><span class="ml">빈차등</span>${amt(won(DB.reqItems[3]))}</div>`;
-  h+=`<div class="subtitle">② 선택 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(체크 시 추가)</small></div>
-    <div class="opt-block">
-      <label class="opt-head" style="cursor:pointer;">
-        <input type="checkbox" id="w_bb" ${tmpWork.bb?'checked':''} onchange="tmpWork.bb=this.checked;if(!this.checked)tmpWork.bbCh='';renderWorkModal();">
-        <span class="opt-nm">블랙박스</span>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(bbPrice(tmpWork.bbCh)):'—'}</div>`}
-      </label>`;
-  if(tmpWork.bb){
-    h+=`<div class="tog-row" style="margin-top:10px;flex-wrap:wrap;">`;
-    BB_CH.forEach((ch,ci)=>{h+=`<button class="tog-btn${tmpWork.bbCh===ch?' on':''}" onclick="tmpWork.bbCh='${ch}';renderWorkModal();">${ch}${M?'':' ('+comma(DB.selItems[ci])+')'}</button>`;});
-    h+=`</div>`;
+  if(i>=0&&!isForeign(i)){
+    const md=(DB.meterWorkDisp&&DB.meterWorkDisp[i])||null;   // 범위 입력(예: 300,000 ~ 400,000) 그대로 표시
+    h+=`<div class="mrow"><span class="ml">미터기 작업비</span>${amt(md?md:(meter===0?'0 원':won(meter)))}</div>`;
+    if(md&&!M)h+=`<div class="sublabel">범위 입력 차량 — 소계·총액에는 중앙값 ${comma(meter)}원이 반영됩니다.</div>`;
   }
-  h+=`</div>
-    <label class="opt-block"><div class="opt-head">
-      <input type="checkbox" id="w_hi" ${tmpWork.hi?'checked':''} onchange="tmpWork.hi=this.checked;renderWorkModal();">
-      <span class="opt-nm">미터기 연동형 하이패스</span>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></label>
-    <label class="opt-block"><div class="opt-head">
-      <input type="checkbox" id="w_pedal" ${tmpWork.pedal?'checked':''} onchange="tmpWork.pedal=this.checked;renderWorkModal();">
-      <span class="opt-nm">블랙박스 페달 추가</span>${M?'':`<div class="oa">${won(DB.selItems[5])}</div>`}</div></label>
-    <label class="opt-block"><div class="opt-head">
-      <input type="checkbox" id="w_bt" ${tmpWork.btGat?'checked':''} onchange="tmpWork.btGat=this.checked;renderWorkModal();">
-      <span class="opt-nm">블루투스(자석) 갓등</span>${M?'':`<div class="oa">${won(DB.selItems[6])}</div>`}</div></label>`;
+  workReqList().forEach(it=>{h+=`<div class="mrow"><span class="ml">${it.n}</span>${amt(it.p===0?'0 원':won(it.p))}</div>`;});
+  h+=`<div class="subtitle">② 선택 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(체크 시 추가)</small></div>`;
+  workSelList().forEach(it=>{
+    const on=!!tmpWork.on[it.n];
+    const nmEsc=String(it.n).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    if(it.ch){                                   // 세부(채널) 선택형 항목
+      const cur=tmpWork.ch[it.n]||'';
+      h+=`<div class="opt-block">
+        <label class="opt-head" style="cursor:pointer;">
+          <input type="checkbox"${on?' checked':''} onchange="wkToggle('${nmEsc}',this.checked)">
+          <span class="opt-nm">${it.n}</span>${M?'':`<div class="oa">${on&&cur?won(workChPrice(it,cur)):'—'}</div>`}
+        </label>`;
+      if(on){
+        h+=`<div class="tog-row" style="margin-top:10px;flex-wrap:wrap;">`;
+        it.ch.forEach(c=>{const cEsc=String(c.n).replace(/'/g,'&#39;');h+=`<button class="tog-btn${cur===c.n?' on':''}" onclick="wkCh('${nmEsc}','${cEsc}')">${c.n}${M?'':' ('+comma(c.p)+')'}</button>`;});
+        h+=`</div>`;
+      }
+      h+=`</div>`;
+    }else{
+      h+=`<label class="opt-block"><div class="opt-head">
+        <input type="checkbox"${on?' checked':''} onchange="wkToggle('${nmEsc}',this.checked)">
+        <span class="opt-nm">${it.n}</span>${M?'':`<div class="oa">${won(it.p)}</div>`}</div></label>`;
+    }
+  });
   if(!M){
-    const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
+    const prev=workSubtotalOf({on:tmpWork.on,ch:tmpWork.ch,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
     <div class="subtitle" style="margin-top:14px;">${SVG_EDIT}작업비 직접 입력하기</div>
     <div class="sublabel">거래하실 비용 혹은 희망하시는 비용이 따로 있는 경우, 아래 버튼을 클릭 후 입력해 주세요.</div>
@@ -1659,9 +1708,15 @@ function renderWorkModal(){
   openModalHTML(h);
 }
 function saveWork(){
-  if(tmpWork.bb&&!tmpWork.bbCh){toast('블랙박스 채널을 선택해 주세요');return;}
+  for(const it of workSelList()){if(it.ch&&tmpWork.on[it.n]&&!tmpWork.ch[it.n]){toast(it.n+' 세부 항목을 선택해 주세요');return;}}
   tmpWork.ovr=(tmpWork.manual&&el('workOvr'))?N(el('workOvr').value):0;
-  S.work={bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:tmpWork.ovr};
+  const onArr=workSelList().filter(it=>tmpWork.on[it.n]).map(it=>it.n);
+  const chMap={};workSelList().forEach(it=>{if(it.ch&&tmpWork.on[it.n]&&tmpWork.ch[it.n])chMap[it.n]=tmpWork.ch[it.n];});
+  const hasW=kw=>onArr.some(x=>x.indexOf(kw)>-1);
+  const bbIt=workSelList().find(it=>it.ch&&it.n.indexOf('블랙박스')>-1);
+  S.work={on:onArr,ch:chMap,ovr:tmpWork.ovr,
+    bb:!!(bbIt&&tmpWork.on[bbIt.n]),bbCh:bbIt?(chMap[bbIt.n]||''):'',   // 구 소비처(문자·통계·요약·추천) 호환 미러
+    hi:hasW('하이패스'),pedal:hasW('페달'),btGat:hasW('블루투스')};
   closeModal();renderAll();refreshCmp();toast('작업비 정보가 저장되었습니다',' green');
 }
 
