@@ -1516,11 +1516,11 @@ function renderInsModal(){
       h+=`<div class="alert info">ℹ️ <b>${reg}</b> 공제보험료는 해당 지역 공제조합 문의가 필요합니다. 아래 <b>직접 입력하기</b>에서 안내받은 금액을 입력해 주세요.</div>`;
     }
     h+=`<div class="subtitle">자손 / 자차 보장 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(선택)</small></div>
-      <div class="opt-block"><div class="opt-head">
+      <label class="opt-block"><div class="opt-head">
         <input type="checkbox" id="chkSelf" ${tmpIns.selfCover?'checked':''} onchange="syncSa();tmpIns.selfCover=this.checked;renderInsModal();">
-        <label>자손·자차 보장 추가</label>
+        <span class="opt-nm">자손·자차 보장 추가</span>
         <div class="oa">약 50~60만원</div>
-      </div></div>
+      </div></label>
       <div class="sublabel">보상운영회 보장 · 1년 보험료 약 50~60만원</div>`;
   }else if(tmpIns.type==='사보험'){
     const rng=(DB.saInsMin[i]&&DB.saInsMax[i])?comma(DB.saInsMin[i])+' ~ '+comma(DB.saInsMax[i])+' 원':'개별 조회 필요';
@@ -1532,13 +1532,13 @@ function renderInsModal(){
       const locked=tmpIns.type==='공제';
       const checked=locked||tmpIns.combine;
       h+=`<div class="subtitle">운송사업조합 가입비용 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(1회성 초기비용)</small></div>
-        <div class="opt-block">
+        <label class="opt-block">
           <div class="opt-head">
             <input type="checkbox" id="chkCombine" ${checked?'checked':''} ${locked?'disabled':''} onchange="syncSa();tmpIns.combine=this.checked;renderInsModal();">
-            <label>서울개인택시조합 가입비</label>
+            <span class="opt-nm">서울개인택시조합 가입비</span>
             <div class="oa">${won(DB.combineFee)}</div>
           </div>
-        </div>
+        </label>
         <div class="refdate">${refDate(DB.dataDate)}</div>`;
       if(locked)h+=`<div class="alert info">ℹ️ 공제보험 가입 시, 운송사업조합 가입이 필수이므로 가입비가 보험료 총액에 자동 포함됩니다.</div>`;
       else if(tmpIns.combine)h+=`<div class="alert info">ℹ️ 선택하신 <b>조합 가입비 ${comma(DB.combineFee)}원</b>이 총액에 포함되었습니다.</div>`;
@@ -1621,25 +1621,25 @@ function renderWorkModal(){
     <div class="mrow"><span class="ml">빈차등</span>${amt(won(DB.reqItems[3]))}</div>`;
   h+=`<div class="subtitle">② 선택 항목 <small style="font-weight:600;color:var(--muted);margin-left:4px;">(체크 시 추가)</small></div>
     <div class="opt-block">
-      <div class="opt-head">
+      <label class="opt-head" style="cursor:pointer;">
         <input type="checkbox" id="w_bb" ${tmpWork.bb?'checked':''} onchange="tmpWork.bb=this.checked;if(!this.checked)tmpWork.bbCh='';renderWorkModal();">
-        <label>블랙박스</label>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(bbPrice(tmpWork.bbCh)):'—'}</div>`}
-      </div>`;
+        <span class="opt-nm">블랙박스</span>${M?'':`<div class="oa">${tmpWork.bb&&tmpWork.bbCh?won(bbPrice(tmpWork.bbCh)):'—'}</div>`}
+      </label>`;
   if(tmpWork.bb){
     h+=`<div class="tog-row" style="margin-top:10px;flex-wrap:wrap;">`;
     BB_CH.forEach((ch,ci)=>{h+=`<button class="tog-btn${tmpWork.bbCh===ch?' on':''}" onclick="tmpWork.bbCh='${ch}';renderWorkModal();">${ch}${M?'':' ('+comma(DB.selItems[ci])+')'}</button>`;});
     h+=`</div>`;
   }
   h+=`</div>
-    <div class="opt-block"><div class="opt-head">
+    <label class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_hi" ${tmpWork.hi?'checked':''} onchange="tmpWork.hi=this.checked;renderWorkModal();">
-      <label>미터기 연동형 하이패스</label>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></div>
-    <div class="opt-block"><div class="opt-head">
+      <span class="opt-nm">미터기 연동형 하이패스</span>${M?'':`<div class="oa">${won(DB.selItems[4])}</div>`}</div></label>
+    <label class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_pedal" ${tmpWork.pedal?'checked':''} onchange="tmpWork.pedal=this.checked;renderWorkModal();">
-      <label>블랙박스 페달 추가</label>${M?'':`<div class="oa">${won(DB.selItems[5])}</div>`}</div></div>
-    <div class="opt-block"><div class="opt-head">
+      <span class="opt-nm">블랙박스 페달 추가</span>${M?'':`<div class="oa">${won(DB.selItems[5])}</div>`}</div></label>
+    <label class="opt-block"><div class="opt-head">
       <input type="checkbox" id="w_bt" ${tmpWork.btGat?'checked':''} onchange="tmpWork.btGat=this.checked;renderWorkModal();">
-      <label>블루투스(자석) 갓등</label>${M?'':`<div class="oa">${won(DB.selItems[6])}</div>`}</div></div>`;
+      <span class="opt-nm">블루투스(자석) 갓등</span>${M?'':`<div class="oa">${won(DB.selItems[6])}</div>`}</div></label>`;
   if(!M){
     const prev=workSubtotalOf({bb:tmpWork.bb,bbCh:tmpWork.bbCh,hi:tmpWork.hi,pedal:tmpWork.pedal,btGat:tmpWork.btGat,ovr:0},S.car);
     h+=`<div class="mrow" style="margin-top:8px;"><span class="ml"><b>작업비 소계</b></span><span class="mv" style="color:var(--primary);font-size:19px;">${won(prev)}</span></div>
