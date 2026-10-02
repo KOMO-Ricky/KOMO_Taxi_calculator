@@ -2122,8 +2122,9 @@ function submitFeedback(){
   // 성명·전화번호는 선택 입력 (쿠폰 발송에만 필요)
   const ph=el('fbPhone')?el('fbPhone').value.trim():'';
   if(ph&&ph.replace(/[^0-9]/g,'').length<10){toast('전화번호를 정확히 입력해 주세요');return;}   // 입력했을 때만 형식 검사
+  closeModal();   // 전송 결과와 무관하게 모달은 즉시 닫는다
   postGAS({requestType:'calc_feedback',sheet:'자금계산기 의견수집',createdAt:nowKST(),rating:fbRating,ratingLabel:FB_LBL[fbRating],comment:txt,name:nm,phone:ph,privacyAgreed:true,source:location.href});
-  closeModal();toast('소중한 의견 감사합니다! 🙏<br>추첨 대상에 포함되었습니다.',' green');
+  toast('소중한 의견 감사합니다! 🙏<br>추첨 대상에 포함되었습니다.',' green');
 }
 
 // ══════════════════════════════════════════
