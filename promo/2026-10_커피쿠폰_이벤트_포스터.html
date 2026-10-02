@@ -24,11 +24,15 @@
 
   /* 상단 */
   .top{display:flex;justify-content:space-between;align-items:flex-start;}
-  .logo{font-weight:800;font-size:30px;letter-spacing:-.5px;}
-  .logo small{display:block;font-size:19px;font-weight:600;color:#6b7694;margin-top:10px;letter-spacing:0;}
+  .org{display:flex;align-items:center;gap:16px;}
+  .bar{width:2.5px;height:34px;background:rgba(26,43,87,.4);border-radius:2px;}
+  .orgname{font-size:27px;font-weight:800;color:var(--navy);letter-spacing:-.5px;}
+  .logo2{text-align:right;}
+  .logo2 small{display:block;font-size:18px;font-weight:600;color:#6b7694;margin-top:9px;letter-spacing:0;}
   .sticker{
-    transform:rotate(5deg);background:var(--yellow);color:var(--navy-d);
-    font-weight:800;font-size:25px;padding:14px 24px;border-radius:999px;
+    position:absolute;right:-16px;top:25%;z-index:3;
+    transform:rotate(7deg);background:var(--yellow);color:var(--navy-d);
+    font-weight:800;font-size:22px;padding:10px 20px;border-radius:999px;
     box-shadow:5px 5px 0 rgba(26,43,87,.2);border:2px solid var(--navy);
   }
 
@@ -37,7 +41,7 @@
   .kicker:before,.kicker:after{content:'—————';letter-spacing:0;color:rgba(91,58,41,.4);margin:0 18px;}
   .head{
     margin-top:56px;text-align:center;font-family:'Black Han Sans','Malgun Gothic',sans-serif;
-    font-size:86px;line-height:1.2;letter-spacing:0;font-weight:400;
+    font-size:86px;line-height:1.2;letter-spacing:0;font-weight:400;position:relative;
   }
   .head .hl{background:linear-gradient(transparent 58%, var(--yellow) 58%);padding:0 6px;}
 
@@ -83,7 +87,7 @@
   .row:last-of-type{margin-bottom:0;}
   .n{flex:0 0 40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center;}
   .row .t{font-size:30px;font-weight:700;}
-  .warn{margin-top:18px;font-size:24px;font-weight:800;color:var(--red);text-align:center;}
+  .warn{margin-top:18px;font-size:24px;font-weight:800;color:var(--red);text-align:left;padding-left:56px;}
 
   /* 하단 */
   .cta{
@@ -99,8 +103,8 @@
   <div class="frame"></div>
   <div class="wrap">
     <div class="top">
-      <div class="logo"><img src="logo/logo_kola.png" style="height:44px;display:block;"><img src="logo/logo_brand_light.png" style="height:38px;display:block;margin-top:12px;"><small>개인택시 준비자금 계산기</small></div>
-      <div class="sticker">이용자 2,000명 돌파 🎉</div>
+      <div class="org"><img src="logo/logo_kola.png" style="height:40px;display:block;"><span class="bar"></span><span class="orgname">개인택시 양수도센터</span></div>
+      <div class="logo2"><img src="logo/logo_brand_light.png" style="height:36px;display:block;margin-left:auto;"><small>개인택시 준비자금 계산기</small></div>
     </div>
 
     <div class="kicker">10월 업데이트 기념 이벤트</div>
@@ -109,7 +113,7 @@
       <div class="chip">✓ 세부 옵션 직접 선택</div>
       <div class="chip">✓ 미터점 작업비 최신화</div>
     </div>
-    <div class="head">매일 10분께<br><span class="hl">커피 쿠폰</span>을 드립니다</div>
+    <div class="head">매일 10분께<br><span class="hl">커피 쿠폰</span>을 드립니다<div class="sticker">이용자 2,000명 돌파 🎉</div></div>
 
     <div class="period"><span class="d">10월 2일(금) ~ 10월 8일(목)</span></div>
 
