@@ -2103,8 +2103,9 @@ function openFeedback(){
       <div class="star-lbl" id="fbStarLbl">별을 눌러 평가해 주세요</div></div>
     <div class="field"><label>추가 의견 *</label><textarea class="inp" id="fbText" style="resize:vertical;min-height:100px;" placeholder="예) OO 항목도 추가되면 좋겠어요"></textarea></div>
     <div class="ov-note" style="margin:2px 0 14px;">🎁 정성스럽게 작성해주신 분을 <b>추첨</b>하여 소정의 <b>상품</b>을 드릴 예정입니다.</div>
-    <div class="field"><label>성명 *</label><input class="inp" id="fbName" placeholder="홍길동"></div>
-    <div class="field"><label>전화번호 *</label><input class="inp" id="fbPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
+    <div class="field"><label>성명 <span style="font-weight:600;color:var(--muted)">(선택)</span></label><input class="inp" id="fbName" placeholder="홍길동"></div>
+    <div class="field"><label>전화번호 <span style="font-weight:600;color:var(--muted)">(선택)</span></label><input class="inp" id="fbPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000"></div>
+    <div class="sublabel" style="margin-top:2px;">이벤트 쿠폰·상품은 전화번호로 보내드려요. 미입력 시 추첨 대상에서 제외됩니다.</div>
     <button class="modal-save" onclick="submitFeedback()">보내기</button>
     <button class="modal-close" onclick="closeModal()">취소</button>`);
 }
@@ -2118,9 +2119,9 @@ function submitFeedback(){
   const txt=el('fbText')?el('fbText').value.trim():'';
   if(!txt){toast('의견을 입력해 주세요');return;}
   const nm=el('fbName')?el('fbName').value.trim():'';
-  if(!nm){toast('성명을 입력해 주세요');return;}
+  // 성명·전화번호는 선택 입력 (쿠폰 발송에만 필요)
   const ph=el('fbPhone')?el('fbPhone').value.trim():'';
-  if(ph.replace(/[^0-9]/g,'').length<10){toast('전화번호를 정확히 입력해 주세요');return;}
+  if(ph&&ph.replace(/[^0-9]/g,'').length<10){toast('전화번호를 정확히 입력해 주세요');return;}   // 입력했을 때만 형식 검사
   postGAS({requestType:'calc_feedback',sheet:'자금계산기 의견수집',createdAt:nowKST(),rating:fbRating,ratingLabel:FB_LBL[fbRating],comment:txt,name:nm,phone:ph,privacyAgreed:true,source:location.href});
   closeModal();toast('소중한 의견 감사합니다! 🙏<br>추첨 대상에 포함되었습니다.',' green');
 }
