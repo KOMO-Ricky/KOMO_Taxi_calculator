@@ -659,7 +659,7 @@ let DB={licensePrice:0,commission:0,evSubsidyDate:'',
   meterWork:[],taxFee:[],evSubsidy:[],insurance:[],saInsMin:[],saInsMax:[],
   selItems:[],reqItems:[],reqItems2:null,selItems2:null,meterWorkDisp:[],combineFee:0,
   carBaseRates:[],carPromoRates:[],carPromoConditions:[],carRate:[],dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
-  dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],
+  dateLoan:'',loanBanks:[],loanLimits:[],loanRates:[],loanRateDisp:[],
   reco:null};   // reco=추천 구성(AM4:AS4), carRate=할부수수료율(연%), date*=기준일
 
 // ── 흑백(라인) 아이콘 — 구성 페이지 항목 아이콘과 동일 계열 ──
@@ -843,6 +843,7 @@ async function loadData(){
     DB.loanBanks=(d.loanBanks||[]).map(v=>String(v).trim()).filter(Boolean);
     DB.loanLimits=(d.loanLimits||[]).map(N);
     DB.loanRates=(d.loanRates||[]).map(v=>{let x=parseFloat(v)||0;return (x>0&&x<1)?Math.round(x*1000)/10:x;});   // 0.052 → 5.2
+    DB.loanRateDisp=(d.loanRateDisp||[]).map(v=>String(v==null?'':v).trim());   // 시트 표기 원문 (예: 약 5.9%)
     DB.reco=d.reco||null;   // 추천 구성 (스프레드시트 AM4:AS4)
     el('hdDate').textContent='• 데이터 기준일 '+(DB.dataDate||new Date().toLocaleDateString('ko-KR'));
     setStatus('ok','데이터 연동 완료 · '+new Date().toLocaleDateString('ko-KR'));
@@ -878,7 +879,7 @@ function fallback(){
     combineFee:1500000,
     carRate:[0,0,0,0,0,0,0,0,0,0,0,0],       // 할부수수료율 DB 연동 예정 (지금은 0% = 무이자)
     dateLicense:'',dateCar:'',dateCombine:'',dataDate:'',
-    dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9],
+    dateLoan:'',loanBanks:['A은행','B은행','C캐피탈'],loanLimits:[130000000,120000000,150000000],loanRates:[5.2,5.6,6.9],loanRateDisp:[],
     reco:{car:'쏘나타',option:'현대 스마트센스 / 1열 통풍시트',pay:'60개월',ins:'공제보험',bb:'5채널',hipass:'O',pedal:'X'}};
 }
 
@@ -1817,7 +1818,7 @@ function openCompare(force){
       </div>
       <div class="loan-bh"><span class="lbt">🏦 은행별 대출 가능 금액 · 이율</span><span class="lbd">${refDate(DB.dateLoan)}</span></div>
       <div class="bank-row hd"><div>은행/기관</div><div class="br">이율</div><div class="bl">한도</div></div>
-      ${loanBankList().map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rate?'연 '+bk.rate+'%':'—'}</div><div class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</div></div>`).join('')}
+      ${loanBankList().map(bk=>`<div class="bank-row"><div class="bn">${bk.name}</div><div class="br">${bk.rateTxt||'—'}</div><div class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</div></div>`).join('')}
       <div class="sublabel" style="margin-top:4px;">※ 은행별 한도·최저 이율은 참고용이며 실제 심사 결과와 다를 수 있습니다.</div>
     </div>
   </div>`;
@@ -1839,7 +1840,12 @@ function openCompare(force){
 // 대출 계산기 데이터 (DB 연동 예정)
 // 대출 은행 데이터 (스프레드시트 Y3:Y / Z3:Z / AA3:AA 연동)
 function loanBankList(){
-  return (DB.loanBanks||[]).map((n,i)=>({name:n,limit:DB.loanLimits[i]||0,rate:DB.loanRates[i]||0}));
+  return (DB.loanBanks||[]).map((n,i)=>({name:n,limit:DB.loanLimits[i]||0,rate:DB.loanRates[i]||0,rateTxt:loanRateTxt(i)}));
+}
+function loanRateTxt(i){                         // '약 5.9%' 같은 시트 표기는 그대로, 숫자면 '연 N%'
+  const d=String((DB.loanRateDisp&&DB.loanRateDisp[i])||'').trim();
+  if(d&&/[%~약]/.test(d))return d;
+  const r=DB.loanRates[i]||0;return r?('연 '+r+'%'):'';
 }
 let loanCash=0, loanOpen=false, loanInclCar=true;
 function toggleLoan(){
@@ -1977,7 +1983,7 @@ function smsBankBlock(){
   const baseA=A.initial-(loanInclCar?0:A.carUpfront), baseB=B.initial-(loanInclCar?0:B.carUpfront);
   const na=Math.max(0,baseA-loanCash), nb=Math.max(0,baseB-loanCash);
   const banks=loanBankList();
-  const rows=banks.map(bk=>`<div class="smsb-row"><span class="bn">${bk.name}</span><span class="br">${bk.rate?'연 '+bk.rate+'%':'—'}</span><span class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</span></div>`).join('');
+  const rows=banks.map(bk=>`<div class="smsb-row"><span class="bn">${bk.name}</span><span class="br">${bk.rateTxt||'—'}</span><span class="bl">${bk.limit?comma(bk.limit)+'원':'—'}</span></div>`).join('');
   return `<div class="sms-bank">
     <div class="smsb-h">🏦 대출 참고 정보가 함께 발송됩니다</div>
     <div class="smsb-note">대출 계산기에 <b>보유 금액</b>을 입력하셔서, 아래 <b>은행별 한도·이율 안내</b>가 견적과 함께 문자로 발송됩니다.</div>
@@ -2024,7 +2030,7 @@ function buildQuoteSmsText(nm){
   t+=' · 총 비용 : '+w(B.grand)+'\n';
   if(loanCash>0){
     t+='\n[대출 참고 · 기준일 '+(DB.dateLoan||'-')+']\n';
-    loanBankList().forEach(function(bk){t+=' · '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rate?'연 '+bk.rate+'%':'-')+'\n';});
+    loanBankList().forEach(function(bk){t+=' · '+bk.name+' 한도 '+(bk.limit?comma(bk.limit)+'원':'-')+' / '+(bk.rateTxt||'-')+'\n';});
   }
   t+='\n첨부된 이미지에서 항목별 상세 비교를 확인하실 수 있습니다.\n';
   t+='※ 본 견적은 예상 금액이며, 시세 변동 및 중개업체에 따라 실제 양수 시 소요 비용과 차이가 있을 수 있습니다.\n\n';

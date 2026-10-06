@@ -65,13 +65,17 @@ function doGet(e) {
     saInsMax.push(s.getRange('Y'+r).getValue());   // 구 Z
   }
 
-  var loanBanks=[],loanLimits=[],loanRates=[];
+  var loanBanks=[],loanLimits=[],loanRates=[],loanRateDisp=[];
   for(var r2=3;r2<=lastRow;r2++){
     var bank=s.getRange('AH'+r2).getValue();   // 구 AI
     if(!bank)continue;
     loanBanks.push(String(bank));
     loanLimits.push(Number(s.getRange('AI'+r2).getValue())||0);   // 구 AJ
-    loanRates.push(Number(s.getRange('AJ'+r2).getValue())||0);   // 구 AK
+    // 이율: '약 5.9 %' 같은 텍스트 표기 허용 — 표시값에서 숫자 추출 + 원문 전달
+    var rD=String(s.getRange('AJ'+r2).getDisplayValue()||'').trim();   // 구 AK
+    var rM=rD.match(/d+(?:.d+)?/);
+    loanRates.push(rM?Number(rM[0]):0);
+    loanRateDisp.push(rD.replace(/s+%/,'%'));
   }
 
   // ── 작업비 항목 동적 읽기: 필수 AA:AB(27,28), 선택 AD:AE:AF(30,31,32) — 행 추가/삭제 자동 반영 ──
@@ -126,6 +130,7 @@ function doGet(e) {
     loanBanks:  loanBanks,
     loanLimits: loanLimits,
     loanRates:  loanRates,
+    loanRateDisp: loanRateDisp,   // 시트 표기 원문 (예: 약 5.9%)
     // ── 추천 구성 (AL4:AR4, 구 AM4:AS4) ──
     reco: (function(){
       var r = s.getRange('AL4:AR4').getValues()[0];   // AL~AR = 38~44열 (구 AM~AS)
